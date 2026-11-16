@@ -67,7 +67,7 @@ def speech_to_text(audio_bytes):
 # ---------- FAST ANSWERS ----------
 def get_instant_answer(user_text, lang):
     text = user_text.lower()
-    if "muscle" in text or "body pain" in text or "sharir" in text or "badan" in text or "poora sharir" in text:
+    if "muscle" in text or "body pain" in text or "sharir" in text or "badan" in text or "poora sharir" in text or "whole body" in text or "paining" in text or "pain" in text or "dard" in text:
         if lang == "Hindi":
             return """Aapki takleef samajh sakte hain, aaram kijiye.
 **Possible Causes:**
@@ -278,36 +278,46 @@ Kya aap doctor se baat karna chahengi?"""
 Your photo is saved to show to doctor. If itching increases, talk to a doctor.
 Would you like to see a doctor?"""
     return None
+
 def ask_ollama_stream(user_text, lang, placeholder):
     instant = get_instant_answer(user_text, lang)
     if instant:
         placeholder.markdown(instant)
         return instant
+    # FIXED: No Ollama call - Cloud pe Ollama nahi chalta, isliye offline generic jawab
     if lang == "Hindi":
-        system_prompt = "Tum Sehat Saathi ho. Tum doctor NAHI ho. Hamesha simple Hindi me, chhota jawab do. Sirf 4 heading me jawab do: Possible Causes, Danger Signs, What To Do Now, Health Tip. Har heading me sirf 2-3 point. Har point 1 line me. Last me apni taraf se 1 line salah likh kar pucho: Kya aap doctor se baat karna chahengi?"
+        fallback = """Aapki takleef samajh sakte hain, aaram kijiye.
+**Possible Causes:**
+- **Thakan:** Neend poori na hone ya zyada kaam karne se sharir thak jata hai aur dard hone lagta hai.
+- **Viral Infection:** Mausam badalne se sharir me dard, halka bukhar aur thakan mehsoos hoti hai.
+**Danger Signs:**
+- **Tez Bukhar:** 102 se upar bukhar ho toh turant doctor ko dikhayein.
+- **Saans me dikkat:** Saans lene me takleef ho toh der mat karein.
+**What To Do Now:**
+- **Aaram Karein:** 1-2 din bhari kaam band karke poora aaram karein.
+- **Gunguna Paani:** Din bhar gunguna paani piyein, isse aaram milega.
+**Health Tip:**
+- **Roz Walk:** Roz 30 minute halki walk se sharir mazboot rehta hai.
+Aap thoda aaram kijiye, agar 2 din me aaram na mile toh doctor se baat kar lijiyega.
+Kya aap doctor se baat karna chahengi?"""
     else:
-        system_prompt = "You are Sehat Saathi. You are NOT a doctor. Reply in simple English, short answer. Only 4 headings: Possible Causes, Danger Signs, What To Do Now, Health Tip. Only 2-3 points in each heading. Each point 1 line. At end write 1 line of your own advice and ask: Would you like to see a doctor?"
-    try:
-        history = [{"role": "system", "content": system_prompt}]
-        for m in st.session_state.messages[-2:]:
-            if m.get("type") != "image":
-                history.append({"role": m["role"], "content": m["content"]})
-        history.append({"role": "user", "content": user_text})
-        response = requests.post("http://localhost:11434/api/chat", json={"model": "llama3.2:1b", "messages": history, "stream": True, "options": {"temperature": 0.3, "num_predict": 350}}, stream=True, timeout=60)
-        full_text = ""
-        for line in response.iter_lines():
-            if line:
-                try:
-                    data = json.loads(line.decode('utf-8'))
-                    part = data.get("message", {}).get("content", "")
-                    full_text += part
-                    placeholder.markdown(full_text + "▌")
-                except:
-                    pass
-        placeholder.markdown(full_text)
-        return full_text
-    except Exception:
-        return "Ollama is not running. Please run `ollama serve`"
+        fallback = """I understand, please take rest.
+**Possible Causes:**
+- **Tiredness:** When you do not sleep well or work too much, your body gets tired and starts paining.
+- **Viral Infection:** Change in weather causes body pain, mild fever and tiredness.
+**Danger Signs:**
+- **High Fever:** If fever is above 102, see a doctor immediately.
+- **Breathing Problem:** If you feel difficulty in breathing, do not wait.
+**What To Do Now:**
+- **Take Rest:** Stop heavy work for 1-2 days and give your body full rest.
+- **Warm Water:** Drink warm water through the day, it will give relief.
+**Health Tip:**
+- **Daily Walk:** Walking 30 minutes daily keeps your body strong.
+Please take rest, if no relief in 2 days, please talk to a doctor.
+Would you like to see a doctor?"""
+    placeholder.markdown(fallback)
+    return fallback
+
 # ================= HOME - CHANGE: CLEAR CHAT CHHOTA + BOX KE SIDE ME =================
 if menu in ["🏠 Home", "🏠 होम"]:
     st.title("🩺 Sehat Saathi")
@@ -317,7 +327,6 @@ if menu in ["🏠 Home", "🏠 होम"]:
     else:
         st.write("Hello, I am here to help you! 👋")
         st.write("Write your problem, speak or send photo.")
-    # Chat history - upar bada Clear Chat button HATA DIYA, ab wo neeche box ke side me hai
     for idx, m in enumerate(st.session_state.messages):
         with st.chat_message(m["role"]):
             if m.get("type") == "image":
@@ -339,12 +348,10 @@ if menu in ["🏠 Home", "🏠 होम"]:
                 st.session_state.messages.append({"role": "assistant", "content": "Theek hai, apna khayal rakhiye. Takleef badhe toh turant 104 ya 108 pe call kijiyega." if IS_HINDI else "Okay, take care. If problem increases, call 104 or 108 immediately."})
                 st.rerun()
     st.markdown("---")
-    # --- NEW: Input Box + Chhota Clear Icon side-by-side ---
     col_box, col_clear = st.columns([5, 1])
     with col_box:
         chat_text = st.text_input("Type...", label_visibility="collapsed", placeholder="Apni takleef likhein..." if IS_HINDI else "Write your symptom...", key="wa_text")
     with col_clear:
-        # Chhota sa sirf 🧹 icon, poora "Clear Chat" text nahi
         if st.button("🧹", use_container_width=True, key="clear_btn", help="Clear Chat" if not IS_HINDI else "Chat Saaf Karein"):
             st.session_state.messages = []
             st.session_state.doctor_asked = False
