@@ -19,30 +19,24 @@ if IS_HINDI:
 else:
     menu = st.sidebar.radio("Menu", ["🏠 Home", "💊 Medicine Reminder", "👨‍⚕️ Talk To Doctor", "🚨 Emergency", "💡 Health Tips", "⚖️ BMI Calculator", "🏛️ Government Schemes", "ℹ️ About App"])
 
-# ---------- VOICE - FIXED: pydub hataya, ab Cloud pe chalega aur detail jawab dega ----------
 def speech_to_text(audio_bytes):
     try:
         import speech_recognition as sr
         import io
         r = sr.Recognizer()
-        r.energy_threshold = 300
-        r.dynamic_energy_threshold = True
         wav_io = io.BytesIO(audio_bytes)
         with sr.AudioFile(wav_io) as source:
             audio_data = r.record(source)
             try:
-                text = r.recognize_google(audio_data, language="hi-IN")
-                return text
+                return r.recognize_google(audio_data, language="hi-IN")
             except:
-                text = r.recognize_google(audio_data, language="en-IN")
-                return text
+                return r.recognize_google(audio_data, language="en-IN")
     except Exception as e:
         return f"ERROR:{str(e)[:100]}"
 
-# ---------- FAST ANSWERS - PURA DETAIL WALA ----------
 def get_instant_answer(user_text, lang):
     text = user_text.lower()
-    if "muscle" in text or "body pain" in text or "sharir" in text or "badan" in text or "poora sharir" in text or "whole body" in text or "paining" in text or "pain" in text or "dard" in text:
+    if "muscle" in text or "body pain" in text or "sharir" in text or "badan" in text or "whole body" in text or "paining" in text or "pain" in text or "dard" in text:
         if lang == "Hindi":
             return """Aapki takleef samajh sakte hain, aaram kijiye.
 **Possible Causes:**
@@ -112,7 +106,7 @@ Kya aap doctor se baat karna chahengi?"""
 - **Tulsi Kadha:** Tulsi and ginger kadha gives relief in fever.
 Your fever seems in starting stage, take rest for 1 day. If fever increases, talk to a doctor.
 Would you like to see a doctor?"""
-    if "headache" in text or "sar dard" in text or "sir dard" in text or "head pain" in text:
+    if "headache" in text or "sar dard" in text or "sir dard" in text or "head pain" in text or "head" in text:
         if lang == "Hindi":
             return """Sar dard me bahut takleef hoti hai, thoda aaram kijiye.
 **Possible Causes:**
@@ -292,7 +286,7 @@ Would you like to see a doctor?"""
     placeholder.markdown(fallback)
     return fallback
 
-# ================= HOME =================
+# ================= HOME - FIXED LOOP =================
 if menu in ["🏠 Home", "🏠 होम"]:
     st.title("🩺 Sehat Saathi")
     if IS_HINDI:
@@ -322,15 +316,23 @@ if menu in ["🏠 Home", "🏠 होम"]:
                 st.session_state.messages.append({"role": "assistant", "content": "Theek hai, apna khayal rakhiye. Takleef badhe toh turant 104 ya 108 pe call kijiyega." if IS_HINDI else "Okay, take care. If problem increases, call 104 or 108 immediately."})
                 st.rerun()
     st.markdown("---")
-    col_box, col_clear = st.columns([5, 1])
-    with col_box:
-        chat_text = st.text_input("Type...", label_visibility="collapsed", placeholder="Apni takleef likhein..." if IS_HINDI else "Write your symptom...", key="wa_text")
-    with col_clear:
-        if st.button("🧹", use_container_width=True, key="clear_btn", help="Clear Chat" if not IS_HINDI else "Chat Saaf Karein"):
-            st.session_state.messages = []
-            st.session_state.doctor_asked = False
-            st.session_state["last_audio_id"] = ""
-            st.rerun()
+    # FIX: form + clear_on_submit se loop khatam, box khud khaali ho jayega
+    with st.form("chat_form", clear_on_submit=True):
+        chat_text = st.text_input("Type...", label_visibility="collapsed", placeholder="Apni takleef likhein..." if IS_HINDI else "Write your symptom...")
+        submitted = st.form_submit_button("➤ Send", use_container_width=True)
+    if submitted and chat_text.strip() != "":
+        st.session_state.messages.append({"role": "user", "content": chat_text})
+        st.session_state.doctor_asked = False
+        with st.chat_message("assistant"):
+            placeholder = st.empty()
+            reply = ask_ollama_stream(chat_text, lang, placeholder)
+        st.session_state.messages.append({"role": "assistant", "content": reply})
+        st.rerun()
+    if st.button("🧹 Clear Chat" if not IS_HINDI else "🧹 Chat Saaf Karein", use_container_width=True):
+        st.session_state.messages = []
+        st.session_state.doctor_asked = False
+        st.session_state["last_audio_id"] = ""
+        st.rerun()
     col_photo, col_audio = st.columns(2)
     with col_photo:
         st.write("📷 Photo")
@@ -340,23 +342,20 @@ if menu in ["🏠 Home", "🏠 होम"]:
         audio_input = st.audio_input("Speak", label_visibility="collapsed", key="wa_mic")
     if uploaded_photo:
         st.image(uploaded_photo, width=200)
-        photo_text = chat_text if chat_text else "haath pe daane, rash, khujli"
-        st.session_state.messages.append({"role": "user", "content": photo_text, "type": "image", "image": uploaded_photo})
-        st.session_state.doctor_asked = False
-        with st.chat_message("assistant"):
-            placeholder = st.empty()
-            reply = ask_ollama_stream(photo_text, lang, placeholder)
-        st.session_state.messages.append({"role": "assistant", "content": reply})
-        st.rerun()
+        if st.button("📸 Photo Bhejein" if IS_HINDI else "📸 Send Photo", use_container_width=True):
+            photo_text = "haath pe daane, rash, khujli"
+            st.session_state.messages.append({"role": "user", "content": photo_text, "type": "image", "image": uploaded_photo})
+            st.session_state.doctor_asked = False
+            with st.chat_message("assistant"):
+                placeholder = st.empty()
+                reply = ask_ollama_stream(photo_text, lang, placeholder)
+            st.session_state.messages.append({"role": "assistant", "content": reply})
+            st.rerun()
     if audio_input and st.session_state.get("last_audio_id") != str(audio_input):
         st.session_state["last_audio_id"] = str(audio_input)
-        with st.spinner("Sun rahe hain... Text ban raha hai..." if IS_HINDI else "Listening... Converting..."):
+        with st.spinner("Sun rahe hain..." if IS_HINDI else "Listening..."):
             voice_text = speech_to_text(audio_input.read())
-        if voice_text == "TOO_SHORT":
-            st.warning("Thoda lamba bolo - 2-3 second tak bolo" if IS_HINDI else "Speak a little longer - speak for 2-3 seconds")
-        elif voice_text and voice_text.startswith("ERROR:"):
-            st.error(f"Problem: {voice_text} - Internet check karo, ya 3-4 second lamba bolo" if IS_HINDI else f"Problem: {voice_text} - Check internet, or speak for 3-4 seconds")
-        elif voice_text:
+        if voice_text and not voice_text.startswith("ERROR:"):
             st.success(f"🗣️ Aapne bola: {voice_text}" if IS_HINDI else f"🗣️ You said: {voice_text}")
             st.session_state.messages.append({"role": "user", "content": voice_text})
             st.session_state.doctor_asked = False
@@ -367,14 +366,6 @@ if menu in ["🏠 Home", "🏠 होम"]:
             st.rerun()
         else:
             st.warning("Awaz samajh nahi aayi, dobara boliye." if IS_HINDI else "Could not understand, please speak again.")
-    if chat_text and uploaded_photo is None and audio_input is None:
-        st.session_state.messages.append({"role": "user", "content": chat_text})
-        st.session_state.doctor_asked = False
-        with st.chat_message("assistant"):
-            placeholder = st.empty()
-            reply = ask_ollama_stream(chat_text, lang, placeholder)
-        st.session_state.messages.append({"role": "assistant", "content": reply})
-        st.rerun()
 
 # ================= MEDICINE REMINDER =================
 elif menu in ["💊 Medicine Reminder", "💊 दवाई रिमाइंडर"]:
@@ -423,7 +414,6 @@ elif menu in ["💊 Medicine Reminder", "💊 दवाई रिमाइंड
             st.rerun()
     else:
         st.write("Abhi koi reminder nahi hai." if IS_HINDI else "No reminders yet.")
-    st.caption("Note: App khula hone pe reminder dikhega." if IS_HINDI else "Note: Reminder shows when app is open.")
 
 # ================= TALK TO DOCTOR =================
 elif menu in ["👨‍⚕️ Talk To Doctor", "👨‍⚕️ डॉक्टर से बात करें"]:
