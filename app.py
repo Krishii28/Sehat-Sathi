@@ -33,398 +33,250 @@ def speech_to_text(audio_bytes):
     except Exception as e:
         return f"ERROR:{str(e)[:100]}"
 
+# ---------- HAR SYMPTOM KE HISAB SE ALAG JAWAB ----------
 def get_instant_answer(user_text, lang):
     text = user_text.lower()
-    if "pain" in text or "paining" in text or "dard" in text or "badan" in text or "sharir" in text or "body" in text or "head" in text or "back" in text or "muscle" in text:
+
+    # Helper to make answer format same but content alag
+    def make_answer(symptom_name, causes, dangers, dos, tip, summary, lang):
         if lang == "Hindi":
-            return """Aapki takleef samajh sakte hain, please take rest.
+            c = "\n".join([f"- **{a}:** {b}" for a,b in causes])
+            d = "\n".join([f"- **{a}:** {b}" for a,b in dangers])
+            w = "\n".join([f"- **{a}:** {b}" for a,b in dos])
+            return f"""Aapki takleef samajh sakte hain, please take rest.
 
-**Possible Causes:**
+**Possible Causes - {symptom_name} ki wajah:**
 
-- **Muscle Strain:** Jab hum bhari cheez uthate hain ya galat tarike se bethte hain, toh humare muscles me khichav aa jata hai. Is khichav ki wajah se poora sharir aur sar ke peeche wala hissa dukhne lagta hai.
-
-- **Thakan aur Neend ki Kami:** Agar neend poori nahi hui hai ya din bhar bahut zyada kaam kiya hai, toh sharir thak jata hai. Thake hue sharir me dard hona bahut normal hai.
-
-- **Viral Infection:** Mausam badalne se kabhi-kabhi halka virus lag jata hai. Isme sharir me dard ke saath halka bukhar aur thakan bhi mehsoos hoti hai.
+{c}
 
 **Danger Signs:**
 
-- **Tez Bukhar:** Agar bukhar 102 se upar chala jaye, toh isko halke me mat lijiye. Turant doctor ko dikhayein.
-
-- **Saans me Dikkat:** Agar saans lene me takleef ho rahi hai ya seene me bhari pan lag raha hai, toh der mat kijiye.
+{d}
 
 **What To Do Now:**
 
-- **Poora Aaram Karein:** Aaj 1-2 din ke liye bhari kaam bilkul band kar dijiye aur sharir ko poora aaram dijiye.
-
-- **Garam Sek Karein:** Jaha dard hai, waha din me 2 baar 10 minute tak garam kapde se sek karein. Isse muscles ko aaram milega.
-
-- **Gunguna Paani Piyein:** Din bhar thoda-thoda karke gunguna paani pite rahein. Isse sharir ka dard kam hota hai aur thakan bhi utarti hai.
+{w}
 
 **Health Tip:**
 
-- **Roz Walk Karein:** Roz 30 minute halki walk karne se muscles mazboot hote hain aur roz ka dard kam ho jata hai.
+- **{tip[0]}:** {tip[1]}
 
-Aapka dard zyada tar thakan aur muscle strain ki wajah se lag raha hai, isliye aaj bhari kaam mat kijiye aur thodi der andhere kamre me aaram kijiye. Agar 2 din me aaram na mile, toh doctor se baat kar lijiyega.
+{summary}
 
 Would you like to see a doctor?"""
         else:
-            return """I understand, please take rest.
+            c = "\n".join([f"- **{a}:** {b}" for a,b in causes])
+            d = "\n".join([f"- **{a}:** {b}" for a,b in dangers])
+            w = "\n".join([f"- **{a}:** {b}" for a,b in dos])
+            return f"""I understand, please take rest.
 
-**Possible Causes:**
+**Possible Causes - Why {symptom_name} happens:**
 
-- **Muscle Strain:** When we lift heavy things or sit in a wrong posture for a long time, our muscles get stretched. Because of this stretching, your whole body and the back of your head starts paining.
-
-- **Tiredness and Less Sleep:** If you did not sleep well or you worked too much in the day, your body gets tired. When the body is tired, pain in the body is very normal.
-
-- **Viral Infection:** When the weather changes, sometimes a mild virus comes. In this, along with body pain, you also feel mild fever and tiredness.
+{c}
 
 **Danger Signs:**
 
-- **High Fever:** If your fever goes above 102, do not take it lightly. Please see a doctor immediately.
-
-- **Breathing Problem:** If you feel difficulty in breathing or heaviness in your chest, do not wait.
+{d}
 
 **What To Do Now:**
 
-- **Take Full Rest:** Stop all heavy work for 1-2 days and give your body full rest.
-
-- **Hot Compress:** Wherever it is paining, apply a warm cloth there for 10 minutes, 2 times a day. This will relax your muscles.
-
-- **Drink Warm Water:** Keep drinking warm water in small sips through the day. It reduces body pain and also removes tiredness.
+{w}
 
 **Health Tip:**
 
-- **Daily Walk:** Walking for 30 minutes daily makes your muscles strong and reduces daily pain.
+- **{tip[0]}:** {tip[1]}
 
-Your pain seems mostly because of tiredness and muscle strain, so please avoid heavy work today and take rest for some time in a dark room. If you do not get relief in 2 days, please talk to a doctor.
+{summary}
 
 Would you like to see a doctor?"""
+
+    # 1. HEAD
+    if "head" in text or "sar" in text or "sir" in text or "migraine" in text or "headache" in text:
+        return make_answer("Sir Dard / Headache" if lang=="Hindi" else "Headache",
+            [("Neend ki Kami","Raat ko neend poori na hone se subah uthte hi sar bhari lagta hai aur dard hone lagta hai."),("Zyada Phone","Din bhar phone dekhne se aankhon pe zor padta hai, isse sar ke aage wale hisse me dard hota hai."),("Gas / Bhook","Lambi der bhooke rehne se ya gas banne se bhi sar me dard hota hai.")],
+            [("Bahut Tez Dard","Agar achanak bahut tez dard ho, jaise pehle kabhi nahi hua, toh turant doctor ko dikhayein."),("Ulti / Chakkar","Sar dard ke saath ulti ya chakkar aaye, toh der mat karein.")],
+            [("Andhere Me Aaram","Light band karke andhere kamre me let jayein, phone mat dekhein."),("Thandi Patti","Sar pe thande paani ki patti rakhein, isse dard kam hoga."),("Gunguna Paani","Thoda-thoda karke gunguna paani piyein, khaali pet mat rahein.")],
+            ("Phone Kam Dekhein","Roz sone se 30 minute pehle phone band kar dein, sar dard kam ho jayega."),
+            "Aapka sar dard zyada tar neend ki kami aur phone dekhne ki wajah se lag raha hai, isliye aaj phone kam dekhiye aur thodi der so jayiye." if lang=="Hindi" else "Your headache seems mostly because of less sleep and too much phone, so use phone less today and take some sleep.", lang)
+
+    # 2. BACK
+    if "back" in text or "kamar" in text or "spine" in text:
+        return make_answer("Kamar Dard / Back Pain" if lang=="Hindi" else "Back Pain",
+            [("Galat Bethna","Lambi der jhuk ke bethne se kamar ki haddi pe zor padta hai, isse kamar dukhne lagti hai."),("Bhari Cheez Uthana","Achanak bhari balti uthane se kamar ki nas khich jati hai."),("Kamzori","Calcium aur Vitamin D ki kami se haddiyan kamzor ho jati hain.")],
+            [("Pair Me Dard","Agar dard kamar se pair tak ja raha hai ya pair sunn ho raha hai, toh turant doctor ko dikhayein."),("Chalne Me Dikkat","Agar chalne me bahut takleef ho, toh der mat karein.")],
+            [("Seedha Letein","Seedhe sakht bistar pe let jayein, naram gaddi pe mat letein."),("Garam Sek","Kamar pe din me 2 baar 10 minute garam sek karein."),("Bhari Kaam Band","2 din tak bhari cheez mat uthayein.")],
+            ("Roz Walk","Roz 20 minute seedha chaliye, kamar mazboot hogi."),
+            "Aapka kamar dard zyada tar galat bethne aur bhari kaam ki wajah se lag raha hai, 2 din aaram kijiye." if lang=="Hindi" else "Your back pain seems mostly because of wrong sitting and heavy work, take rest for 2 days.", lang)
+
+    # 3. BODY
+    if "body" in text or "badan" in text or "sharir" in text or "whole" in text:
+        return make_answer("Poora Badan Dard / Body Pain" if lang=="Hindi" else "Body Pain",
+            [("Thakan","Din bhar zyada kaam karne se poora sharir thak jata hai, har jagah dard hone lagta hai."),("Viral","Mausam badalne se halka virus lag jata hai, isme badan dard ke saath halka bukhar bhi hota hai."),("Paani ki Kami","Paani kam peene se muscles me dard hone lagta hai.")],
+            [("Tez Bukhar","Bukhar 102 se upar ho, toh turant doctor ko dikhayein."),("Saans me Dikkat","Saans lene me takleef ho, toh der mat karein.")],
+            [("Poora Aaram","Aaj bhari kaam band karke poora aaram kijiye."),("Garam Paani Se Nahaein","Gungune paani se nahane se muscles ko aaram milega."),("Gunguna Paani Piyein","Din bhar thoda-thoda gunguna paani piyein.")],
+            ("Roz Walk","Roz 30 minute halki walk se muscles mazboot hote hain."),
+            "Aapka badan dard zyada tar thakan aur viral ki wajah se lag raha hai, aaj aaram kijiye." if lang=="Hindi" else "Your body pain seems mostly because of tiredness and viral, take rest today.", lang)
+
+    # 4. FEVER
     if "fever" in text or "bukhar" in text:
-        if lang == "Hindi":
-            return """Aapki takleef samajh sakte hain, please take rest.
-
-**Possible Causes:**
-
-- **Viral Fever:** Mausam badalne se virus se bukhar aa jata hai. Isme sharir me dard aur thakan bhi hoti hai.
-
-- **Sardi-Jukam:** Gale me kharash aur sardi ke saath bhi halka bukhar aa sakta hai.
-
-- **Paani ki Kami:** Paani kam peene se sharir garam ho jata hai aur bukhar jaisa lagne lagta hai.
-
-**Danger Signs:**
-
-- **Tez Bukhar:** Agar bukhar 102 se upar ho jaye, toh turant doctor ko dikhayein.
-
-- **Ulti / Chakkar:** Agar ulti ya chakkar aaye, toh der mat karein.
-
-**What To Do Now:**
-
-- **Poora Aaram Karein:** Poora aaram karein, bahar ka kaam band kar dein.
-
-- **Gunguna Paani Piyein:** Thoda-thoda karke gunguna paani pite rahein.
-
-- **Thandi Patti Rakhein:** Sar pe thande paani ki patti rakhein, isse bukhar kam hoga.
-
-**Health Tip:**
-
-- **Tulsi Kadha:** Tulsi aur adrak ka kadha peene se bukhar me aaram milta hai.
-
-Aapka bukhar abhi shuru hua lag raha hai, isliye 1 din aaram karke dekhiye. Agar bukhar badhta hai, toh doctor se baat kar lijiyega.
-
-Would you like to see a doctor?"""
-        else:
-            return """I understand, please take rest.
-
-**Possible Causes:**
-
-- **Viral Fever:** Change in weather causes viral infection. In this, you get fever with body pain and tiredness.
-
-- **Cold and Cough:** Throat infection and cold can also give mild fever.
-
-- **Less Water:** Drinking less water makes the body hot and fever-like.
-
-**Danger Signs:**
-
-- **High Fever:** If fever goes above 102, see a doctor immediately.
-
-- **Vomiting / Dizziness:** If you feel vomiting or dizziness, do not wait.
-
-**What To Do Now:**
-
-- **Take Full Rest:** Take full rest and stop outside work.
-
-- **Drink Warm Water:** Keep drinking warm water in small sips.
-
-- **Cold Sponge:** Keep a cold wet cloth on your forehead, it reduces fever.
-
-**Health Tip:**
-
-- **Tulsi Kadha:** Tulsi and ginger kadha gives relief in fever.
-
-Your fever seems in the starting stage, so take rest for 1 day. If fever increases, talk to a doctor.
-
-Would you like to see a doctor?"""
-    if "cold" in text or "cough" in text or "khansi" in text or "sardi" in text or "jukam" in text:
-        if lang == "Hindi":
-            return """Aapki takleef samajh sakte hain, please take rest.
-
-**Possible Causes:**
-
-- **Viral Infection:** Mausam badalne se gale me virus lag jata hai, isse sardi-khansi hoti hai.
-
-- **Thanda Paani:** Thanda paani ya ice-cream se gala kharab ho jata hai.
-
-- **Dhool:** Dhool-mitti se allergy ho jati hai aur khansi aane lagti hai.
-
-**Danger Signs:**
-
-- **Saans me Dikkat:** Saans lene me takleef ho, toh turant doctor ko dikhayein.
-
-- **Khoon Wali Khansi:** Khansi me khoon aaye, toh der mat karein.
-
-**What To Do Now:**
-
-- **Garam Paani Piyein:** Din bhar gunguna paani piyein.
-
-- **Haldi Doodh:** Raat ko haldi wala garam doodh piyein.
-
-- **Bhapa Lein:** Garam paani ka bhapa lene se naak khul jati hai.
-
-**Health Tip:**
-
-- **Tulsi-Adrak:** Tulsi aur adrak ki chai peene se gale ko aaram milta hai.
-
-Aapki sardi-khansi abhi shuru hui lag rahi hai, 2 din garam cheezein lijiye.
-
-Would you like to see a doctor?"""
-        else:
-            return """I understand, please take rest.
-
-**Possible Causes:**
-
-- **Viral Infection:** Change in weather causes virus in the throat, it gives cold and cough.
-
-- **Cold Water:** Cold water or ice-cream makes the throat bad.
-
-- **Dust Allergy:** Dust and smoke cause allergy and cough starts.
-
-**Danger Signs:**
-
-- **Breathing Problem:** If you feel difficulty in breathing, see a doctor immediately.
-
-- **Blood in Cough:** If blood comes in cough, do not wait.
-
-**What To Do Now:**
-
-- **Drink Warm Water:** Drink warm water through the day.
-
-- **Turmeric Milk:** Drink warm turmeric milk at night.
-
-- **Steam:** Take steam from hot water, it opens your nose.
-
-**Health Tip:**
-
-- **Tulsi-Ginger:** Tulsi and ginger tea gives relief to the throat.
-
-Your cold and cough seems in the starting stage, take warm things for 2 days.
-
-Would you like to see a doctor?"""
-    if "stomach" in text or "pet" in text or "gas" in text:
-        if lang == "Hindi":
-            return """Aapki takleef samajh sakte hain, please take rest.
-
-**Possible Causes:**
-
-- **Gas:** Bahar ka khana ya jaldi-jaldi khane se pet me gas ban jati hai.
-
-- **Acidity:** Masaledar khana ya khaali pet rehne se acidity ho jati hai.
-
-- **Kabz:** Paani kam peene se kabz ho jata hai aur pet dukhne lagta hai.
-
-**Danger Signs:**
-
-- **Tez Dard:** Pet me bahut tez dard ho ya ulti aaye, toh turant doctor ko dikhayein.
-
-- **Khoon:** Potty me khoon aaye, toh der mat karein.
-
-**What To Do Now:**
-
-- **Halka Khana Khayein:** Aaj halka khana khayein, jaise khichdi, dahi.
-
-- **Gunguna Paani Piyein:** Gunguna paani dheere-dheere piyein.
-
-- **Walk Karein:** Khana khane ke baad 10 minute halki walk karein.
-
-**Health Tip:**
-
-- **Ajwain Paani:** Ajwain ka paani peene se gas me turant aaram milta hai.
-
-Aapka pet dard gas aur acidity se lag raha hai, aaj halka khana khayein.
-
-Would you like to see a doctor?"""
-        else:
-            return """I understand, please take rest.
-
-**Possible Causes:**
-
-- **Gas:** Eating outside food or eating fast causes gas in the stomach.
-
-- **Acidity:** Spicy food or staying empty stomach causes acidity.
-
-- **Constipation:** Drinking less water causes constipation and stomach pain.
-
-**Danger Signs:**
-
-- **Severe Pain:** If stomach pain is very severe or you feel vomiting, see a doctor immediately.
-
-- **Blood:** If blood comes in stool, do not wait.
-
-**What To Do Now:**
-
-- **Eat Light Food:** Eat light food today, like khichdi, curd.
-
-- **Drink Warm Water:** Drink warm water slowly.
-
-- **Walk:** Walk for 10 minutes lightly after food.
-
-**Health Tip:**
-
-- **Ajwain Water:** Ajwain water gives instant relief in gas.
-
-Your stomach pain seems due to gas and acidity, eat light food today.
-
-Would you like to see a doctor?"""
+        return make_answer("Bukhar / Fever" if lang=="Hindi" else "Fever",
+            [("Viral Fever","Mausam badalne se virus se bukhar aa jata hai, sharir me dard aur thakan bhi hoti hai."),("Sardi","Gale me kharash aur sardi ke saath bhi halka bukhar aa sakta hai."),("Paani ki Kami","Paani kam peene se sharir garam ho jata hai.")],
+            [("Tez Bukhar","Bukhar 102 se upar ho, toh turant doctor ko dikhayein."),("Ulti / Chakkar","Ulti ya chakkar aaye, toh der mat karein.")],
+            [("Aaram Karein","Poora aaram karein, bahar ka kaam band karein."),("Thandi Patti","Sar pe thande paani ki patti rakhein."),("Gunguna Paani","Thoda-thoda karke gunguna paani piyein.")],
+            ("Tulsi Kadha","Tulsi aur adrak ka kadha peene se bukhar me aaram milta hai."),
+            "Aapka bukhar abhi shuru hua lag raha hai, 1 din aaram karke dekhiye." if lang=="Hindi" else "Your fever seems in starting stage, take rest for 1 day.", lang)
+
+    # 5. COLD / COUGH / THROAT
+    if "cold" in text or "cough" in text or "khansi" in text or "sardi" in text or "throat" in text or "gala" in text or "gale" in text:
+        return make_answer("Sardi-Khansi / Cold-Cough" if lang=="Hindi" else "Cold-Cough",
+            [("Viral Infection","Mausam badalne se gale me virus lag jata hai, isse sardi-khansi hoti hai."),("Thanda Paani","Thanda paani ya ice-cream se gala kharab ho jata hai."),("Dhool","Dhool-mitti se allergy ho jati hai aur khansi aane lagti hai.")],
+            [("Saans me Dikkat","Saans lene me takleef ho, toh turant doctor ko dikhayein."),("Khoon Wali Khansi","Khansi me khoon aaye, toh der mat karein.")],
+            [("Garam Paani","Din bhar gunguna paani piyein."),("Haldi Doodh","Raat ko haldi wala garam doodh piyein."),("Bhapa","Garam paani ka bhapa lene se naak khul jati hai.")],
+            ("Tulsi-Adrak","Tulsi aur adrak ki chai se gale ko aaram milta hai."),
+            "Aapki sardi-khansi abhi shuru hui lag rahi hai, 2 din garam cheezein lijiye." if lang=="Hindi" else "Your cold-cough seems in starting stage, take warm things for 2 days.", lang)
+
+    # 6. STOMACH / VOMITING / LOOSE MOTION
+    if "stomach" in text or "pet" in text or "gas" in text or "ulti" in text or "vomit" in text or "dast" in text or "loose" in text or "diarrhea" in text:
+        return make_answer("Pet Dard / Stomach Problem" if lang=="Hindi" else "Stomach Problem",
+            [("Gas","Bahar ka khana ya jaldi khane se pet me gas ban jati hai."),("Acidity","Masaledar khana ya khaali pet rehne se acidity ho jati hai."),("Kabz / Infection","Paani kam peene se kabz hota hai, ganda khana khane se infection ho jata hai.")],
+            [("Tez Dard","Pet me bahut tez dard ho ya ulti aaye, toh turant doctor ko dikhayein."),("Khoon","Potty me khoon aaye, toh der mat karein.")],
+            [("Halka Khana","Aaj khichdi, dahi jaisa halka khana khayein."),("ORS Paani","Thoda-thoda karke ORS / namak-cheeni ka paani piyein."),("Walk","Khane ke baad 10 minute halki walk karein.")],
+            ("Ajwain Paani","Ajwain ka paani gas me turant aaram deta hai."),
+            "Aapka pet dard gas aur acidity se lag raha hai, aaj halka khana khayein." if lang=="Hindi" else "Your stomach pain seems due to gas and acidity, eat light food today.", lang)
+
+    # 7. CHEST / BREATHING
+    if "chest" in text or "seene" in text or "saans" in text or "breath" in text or "asthma" in text:
+        return make_answer("Seene Me Dard / Chest Problem" if lang=="Hindi" else "Chest Problem",
+            [("Gas","Pet ki gas upar chadhne se seene me bhari pan aur dard lagta hai."),("Sardi / Allergy","Sardi aur dhool se seene me jakdan ho jati hai."),("Thakan","Zyada kaam karne se saans phoolne lagti hai.")],
+            [("Bahut Tez Dard","Seene me bahut tez dard ho ya saans ruk rahi ho, toh turant 108 pe call karein, wait mat karein."),("Pasina / Chakkar","Seene ke dard ke saath pasina ya chakkar aaye, toh turant hospital jayein.")],
+            [("Seedha Bethein","Seedha beth jayein, letiye nahi, kapde dheele kar dein."),("Hawa","Khidki khol dein, bheed mat lagayein."),("Gunguna Paani","Thoda-thoda gunguna paani piyein.")],
+            ("Dhool Se Bachein","Dhool aur dhuein se door rahein, mask pehnein."),
+            "Aapke seene ka dard gas aur sardi se lag raha hai, lekin agar dard tez hai toh turant doctor ko dikhayein." if lang=="Hindi" else "Your chest pain seems due to gas and cold, but if pain is severe, see doctor immediately.", lang)
+
+    # 8. LEG / KNEE / HAND / JOINT
+    if "leg" in text or "pair" in text or "knee" in text or "ghutna" in text or "hand" in text or "haath" in text or "joint" in text or "shoulder" in text or "kandha" in text:
+        return make_answer("Haath-Pair / Joint Dard" if lang=="Hindi" else "Leg / Joint Pain",
+            [("Thakan / Chot","Zyada chalne ya halki chot lagne se haath-pair me dard ho jata hai."),("Calcium ki Kami","Calcium aur Vitamin D ki kami se ghutno aur jodo me dard hota hai."),("Galat Bethna","Galat tarike se bethne se ghutne pe zor padta hai.")],
+            [("Sujan","Agar bahut sujan aa jaye ya chal na payein, toh doctor ko dikhayein."),("Tez Dard","Dard 2 din se zyada rahe, toh der mat karein.")],
+            [("Aaram","Us pair / haath ko aaram dein, bhari kaam mat karein."),("Garam Sek","Dard wali jagah pe 10 minute garam sek karein."),("Pair Upar Rakhein","Pair me dard hai toh pair ko takiye pe upar rakh ke letein.")],
+            ("Doodh Piyein","Roz 1 gilas doodh piyein, haddiyan mazboot hongi."),
+            "Aapka haath-pair ka dard zyada tar thakan aur calcium ki kami se lag raha hai, 2 din aaram kijiye." if lang=="Hindi" else "Your leg/joint pain seems mostly due to tiredness and calcium deficiency, take rest for 2 days.", lang)
+
+    # 9. EYE / EAR / TOOTH
+    if "eye" in text or "aankh" in text or "ankh" in text:
+        return make_answer("Aankh Ki Problem" if lang=="Hindi" else "Eye Problem",
+            [("Phone / Dhool","Zyada phone dekhne ya dhool jaane se aankh me jalan aur dard hota hai."),("Neend ki Kami","Neend poori na hone se aankh laal aur bhari ho jati hai."),("Allergy","Dhool se aankh me allergy ho jati hai.")],
+            [("Dikhai Kam","Dikhai kam ho ya aankh me bahut tez dard ho, toh turant doctor ko dikhayein."),("Pus","Aankh se pus aa raha ho, toh der mat karein.")],
+            [("Aankh Mat Maslein","Aankh ko maslein nahi, saaf paani se dhoyein."),("Phone Kam","Phone dekhna kam kar dein, 20 minute me break lein."),("Thandi Patti","Aankh pe thandi patti rakhein.")],
+            ("Dhoop Se Bachein","Dhoop me chashma pehnein."),
+            "Aapki aankh ki problem zyada tar phone aur dhool ki wajah se lag rahi hai." if lang=="Hindi" else "Your eye problem seems mostly due to phone and dust.", lang)
+    if "ear" in text or "kaan" in text:
+        return make_answer("Kaan Me Dard" if lang=="Hindi" else "Ear Pain",
+            [("Sardi","Sardi ke saath kaan me dard ho jata hai."),("Paani Chala Jana","Nahaate time kaan me paani chale jaane se dard hota hai."),("Mail","Kaan me mail jamne se bhi dard hota hai.")],
+            [("Behra Pan","Sunai kam de ya kaan se pus aaye, toh doctor ko dikhayein."),("Tez Bukhar","Kaan dard ke saath tez bukhar ho, toh der mat karein.")],
+            [("Kaan Me Kuch Mat Dalein","Kaan me teeli ya kuch mat dalein."),("Garam Sek","Kaan pe halka garam sek karein."),("Aaram","Thodi der aaram karein.")],
+            ("Kaan Saaf Rakhein","Kaan ko saaf aur sukha rakhein."),
+            "Aapke kaan ka dard sardi ki wajah se lag raha hai." if lang=="Hindi" else "Your ear pain seems due to cold.", lang)
+    if "tooth" in text or "daant" in text or "dant" in text:
+        return make_answer("Daant Me Dard" if lang=="Hindi" else "Tooth Pain",
+            [("Keeda","Daant me keeda lagne se dard hota hai."),("Thanda-Garam","Thanda-garam khane se daant me jhanjhanahat hoti hai."),("Masuda","Masude me sujan se bhi daant dukhne lagta hai.")],
+            [("Sujan","Gaalo pe sujan aa jaye ya bukhar ho, toh doctor ko dikhayein."),("Dard Na Ruke","Dard 2 din se na ruke, toh der mat karein.")],
+            [("Namak Paani","Gungune namak wale paani se kullla karein."),("Laung","Dard wale daant pe laung ka tel lagayein."),("Thanda Mat Khayein","Thanda aur meetha mat khayein.")],
+            ("Brush","Din me 2 baar brush karein."),
+            "Aapke daant ka dard keede aur masude ki sujan se lag raha hai." if lang=="Hindi" else "Your tooth pain seems due to cavity and gum swelling.", lang)
+
+    # 10. SKIN / RASH
     if "daane" in text or "rash" in text or "khujli" in text or "itching" in text or "chot" in text:
-        if lang == "Hindi":
-            return """Aapki takleef samajh sakte hain, please take rest.
+        return make_answer("Daane / Khujli" if lang=="Hindi" else "Rash / Itching",
+            [("Allergy","Naye sabun ya dhool se allergy ho jati hai, isse daane aur khujli hoti hai."),("Garmi","Garmi me pasina jamne se daane nikal aate hain."),("Infection","Saaf-safai na rakhne se infection ho jata hai.")],
+            [("Pus","Daano se pus ya paani nikle, toh doctor ko dikhayein."),("Tez Bukhar","Daano ke saath tez bukhar ho, toh der mat karein.")],
+            [("Khujlayein Nahi","Daano ko khujlayein nahi."),("Saaf Rakhein","Saaf paani se dho kar sukha rakhein."),("Nariyal Tel","Halka nariyal tel lagayein.")],
+            ("Saaf Kapde","Roz saaf kapde pehnein."),
+            "Aapki photo doctor ko dikhane ke liye save ho gayi hai." if lang=="Hindi" else "Your photo is saved to show to doctor.", lang)
 
-**Possible Causes:**
+    # 11. DIZZINESS / WEAKNESS / SLEEP
+    if "chakkar" in text or "dizz" in text or "kamzori" in text or "weak" in text or "neend" in text or "sleep" in text:
+        return make_answer("Chakkar / Kamzori" if lang=="Hindi" else "Dizziness / Weakness",
+            [("Khoon ki Kami","Khoon ki kami se chakkar aata hai aur kamzori lagti hai."),("Bhook / Paani ki Kami","Bhooke rehne ya paani kam peene se chakkar aata hai."),("Neend ki Kami","Neend poori na hone se din bhar kamzori lagti hai.")],
+            [("Behosh","Behosh ho jayein ya baar-baar chakkar aaye, toh turant doctor ko dikhayein."),("Seene Me Dard","Chakkar ke saath seene me dard ho, toh 108 pe call karein.")],
+            [("Beth Jayein","Chakkar aaye toh turant beth jayein, akele mat chalein."),("Paani Piyein","Thoda-thoda karke paani / ORS piyein."),("Kuch Khayein","Halka kuch kha lein, khaali pet mat rahein.")],
+            ("Paalak Khayein","Roz paalak aur gud khayein, khoon badhega."),
+            "Aapka chakkar khoon ki kami aur neend ki kami se lag raha hai." if lang=="Hindi" else "Your dizziness seems due to low blood and less sleep.", lang)
 
-- **Allergy:** Naye sabun, kapde ya dhool se skin pe allergy ho jati hai, isse daane aur khujli hoti hai.
+    # 12. AGAR KOI NAYA SYMPTOM HAI - USI KE NAAM SE JAWAB
+    # Yahi wala part sabse important hai - ab same nahi aayega
+    clean = user_text.strip()
+    if lang == "Hindi":
+        return f"""Aapki takleef samajh sakte hain, please take rest.
 
-- **Garmi:** Garmi me pasina jamne se bhi daane nikal aate hain.
+**Possible Causes - {clean} ki wajah:**
 
-- **Infection:** Saaf-safai na rakhne se skin pe infection ho jata hai.
+- **Thakan:** Neend poori na hone ya zyada kaam karne se {clean} me dard / takleef hone lagti hai.
 
-**Danger Signs:**
+- **Infection / Sardi:** Mausam badalne se {clean} me infection ho jata hai, isse dard aur jalan hoti hai.
 
-- **Pus / Paani:** Daano se pus ya paani nikle, toh turant doctor ko dikhayein.
-
-- **Tez Bukhar:** Daano ke saath tez bukhar ho, toh der mat karein.
-
-**What To Do Now:**
-
-- **Khujlayein Nahi:** Daano ko khujlayein nahi, isse infection badhta hai.
-
-- **Saaf Rakhein:** Us jagah ko saaf paani se dho kar sukha rakhein.
-
-- **Nariyal Tel:** Halka nariyal tel lagayein, isse khujli me aaram milega.
-
-**Health Tip:**
-
-- **Saaf Kapde:** Roz saaf aur dhoop me sukhe kapde pehnein.
-
-Aapki photo doctor ko dikhane ke liye save ho gayi hai. Agar khujli badhti hai, toh doctor se baat kar lijiyega.
-
-Would you like to see a doctor?"""
-        else:
-            return """I understand, please take rest.
-
-**Possible Causes:**
-
-- **Allergy:** New soap, clothes or dust can cause allergy on skin, it gives rashes and itching.
-
-- **Heat:** In heat, sweat gets stuck and rashes come.
-
-- **Infection:** If skin is not kept clean, infection happens.
+- **Kamzori:** Paani kam peene ya khoon ki kami se {clean} me kamzori aur dard mehsoos hota hai.
 
 **Danger Signs:**
 
-- **Pus / Water:** If pus or water comes from rashes, see a doctor immediately.
+- **Tez Dard:** Agar {clean} me bahut tez dard ho ya 2 din se zyada rahe, toh turant doctor ko dikhayein.
 
-- **High Fever:** If you get high fever with rashes, do not wait.
+- **Bukhar / Sujan:** {clean} ke saath tez bukhar ya sujan ho, toh der mat karein.
 
 **What To Do Now:**
 
-- **Do Not Scratch:** Do not scratch rashes, it increases infection.
+- **Aaram Karein:** {clean} wali jagah ko aaram dein, bhari kaam mat karein.
 
-- **Keep Clean:** Wash that place with clean water and keep it dry.
+- **Garam Sek / Thandi Patti:** {clean} pe halka garam sek karein, isse aaram milega.
 
-- **Coconut Oil:** Apply light coconut oil, it gives relief in itching.
+- **Gunguna Paani Piyein:** Din bhar gunguna paani piyein, isse takleef kam hogi.
 
 **Health Tip:**
 
-- **Clean Clothes:** Wear clean clothes dried in sunlight daily.
+- **Roz Walk:** Roz 30 minute halki walk se sharir mazboot rehta hai aur {clean} ki takleef kam hoti hai.
 
-Your photo is saved to show to doctor. If itching increases, talk to a doctor.
+Aapki takleef - {clean} - zyada tar thakan aur mausam ki wajah se lag rahi hai, 1-2 din aaram kijiye. Agar aaram na mile, toh doctor se baat kar lijiyega.
 
 Would you like to see a doctor?"""
-    return None
+    else:
+        return f"""I understand, please take rest.
+
+**Possible Causes - Why {clean} happens:**
+
+- **Tiredness:** When you do not sleep well or work too much, you feel pain / problem in {clean}.
+
+- **Infection / Cold:** Change in weather causes infection in {clean}, this causes pain and burning.
+
+- **Weakness:** Drinking less water or low blood causes weakness and pain in {clean}.
+
+**Danger Signs:**
+
+- **Severe Pain:** If pain in {clean} is very severe or stays more than 2 days, see a doctor immediately.
+
+- **Fever / Swelling:** If you get high fever or swelling with {clean}, do not wait.
+
+**What To Do Now:**
+
+- **Take Rest:** Give rest to {clean}, do not do heavy work.
+
+- **Hot Compress / Cold Cloth:** Apply warm cloth on {clean}, it will give relief.
+
+- **Drink Warm Water:** Drink warm water through the day, it will reduce problem.
+
+**Health Tip:**
+
+- **Daily Walk:** Walking 30 minutes daily keeps your body strong and reduces {clean} problem.
+
+Your problem - {clean} - seems mostly because of tiredness and weather, take rest for 1-2 days. If no relief, please talk to a doctor.
+
+Would you like to see a doctor?"""
 
 def ask_reply(user_text, lang, placeholder):
     instant = get_instant_answer(user_text, lang)
     if instant:
         placeholder.markdown(instant)
         return instant
-    if lang == "Hindi":
-        fallback = """Aapki takleef samajh sakte hain, please take rest.
-
-**Possible Causes:**
-
-- **Thakan:** Neend poori na hone ya zyada kaam karne se sharir thak jata hai aur dard hone lagta hai.
-
-- **Viral Infection:** Mausam badalne se sharir me dard, halka bukhar aur thakan mehsoos hoti hai.
-
-**Danger Signs:**
-
-- **Tez Bukhar:** 102 se upar bukhar ho, toh turant doctor ko dikhayein.
-
-- **Saans me Dikkat:** Saans lene me takleef ho, toh der mat karein.
-
-**What To Do Now:**
-
-- **Aaram Karein:** 1-2 din bhari kaam band karke poora aaram karein.
-
-- **Gunguna Paani:** Din bhar gunguna paani piyein, isse aaram milega.
-
-**Health Tip:**
-
-- **Roz Walk:** Roz 30 minute halki walk se sharir mazboot rehta hai.
-
-Aap thoda aaram kijiye, agar 2 din me aaram na mile, toh doctor se baat kar lijiyega.
-
-Would you like to see a doctor?"""
-    else:
-        fallback = """I understand, please take rest.
-
-**Possible Causes:**
-
-- **Tiredness:** When you do not sleep well or work too much, your body gets tired and starts paining.
-
-- **Viral Infection:** Change in weather causes body pain, mild fever and tiredness.
-
-**Danger Signs:**
-
-- **High Fever:** If fever is above 102, see a doctor immediately.
-
-- **Breathing Problem:** If you feel difficulty in breathing, do not wait.
-
-**What To Do Now:**
-
-- **Take Rest:** Stop heavy work for 1-2 days and give your body full rest.
-
-- **Warm Water:** Drink warm water through the day, it will give relief.
-
-**Health Tip:**
-
-- **Daily Walk:** Walking 30 minutes daily keeps your body strong.
-
-Please take rest, if no relief in 2 days, please talk to a doctor.
-
-Would you like to see a doctor?"""
-    placeholder.markdown(fallback)
-    return fallback
+    return instant
 
 # ================= HOME =================
 if menu in ["🏠 Home", "🏠 होम"]:
@@ -552,7 +404,6 @@ elif menu in ["💊 Medicine Reminder", "💊 दवाई रिमाइंड
             st.rerun()
     else:
         st.write("Abhi koi reminder nahi hai." if IS_HINDI else "No reminders yet.")
-    # --- CHANGE 1: NOTE AT LAST ---
     st.markdown("---")
     if IS_HINDI:
         st.info("ℹ️ **Note:** Abhi reminder tab milega jab aap app kholenge. Baad me hum apni marzi se notification wala reminder bhi add kar denge, jisse app band hone par bhi yaad aayega.")
@@ -865,7 +716,6 @@ elif menu in ["🏛️ Government Schemes", "🏛️ सरकारी यो�
         st.write("- **How To Get:** Go to PHC at 9 AM, make slip")
         st.write("- **Need:** Aadhaar Card")
 
-# --- CHANGE 2: ABOUT APP - FOR EVERYONE ---
 elif menu in ["ℹ️ About App", "ℹ️ ऐप के बारे में"]:
     if IS_HINDI:
         st.title("ℹ️ ऐप के बारे में - Sehat Saathi")
