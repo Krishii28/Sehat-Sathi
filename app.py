@@ -13,7 +13,6 @@ if "last_audio_id" not in st.session_state:
 st.sidebar.write("Language")
 lang = st.sidebar.radio("Choose Language", ["English", "Hindi"], label_visibility="collapsed")
 IS_HINDI = (lang == "Hindi")
-
 if IS_HINDI:
     menu = st.sidebar.radio("मेनू", ["🏠 होम", "💊 दवाई रिमाइंडर", "👨‍⚕️ डॉक्टर से बात करें", "🚨 आपातकाल", "💡 स्वास्थ्य टिप्स", "⚖️ बीएमआई कैलकुलेटर", "🏛️ सरकारी योजनाएं", "ℹ️ ऐप के बारे में"])
 else:
@@ -36,257 +35,398 @@ def speech_to_text(audio_bytes):
 
 def get_instant_answer(user_text, lang):
     text = user_text.lower()
-    if "muscle" in text or "body pain" in text or "sharir" in text or "badan" in text or "whole body" in text or "paining" in text or "pain" in text or "dard" in text:
+    if "pain" in text or "paining" in text or "dard" in text or "badan" in text or "sharir" in text or "body" in text or "head" in text or "back" in text or "muscle" in text:
         if lang == "Hindi":
-            return """Aapki takleef samajh sakte hain, aaram kijiye.
+            return """Aapki takleef samajh sakte hain, please take rest.
+
 **Possible Causes:**
-- **Muscle Strain:** Bhari kaam ya galat tarike se uthne-bethne se muscles me khichav aa jata hai, isliye poora sharir dukhne lagta hai.
-- **Thakan:** Neend poori na hone ya zyada kaam karne se sharir thak jata hai aur dard hone lagta hai.
-- **Sardi-Jukam:** Viral infection me sharir me dard, halka bukhar aur thakan mehsoos hoti hai.
+
+- **Muscle Strain:** Jab hum bhari cheez uthate hain ya galat tarike se bethte hain, toh humare muscles me khichav aa jata hai. Is khichav ki wajah se poora sharir aur sar ke peeche wala hissa dukhne lagta hai.
+
+- **Thakan aur Neend ki Kami:** Agar neend poori nahi hui hai ya din bhar bahut zyada kaam kiya hai, toh sharir thak jata hai. Thake hue sharir me dard hona bahut normal hai.
+
+- **Viral Infection:** Mausam badalne se kabhi-kabhi halka virus lag jata hai. Isme sharir me dard ke saath halka bukhar aur thakan bhi mehsoos hoti hai.
+
 **Danger Signs:**
-- **Tez Bukhar:** 102 se upar bukhar ho toh turant doctor ko dikhayein.
-- **Saans me dikkat:** Saans lene me takleef ho toh der mat karein.
+
+- **Tez Bukhar:** Agar bukhar 102 se upar chala jaye, toh isko halke me mat lijiye. Turant doctor ko dikhayein.
+
+- **Saans me Dikkat:** Agar saans lene me takleef ho rahi hai ya seene me bhari pan lag raha hai, toh der mat kijiye.
+
 **What To Do Now:**
-- **Aaram Karein:** 1-2 din bhari kaam band karke poora aaram karein.
-- **Garam Sek:** Dard wali jagah pe din me 2 baar 10 minute garam kapde se sek karein.
-- **Gunguna Paani:** Din bhar gunguna paani piyein, isse muscles ko aaram milta hai.
+
+- **Poora Aaram Karein:** Aaj 1-2 din ke liye bhari kaam bilkul band kar dijiye aur sharir ko poora aaram dijiye.
+
+- **Garam Sek Karein:** Jaha dard hai, waha din me 2 baar 10 minute tak garam kapde se sek karein. Isse muscles ko aaram milega.
+
+- **Gunguna Paani Piyein:** Din bhar thoda-thoda karke gunguna paani pite rahein. Isse sharir ka dard kam hota hai aur thakan bhi utarti hai.
+
 **Health Tip:**
-- **Roz Walk:** Roz 30 minute halki walk se muscles mazboot hote hain aur dard kam hota hai.
-Aapke sharir me dard zyada lag raha hai, isliye aaj bhari kaam mat kijiye. Agar 2 din me aaram na mile toh doctor se baat kar lijiyega.
-Kya aap doctor se baat karna chahengi?"""
+
+- **Roz Walk Karein:** Roz 30 minute halki walk karne se muscles mazboot hote hain aur roz ka dard kam ho jata hai.
+
+Aapka dard zyada tar thakan aur muscle strain ki wajah se lag raha hai, isliye aaj bhari kaam mat kijiye aur thodi der andhere kamre me aaram kijiye. Agar 2 din me aaram na mile, toh doctor se baat kar lijiyega.
+
+Would you like to see a doctor?"""
         else:
             return """I understand, please take rest.
+
 **Possible Causes:**
-- **Muscle Strain:** Lifting heavy things or sitting in wrong posture can stretch your muscles, that is why your whole body pains.
-- **Tiredness:** When you do not sleep well or work too much, your body gets tired and starts paining.
-- **Viral Infection:** In cold and fever, virus makes your body weak, so you feel body pain and tiredness.
+
+- **Muscle Strain:** When we lift heavy things or sit in a wrong posture for a long time, our muscles get stretched. Because of this stretching, your whole body and the back of your head starts paining.
+
+- **Tiredness and Less Sleep:** If you did not sleep well or you worked too much in the day, your body gets tired. When the body is tired, pain in the body is very normal.
+
+- **Viral Infection:** When the weather changes, sometimes a mild virus comes. In this, along with body pain, you also feel mild fever and tiredness.
+
 **Danger Signs:**
-- **High Fever:** If fever is above 102, see a doctor immediately.
-- **Breathing Problem:** If you feel difficulty in breathing, do not wait.
+
+- **High Fever:** If your fever goes above 102, do not take it lightly. Please see a doctor immediately.
+
+- **Breathing Problem:** If you feel difficulty in breathing or heaviness in your chest, do not wait.
+
 **What To Do Now:**
-- **Take Rest:** Stop heavy work for 1-2 days and give your body full rest.
-- **Hot Compress:** Apply warm cloth on painful area for 10 minutes, 2 times a day.
-- **Warm Water:** Drink warm water through the day, it relaxes your muscles.
+
+- **Take Full Rest:** Stop all heavy work for 1-2 days and give your body full rest.
+
+- **Hot Compress:** Wherever it is paining, apply a warm cloth there for 10 minutes, 2 times a day. This will relax your muscles.
+
+- **Drink Warm Water:** Keep drinking warm water in small sips through the day. It reduces body pain and also removes tiredness.
+
 **Health Tip:**
-- **Daily Walk:** Walking 30 minutes daily makes muscles strong and reduces pain.
-Your body pain seems more due to tiredness and strain, so avoid heavy work today. If no relief in 2 days, please talk to a doctor.
+
+- **Daily Walk:** Walking for 30 minutes daily makes your muscles strong and reduces daily pain.
+
+Your pain seems mostly because of tiredness and muscle strain, so please avoid heavy work today and take rest for some time in a dark room. If you do not get relief in 2 days, please talk to a doctor.
+
 Would you like to see a doctor?"""
     if "fever" in text or "bukhar" in text:
         if lang == "Hindi":
-            return """Bukhar me takleef hoti hai, aaram kijiye.
+            return """Aapki takleef samajh sakte hain, please take rest.
+
 **Possible Causes:**
-- **Viral Fever:** Mausam badalne se virus se bukhar aa jata hai, isme sharir dard aur thakan hoti hai.
-- **Sardi-Jukam:** Gale me kharash aur sardi ke saath halka bukhar aa sakta hai.
-- **Paani ki kami:** Paani kam peene se sharir garam ho jata hai aur bukhar jaisa lagta hai.
+
+- **Viral Fever:** Mausam badalne se virus se bukhar aa jata hai. Isme sharir me dard aur thakan bhi hoti hai.
+
+- **Sardi-Jukam:** Gale me kharash aur sardi ke saath bhi halka bukhar aa sakta hai.
+
+- **Paani ki Kami:** Paani kam peene se sharir garam ho jata hai aur bukhar jaisa lagne lagta hai.
+
 **Danger Signs:**
-- **Tez Bukhar:** 102 se upar bukhar ho toh turant doctor ko dikhayein.
-- **Ulti / Chakkar:** Ulti ya chakkar aaye toh der mat karein.
+
+- **Tez Bukhar:** Agar bukhar 102 se upar ho jaye, toh turant doctor ko dikhayein.
+
+- **Ulti / Chakkar:** Agar ulti ya chakkar aaye, toh der mat karein.
+
 **What To Do Now:**
-- **Aaram Karein:** Poora aaram karein, bahar ka kaam band kar dein.
-- **Gunguna Paani:** Thoda-thoda karke gunguna paani pite rahein.
-- **Thandi Patti:** Sar pe thande paani ki patti rakhein, isse bukhar kam hoga.
+
+- **Poora Aaram Karein:** Poora aaram karein, bahar ka kaam band kar dein.
+
+- **Gunguna Paani Piyein:** Thoda-thoda karke gunguna paani pite rahein.
+
+- **Thandi Patti Rakhein:** Sar pe thande paani ki patti rakhein, isse bukhar kam hoga.
+
 **Health Tip:**
-- **Tulsi Kadha:** Tulsi, adrak ka kadha peene se bukhar me aaram milta hai.
-Bukhar abhi shuru hua hai toh 1 din aaram karke dekhiye, agar bukhar badhta hai toh doctor se baat kar lijiyega.
-Kya aap doctor se baat karna chahengi?"""
-        else:
-            return """Fever is tiring, please take rest.
-**Possible Causes:**
-- **Viral Fever:** Change in weather causes viral infection, it gives fever with body pain and tiredness.
-- **Cold and Cough:** Throat infection and cold can also give mild fever.
-- **Less Water:** Drinking less water makes body hot and fever-like.
-**Danger Signs:**
-- **High Fever:** If fever is above 102, see a doctor immediately.
-- **Vomiting / Dizziness:** If you feel vomiting or dizziness, do not wait.
-**What To Do Now:**
-- **Take Rest:** Take full rest, stop outside work.
-- **Warm Water:** Keep drinking warm water in small sips.
-- **Cold Sponge:** Keep cold wet cloth on forehead, it reduces fever.
-**Health Tip:**
-- **Tulsi Kadha:** Tulsi and ginger kadha gives relief in fever.
-Your fever seems in starting stage, take rest for 1 day. If fever increases, talk to a doctor.
+
+- **Tulsi Kadha:** Tulsi aur adrak ka kadha peene se bukhar me aaram milta hai.
+
+Aapka bukhar abhi shuru hua lag raha hai, isliye 1 din aaram karke dekhiye. Agar bukhar badhta hai, toh doctor se baat kar lijiyega.
+
 Would you like to see a doctor?"""
-    if "headache" in text or "sar dard" in text or "sir dard" in text or "head pain" in text or "head" in text:
-        if lang == "Hindi":
-            return """Sar dard me bahut takleef hoti hai, thoda aaram kijiye.
-**Possible Causes:**
-- **Neend ki kami:** Neend poori na hone se sar me dard hone lagta hai.
-- **Stress:** Zyada tension ya mobile dekhne se sar dard hota hai.
-- **Paani ki kami:** Paani kam peene se bhi sar dard ho jata hai.
-**Danger Signs:**
-- **Tez Dard:** Sar me bahut tez dard ho ya ulti aaye toh turant doctor ko dikhayein.
-- **Dhundhla Dikhna:** Aankho se dhundhla dikhe toh der mat karein.
-**What To Do Now:**
-- **Andhere me Aaram:** Thodi der andhere kamre me aankh band karke lete rahiye.
-- **Paani Piyein:** 2 gilas paani dheere-dheere piyein.
-- **Sar ki Malish:** Halke haath se sar pe malish karein.
-**Health Tip:**
-- **Mobile Kam:** Mobile aur TV ko thodi der door rakhne se sar dard kam hota hai.
-Aapka sar dard neend aur thakan se lag raha hai, thodi der aaram kijiye.
-Kya aap doctor se baat karna chahengi?"""
         else:
-            return """Headache is painful, take a little rest.
+            return """I understand, please take rest.
+
 **Possible Causes:**
-- **Less Sleep:** Not sleeping well causes headache.
-- **Stress:** Too much tension or mobile screen causes headache.
-- **Less Water:** Drinking less water also causes headache.
+
+- **Viral Fever:** Change in weather causes viral infection. In this, you get fever with body pain and tiredness.
+
+- **Cold and Cough:** Throat infection and cold can also give mild fever.
+
+- **Less Water:** Drinking less water makes the body hot and fever-like.
+
 **Danger Signs:**
-- **Severe Pain:** If headache is very severe or you feel vomiting, see doctor immediately.
-- **Blurry Vision:** If vision becomes blurry, do not wait.
+
+- **High Fever:** If fever goes above 102, see a doctor immediately.
+
+- **Vomiting / Dizziness:** If you feel vomiting or dizziness, do not wait.
+
 **What To Do Now:**
-- **Rest in Dark:** Lie down in a dark room with closed eyes for some time.
-- **Drink Water:** Drink 2 glasses of water slowly.
-- **Head Massage:** Massage your head gently with light hands.
+
+- **Take Full Rest:** Take full rest and stop outside work.
+
+- **Drink Warm Water:** Keep drinking warm water in small sips.
+
+- **Cold Sponge:** Keep a cold wet cloth on your forehead, it reduces fever.
+
 **Health Tip:**
-- **Less Mobile:** Keeping mobile and TV away for some time reduces headache.
-Your headache seems due to less sleep and tiredness, take rest for some time.
+
+- **Tulsi Kadha:** Tulsi and ginger kadha gives relief in fever.
+
+Your fever seems in the starting stage, so take rest for 1 day. If fever increases, talk to a doctor.
+
 Would you like to see a doctor?"""
     if "cold" in text or "cough" in text or "khansi" in text or "sardi" in text or "jukam" in text:
         if lang == "Hindi":
-            return """Sardi-khansi me takleef hoti hai, aaram kijiye.
+            return """Aapki takleef samajh sakte hain, please take rest.
+
 **Possible Causes:**
+
 - **Viral Infection:** Mausam badalne se gale me virus lag jata hai, isse sardi-khansi hoti hai.
+
 - **Thanda Paani:** Thanda paani ya ice-cream se gala kharab ho jata hai.
+
 - **Dhool:** Dhool-mitti se allergy ho jati hai aur khansi aane lagti hai.
+
 **Danger Signs:**
-- **Saans me dikkat:** Saans lene me takleef ho toh turant doctor ko dikhayein.
-- **Khoon wali khansi:** Khansi me khoon aaye toh der mat karein.
+
+- **Saans me Dikkat:** Saans lene me takleef ho, toh turant doctor ko dikhayein.
+
+- **Khoon Wali Khansi:** Khansi me khoon aaye, toh der mat karein.
+
 **What To Do Now:**
-- **Garam Paani:** Din bhar gunguna paani piyein.
+
+- **Garam Paani Piyein:** Din bhar gunguna paani piyein.
+
 - **Haldi Doodh:** Raat ko haldi wala garam doodh piyein.
+
 - **Bhapa Lein:** Garam paani ka bhapa lene se naak khul jati hai.
+
 **Health Tip:**
+
 - **Tulsi-Adrak:** Tulsi aur adrak ki chai peene se gale ko aaram milta hai.
+
 Aapki sardi-khansi abhi shuru hui lag rahi hai, 2 din garam cheezein lijiye.
-Kya aap doctor se baat karna chahengi?"""
-        else:
-            return """Cold and cough is irritating, please take rest.
-**Possible Causes:**
-- **Viral Infection:** Change in weather causes virus in throat, it gives cold and cough.
-- **Cold Water:** Cold water or ice-cream makes throat bad.
-- **Dust Allergy:** Dust and smoke cause allergy and cough starts.
-**Danger Signs:**
-- **Breathing Problem:** If you feel difficulty in breathing, see doctor immediately.
-- **Blood in Cough:** If blood comes in cough, do not wait.
-**What To Do Now:**
-- **Warm Water:** Drink warm water through the day.
-- **Turmeric Milk:** Drink warm turmeric milk at night.
-- **Steam:** Take steam from hot water, it opens your nose.
-**Health Tip:**
-- **Tulsi-Ginger:** Tulsi and ginger tea gives relief to throat.
-Your cold and cough seems in starting stage, take warm things for 2 days.
+
 Would you like to see a doctor?"""
-    if "stomach" in text or "pet dard" in text or "pet me dard" in text or "gas" in text:
-        if lang == "Hindi":
-            return """Pet dard me bahut takleef hoti hai, aaram kijiye.
-**Possible Causes:**
-- **Gas:** Bahar ka khana ya jaldi-jaldi khane se pet me gas ban jati hai.
-- **Acidity:** Masaledar khana ya khaali pet rehne se acidity ho jati hai.
-- **Kabz:** Paani kam peene se kabz ho jata hai aur pet dukhne lagta hai.
-**Danger Signs:**
-- **Tez Dard:** Pet me bahut tez dard ho ya ulti aaye toh turant doctor ko dikhayein.
-- **Khoon:** Potty me khoon aaye toh der mat karein.
-**What To Do Now:**
-- **Halka Khana:** Aaj halka khana khayein, jaise khichdi, dahi.
-- **Gunguna Paani:** Gunguna paani dheere-dheere piyein.
-- **Walk:** Khana khane ke baad 10 minute halki walk karein.
-**Health Tip:**
-- **Ajwain Paani:** Ajwain ka paani peene se gas me turant aaram milta hai.
-Aapka pet dard gas aur acidity se lag raha hai, aaj halka khana khayein.
-Kya aap doctor se baat karna chahengi?"""
         else:
-            return """Stomach pain is painful, please take rest.
+            return """I understand, please take rest.
+
 **Possible Causes:**
-- **Gas:** Eating outside food or eating fast causes gas in stomach.
-- **Acidity:** Spicy food or staying empty stomach causes acidity.
-- **Constipation:** Drinking less water causes constipation and stomach pain.
+
+- **Viral Infection:** Change in weather causes virus in the throat, it gives cold and cough.
+
+- **Cold Water:** Cold water or ice-cream makes the throat bad.
+
+- **Dust Allergy:** Dust and smoke cause allergy and cough starts.
+
 **Danger Signs:**
-- **Severe Pain:** If stomach pain is very severe or you feel vomiting, see doctor immediately.
-- **Blood:** If blood comes in stool, do not wait.
+
+- **Breathing Problem:** If you feel difficulty in breathing, see a doctor immediately.
+
+- **Blood in Cough:** If blood comes in cough, do not wait.
+
 **What To Do Now:**
-- **Light Food:** Eat light food today, like khichdi, curd.
-- **Warm Water:** Drink warm water slowly.
-- **Walk:** Walk for 10 minutes lightly after food.
+
+- **Drink Warm Water:** Drink warm water through the day.
+
+- **Turmeric Milk:** Drink warm turmeric milk at night.
+
+- **Steam:** Take steam from hot water, it opens your nose.
+
 **Health Tip:**
+
+- **Tulsi-Ginger:** Tulsi and ginger tea gives relief to the throat.
+
+Your cold and cough seems in the starting stage, take warm things for 2 days.
+
+Would you like to see a doctor?"""
+    if "stomach" in text or "pet" in text or "gas" in text:
+        if lang == "Hindi":
+            return """Aapki takleef samajh sakte hain, please take rest.
+
+**Possible Causes:**
+
+- **Gas:** Bahar ka khana ya jaldi-jaldi khane se pet me gas ban jati hai.
+
+- **Acidity:** Masaledar khana ya khaali pet rehne se acidity ho jati hai.
+
+- **Kabz:** Paani kam peene se kabz ho jata hai aur pet dukhne lagta hai.
+
+**Danger Signs:**
+
+- **Tez Dard:** Pet me bahut tez dard ho ya ulti aaye, toh turant doctor ko dikhayein.
+
+- **Khoon:** Potty me khoon aaye, toh der mat karein.
+
+**What To Do Now:**
+
+- **Halka Khana Khayein:** Aaj halka khana khayein, jaise khichdi, dahi.
+
+- **Gunguna Paani Piyein:** Gunguna paani dheere-dheere piyein.
+
+- **Walk Karein:** Khana khane ke baad 10 minute halki walk karein.
+
+**Health Tip:**
+
+- **Ajwain Paani:** Ajwain ka paani peene se gas me turant aaram milta hai.
+
+Aapka pet dard gas aur acidity se lag raha hai, aaj halka khana khayein.
+
+Would you like to see a doctor?"""
+        else:
+            return """I understand, please take rest.
+
+**Possible Causes:**
+
+- **Gas:** Eating outside food or eating fast causes gas in the stomach.
+
+- **Acidity:** Spicy food or staying empty stomach causes acidity.
+
+- **Constipation:** Drinking less water causes constipation and stomach pain.
+
+**Danger Signs:**
+
+- **Severe Pain:** If stomach pain is very severe or you feel vomiting, see a doctor immediately.
+
+- **Blood:** If blood comes in stool, do not wait.
+
+**What To Do Now:**
+
+- **Eat Light Food:** Eat light food today, like khichdi, curd.
+
+- **Drink Warm Water:** Drink warm water slowly.
+
+- **Walk:** Walk for 10 minutes lightly after food.
+
+**Health Tip:**
+
 - **Ajwain Water:** Ajwain water gives instant relief in gas.
+
 Your stomach pain seems due to gas and acidity, eat light food today.
+
 Would you like to see a doctor?"""
     if "daane" in text or "rash" in text or "khujli" in text or "itching" in text or "chot" in text:
         if lang == "Hindi":
-            return """Photo dekh li hai, takleef samajh sakte hain.
+            return """Aapki takleef samajh sakte hain, please take rest.
+
 **Possible Causes:**
+
 - **Allergy:** Naye sabun, kapde ya dhool se skin pe allergy ho jati hai, isse daane aur khujli hoti hai.
+
 - **Garmi:** Garmi me pasina jamne se bhi daane nikal aate hain.
+
 - **Infection:** Saaf-safai na rakhne se skin pe infection ho jata hai.
+
 **Danger Signs:**
-- **Pus / Pani:** Daano se pus ya paani nikle toh turant doctor ko dikhayein.
-- **Tez Bukhar:** Daano ke saath tez bukhar ho toh der mat karein.
+
+- **Pus / Paani:** Daano se pus ya paani nikle, toh turant doctor ko dikhayein.
+
+- **Tez Bukhar:** Daano ke saath tez bukhar ho, toh der mat karein.
+
 **What To Do Now:**
+
 - **Khujlayein Nahi:** Daano ko khujlayein nahi, isse infection badhta hai.
+
 - **Saaf Rakhein:** Us jagah ko saaf paani se dho kar sukha rakhein.
+
 - **Nariyal Tel:** Halka nariyal tel lagayein, isse khujli me aaram milega.
+
 **Health Tip:**
+
 - **Saaf Kapde:** Roz saaf aur dhoop me sukhe kapde pehnein.
-Aapki photo doctor ko dikhane ke liye save ho gayi hai. Agar khujli badhti hai toh doctor se baat kar lijiyega.
-Kya aap doctor se baat karna chahengi?"""
+
+Aapki photo doctor ko dikhane ke liye save ho gayi hai. Agar khujli badhti hai, toh doctor se baat kar lijiyega.
+
+Would you like to see a doctor?"""
         else:
-            return """I have seen your photo, I understand your problem.
+            return """I understand, please take rest.
+
 **Possible Causes:**
+
 - **Allergy:** New soap, clothes or dust can cause allergy on skin, it gives rashes and itching.
+
 - **Heat:** In heat, sweat gets stuck and rashes come.
+
 - **Infection:** If skin is not kept clean, infection happens.
+
 **Danger Signs:**
-- **Pus / Water:** If pus or water comes from rashes, see doctor immediately.
+
+- **Pus / Water:** If pus or water comes from rashes, see a doctor immediately.
+
 - **High Fever:** If you get high fever with rashes, do not wait.
+
 **What To Do Now:**
+
 - **Do Not Scratch:** Do not scratch rashes, it increases infection.
+
 - **Keep Clean:** Wash that place with clean water and keep it dry.
+
 - **Coconut Oil:** Apply light coconut oil, it gives relief in itching.
+
 **Health Tip:**
+
 - **Clean Clothes:** Wear clean clothes dried in sunlight daily.
+
 Your photo is saved to show to doctor. If itching increases, talk to a doctor.
+
 Would you like to see a doctor?"""
     return None
 
-def ask_ollama_stream(user_text, lang, placeholder):
+def ask_reply(user_text, lang, placeholder):
     instant = get_instant_answer(user_text, lang)
     if instant:
         placeholder.markdown(instant)
         return instant
     if lang == "Hindi":
-        fallback = """Aapki takleef samajh sakte hain, aaram kijiye.
+        fallback = """Aapki takleef samajh sakte hain, please take rest.
+
 **Possible Causes:**
+
 - **Thakan:** Neend poori na hone ya zyada kaam karne se sharir thak jata hai aur dard hone lagta hai.
+
 - **Viral Infection:** Mausam badalne se sharir me dard, halka bukhar aur thakan mehsoos hoti hai.
+
 **Danger Signs:**
-- **Tez Bukhar:** 102 se upar bukhar ho toh turant doctor ko dikhayein.
-- **Saans me dikkat:** Saans lene me takleef ho toh der mat karein.
+
+- **Tez Bukhar:** 102 se upar bukhar ho, toh turant doctor ko dikhayein.
+
+- **Saans me Dikkat:** Saans lene me takleef ho, toh der mat karein.
+
 **What To Do Now:**
+
 - **Aaram Karein:** 1-2 din bhari kaam band karke poora aaram karein.
+
 - **Gunguna Paani:** Din bhar gunguna paani piyein, isse aaram milega.
+
 **Health Tip:**
+
 - **Roz Walk:** Roz 30 minute halki walk se sharir mazboot rehta hai.
-Aap thoda aaram kijiye, agar 2 din me aaram na mile toh doctor se baat kar lijiyega.
-Kya aap doctor se baat karna chahengi?"""
+
+Aap thoda aaram kijiye, agar 2 din me aaram na mile, toh doctor se baat kar lijiyega.
+
+Would you like to see a doctor?"""
     else:
         fallback = """I understand, please take rest.
+
 **Possible Causes:**
+
 - **Tiredness:** When you do not sleep well or work too much, your body gets tired and starts paining.
+
 - **Viral Infection:** Change in weather causes body pain, mild fever and tiredness.
+
 **Danger Signs:**
+
 - **High Fever:** If fever is above 102, see a doctor immediately.
+
 - **Breathing Problem:** If you feel difficulty in breathing, do not wait.
+
 **What To Do Now:**
+
 - **Take Rest:** Stop heavy work for 1-2 days and give your body full rest.
+
 - **Warm Water:** Drink warm water through the day, it will give relief.
+
 **Health Tip:**
+
 - **Daily Walk:** Walking 30 minutes daily keeps your body strong.
+
 Please take rest, if no relief in 2 days, please talk to a doctor.
+
 Would you like to see a doctor?"""
     placeholder.markdown(fallback)
     return fallback
 
-# ================= HOME - FIXED LOOP =================
+# ================= HOME =================
 if menu in ["🏠 Home", "🏠 होम"]:
     st.title("🩺 Sehat Saathi")
     if IS_HINDI:
@@ -316,7 +456,6 @@ if menu in ["🏠 Home", "🏠 होम"]:
                 st.session_state.messages.append({"role": "assistant", "content": "Theek hai, apna khayal rakhiye. Takleef badhe toh turant 104 ya 108 pe call kijiyega." if IS_HINDI else "Okay, take care. If problem increases, call 104 or 108 immediately."})
                 st.rerun()
     st.markdown("---")
-    # FIX: form + clear_on_submit se loop khatam, box khud khaali ho jayega
     with st.form("chat_form", clear_on_submit=True):
         chat_text = st.text_input("Type...", label_visibility="collapsed", placeholder="Apni takleef likhein..." if IS_HINDI else "Write your symptom...")
         submitted = st.form_submit_button("➤ Send", use_container_width=True)
@@ -325,7 +464,7 @@ if menu in ["🏠 Home", "🏠 होम"]:
         st.session_state.doctor_asked = False
         with st.chat_message("assistant"):
             placeholder = st.empty()
-            reply = ask_ollama_stream(chat_text, lang, placeholder)
+            reply = ask_reply(chat_text, lang, placeholder)
         st.session_state.messages.append({"role": "assistant", "content": reply})
         st.rerun()
     if st.button("🧹 Clear Chat" if not IS_HINDI else "🧹 Chat Saaf Karein", use_container_width=True):
@@ -348,7 +487,7 @@ if menu in ["🏠 Home", "🏠 होम"]:
             st.session_state.doctor_asked = False
             with st.chat_message("assistant"):
                 placeholder = st.empty()
-                reply = ask_ollama_stream(photo_text, lang, placeholder)
+                reply = ask_reply(photo_text, lang, placeholder)
             st.session_state.messages.append({"role": "assistant", "content": reply})
             st.rerun()
     if audio_input and st.session_state.get("last_audio_id") != str(audio_input):
@@ -361,13 +500,12 @@ if menu in ["🏠 Home", "🏠 होम"]:
             st.session_state.doctor_asked = False
             with st.chat_message("assistant"):
                 placeholder = st.empty()
-                reply = ask_ollama_stream(voice_text, lang, placeholder)
+                reply = ask_reply(voice_text, lang, placeholder)
             st.session_state.messages.append({"role": "assistant", "content": reply})
             st.rerun()
         else:
             st.warning("Awaz samajh nahi aayi, dobara boliye." if IS_HINDI else "Could not understand, please speak again.")
 
-# ================= MEDICINE REMINDER =================
 elif menu in ["💊 Medicine Reminder", "💊 दवाई रिमाइंडर"]:
     if IS_HINDI:
         st.title("💊 दवाई रिमाइंडर")
@@ -414,8 +552,13 @@ elif menu in ["💊 Medicine Reminder", "💊 दवाई रिमाइंड
             st.rerun()
     else:
         st.write("Abhi koi reminder nahi hai." if IS_HINDI else "No reminders yet.")
+    # --- CHANGE 1: NOTE AT LAST ---
+    st.markdown("---")
+    if IS_HINDI:
+        st.info("ℹ️ **Note:** Abhi reminder tab milega jab aap app kholenge. Baad me hum apni marzi se notification wala reminder bhi add kar denge, jisse app band hone par bhi yaad aayega.")
+    else:
+        st.info("ℹ️ **Note:** Right now, you will get the reminder when you open the app. Later on, we will add notification reminders as per your choice, so you will get reminded even when the app is closed.")
 
-# ================= TALK TO DOCTOR =================
 elif menu in ["👨‍⚕️ Talk To Doctor", "👨‍⚕️ डॉक्टर से बात करें"]:
     if IS_HINDI:
         st.title("👨‍⚕️ डॉक्टर से बात करें")
@@ -432,7 +575,7 @@ elif menu in ["👨‍⚕️ Talk To Doctor", "👨‍⚕️ डॉक्टर 
         st.link_button("📞 104 pe Call Karein", "tel:104", use_container_width=True)
         st.markdown("---")
         st.markdown("### 3. 🏥 Najdiki Sarkari Hospital")
-        st.write("Agar takleef zyada hai toh apne gaon ke najdik wale PHC / CHC me jayein.")
+        st.write("Agar takleef zyada hai toh apne najdik wale PHC / CHC me jayein.")
         st.write("- **Subah:** 9 baje se 1 baje tak OPD")
     else:
         st.title("👨‍⚕️ Talk To Doctor")
@@ -452,7 +595,6 @@ elif menu in ["👨‍⚕️ Talk To Doctor", "👨‍⚕️ डॉक्टर 
         st.write("If problem is more, go to your nearest PHC / CHC.")
         st.write("- **Morning:** 9 AM to 1 PM OPD")
 
-# ================= EMERGENCY =================
 elif menu in ["🚨 Emergency", "🚨 आपातकाल"]:
     if IS_HINDI:
         st.title("🚨 आपातकाल - Emergency")
@@ -535,7 +677,6 @@ elif menu in ["🚨 Emergency", "🚨 आपातकाल"]:
         st.write("- **No Water:** Do not give water / food to unconscious person")
         st.write("- **Call Fast:** Call 108 immediately")
 
-# ================= HEALTH TIPS =================
 elif menu in ["💡 Health Tips", "💡 स्वास्थ्य टिप्स"]:
     if IS_HINDI:
         st.title("💡 स्वास्थ्य टिप्स - Roz Ka Routine")
@@ -612,7 +753,6 @@ elif menu in ["💡 Health Tips", "💡 स्वास्थ्य टिप्
         st.write("- **Avoid Fall:** Wear chappal in bathroom, do not walk alone in dark")
         st.write("- **Medicine On Time:** Never miss medicine time, set reminder from this app")
 
-# ================= BMI =================
 elif menu in ["⚖️ BMI Calculator", "⚖️ बीएमआई कैलकुलेटर"]:
     if IS_HINDI:
         st.title("⚖️ बीएमआई कैलकुलेटर")
@@ -633,7 +773,6 @@ elif menu in ["⚖️ BMI Calculator", "⚖️ बीएमआई कैलक�
         else:
             st.write("Obese - Please consult doctor" if not IS_HINDI else "Obese - Doctor se baat karein")
 
-# ================= GOVT SCHEMES =================
 elif menu in ["🏛️ Government Schemes", "🏛️ सरकारी योजनाएं"]:
     if IS_HINDI:
         st.title("🏛️ सरकारी योजनाएं - FREE Ka Fayda Uthayein")
@@ -726,13 +865,79 @@ elif menu in ["🏛️ Government Schemes", "🏛️ सरकारी यो�
         st.write("- **How To Get:** Go to PHC at 9 AM, make slip")
         st.write("- **Need:** Aadhaar Card")
 
-# ================= ABOUT =================
+# --- CHANGE 2: ABOUT APP - FOR EVERYONE ---
 elif menu in ["ℹ️ About App", "ℹ️ ऐप के बारे में"]:
     if IS_HINDI:
-        st.title("ℹ️ ऐप के बारे में")
-        st.write("सेहत साथी गांव के लोगों के लिए बनाया गया है। ये डॉक्टर की जगह नहीं लेता, बस शुरुआती मदद करता है।")
-        st.write("**Features:** Chat, Photo Upload, Voice Input, Medicine Reminder, Doctor, BMI, Schemes")
+        st.title("ℹ️ ऐप के बारे में - Sehat Saathi")
+        st.write("Sehat Saathi **sabke liye** banaya gaya hai - bachon se lekar bujurgon tak, gaon ho ya shehar, sabhi log iska use kar sakte hain.")
+        st.markdown("---")
+        st.markdown("### 🩺 Ye App Kya Hai?")
+        st.write("Sehat Saathi ek health helper app hai. Jab aapko halki takleef hoti hai - jaise sar dard, bukhar, sardi, pet dard - aur aapko samajh nahi aata ki kya karein, toh ye app turant aapko samjhata hai ki ye kis wajah se ho sakta hai, kab danger hai aur abhi kya karna chahiye.")
+        st.write("Ye app doctor ki jagah nahi leta, ye bas pehli madad karta hai, taaki aap ghabrayein nahi aur sahi time pe sahi faisla le sakein.")
+        st.markdown("---")
+        st.markdown("### ✨ Features - Is App Me Kya-Kya Hai?")
+        st.write("- **💬 Chat Se Baat Karein:** Apni takleef likh ke bhejein, jaise 'mere sar me dard hai', app turant jawab dega.")
+        st.write("- **🎤 Bol Ke Batayein:** Likhna nahi aata toh mic dabake bol dijiye, app aapki awaz sun ke samajh jayega.")
+        st.write("- **📷 Photo Bhejein:** Haath pe daane, chot ya rash hai toh photo bhej dijiye, app dekh ke batayega.")
+        st.write("- **💊 Medicine Reminder:** Dawai ka time set kijiye, time hone pe app yaad dilayega, dawai kabhi miss nahi hogi.")
+        st.write("- **👨‍⚕️ Doctor Se Baat Karein:** Agar takleef zyada hai toh yahan se sarkari doctor, eSanjeevani aur 104 helpline pe baat kar sakte hain.")
+        st.write("- **🚨 Emergency:** Emergency me kya karna hai, kis number pe call karna hai, sab ek jagah mil jayega.")
+        st.write("- **💡 Health Tips:** Roz ka routine, khana-peena, neend, walk - sabke aasan tips.")
+        st.write("- **⚖️ BMI Calculator:** Apna wajan sahi hai ya nahi, ye check kar sakte hain.")
+        st.write("- **🏛️ Government Schemes:** Ayushman, Jan Aushadhi jaisi sarkari yojnaon ki poori jankari FREE me.")
+        st.write("- **🌐 Hindi / English:** App ko Hindi ya English, dono me chala sakte hain.")
+        st.markdown("---")
+        st.markdown("### ❤️ Isse Fayda Kya Hoga?")
+        st.write("- **Time Bachega:** Chhoti takleef ke liye baar-baar hospital ke chakkar nahi lagane padenge, pehle ghar pe hi pata chal jayega.")
+        st.write("- **Paise Bachenge:** Sarkari FREE ilaj aur sasti dawai ki jankari milegi.")
+        st.write("- **Ghabrahat Kam Hogi:** Takleef hone pe pata chal jayega ki ye normal hai ya danger hai, isse dar kam lagega.")
+        st.write("- **Dawai Yaad Rahegi:** Buzurgon aur bachon ki dawai ka time kabhi miss nahi hoga.")
+        st.write("- **Sabke Liye Aasan:** Jo log padhna-likhna kam jaante hain, wo bol ke ya photo bhej ke bhi use kar sakte hain.")
+        st.markdown("---")
+        st.markdown("### 📱 Kaise Use Karein? - Step By Step")
+        st.write("**Step 1:** Left side se apni bhasha chunein - Hindi ya English.")
+        st.write("**Step 2:** Home pe jake neeche wale box me apni takleef likhein, jaise 'mere pet me dard hai', aur Send dabayein.")
+        st.write("**Step 3:** App aapko batayega - Possible Causes kya hain, Danger Signs kya hain, aur Abhi Kya Karna Hai.")
+        st.write("**Step 4:** Agar app puche 'Would you like to see a doctor?' aur takleef zyada lage, toh Yes dabake doctor se baat karein.")
+        st.write("**Step 5:** Dawai ka time yaad rakhne ke liye Medicine Reminder me jake dawai ka naam aur time set karein.")
+        st.write("**Step 6:** Emergency ho toh Emergency wale page pe jake 108 ya 104 pe call karein.")
+        st.write("**Step 7:** Health Tips aur Government Schemes wala page roz ek baar dekh lein, bahut kaam ki cheezein hain.")
+        st.markdown("---")
+        st.info("⚠️ **Zaroori Baat:** Ye app sirf jankari aur pehli madad ke liye hai. Ye doctor ki jagah nahi le sakta. Agar takleef zyada hai, bukhar 102 se upar hai, saans me dikkat hai ya chot lagi hai, toh turant doctor ko dikhayein ya 108 pe call karein.")
     else:
-        st.title("ℹ️ About App")
-        st.write("Sehat Saathi is made for village people. It does not replace a doctor, it only gives first help.")
-        st.write("**Features:** Chat, Photo Upload, Voice Input, Medicine Reminder, Doctor, BMI, Schemes")
+        st.title("ℹ️ About App - Sehat Saathi")
+        st.write("Sehat Saathi is made for **everyone** - from children to elderly, village or city, anyone can use it.")
+        st.markdown("---")
+        st.markdown("### 🩺 What Is This App?")
+        st.write("Sehat Saathi is a health helper app. When you have a small problem - like headache, fever, cold, stomach pain - and you do not understand what to do, this app immediately tells you why it can happen, when it is dangerous, and what you should do now.")
+        st.write("This app does not replace a doctor, it only gives first help, so you do not panic and take the right decision at the right time.")
+        st.markdown("---")
+        st.markdown("### ✨ Features - What Is In This App?")
+        st.write("- **💬 Chat:** Write your problem, like 'my head is paining', app will reply immediately.")
+        st.write("- **🎤 Speak:** If you cannot type, press mic and speak, app will listen and understand.")
+        st.write("- **📷 Send Photo:** If you have rashes, injury or daane on hand, send a photo, app will check and tell you.")
+        st.write("- **💊 Medicine Reminder:** Set medicine time, app will remind you on time, you will never miss medicine.")
+        st.write("- **👨‍⚕️ Talk To Doctor:** If problem is more, from here you can talk to government doctor, eSanjeevani and 104 helpline.")
+        st.write("- **🚨 Emergency:** In emergency, what to do, which number to call, everything is in one place.")
+        st.write("- **💡 Health Tips:** Daily routine, food, sleep, walk - all easy tips.")
+        st.write("- **⚖️ BMI Calculator:** You can check if your weight is correct or not.")
+        st.write("- **🏛️ Government Schemes:** Full information of government schemes like Ayushman, Jan Aushadhi, totally FREE.")
+        st.write("- **🌐 Hindi / English:** You can run the app in Hindi or English.")
+        st.markdown("---")
+        st.markdown("### ❤️ What Is The Benefit?")
+        st.write("- **Saves Time:** For small problems, you will not need to go to hospital again and again, you will know at home first.")
+        st.write("- **Saves Money:** You will get information about FREE government treatment and cheap medicines.")
+        st.write("- **Less Fear:** When you have a problem, you will know if it is normal or dangerous, so you will feel less scared.")
+        st.write("- **Medicine Will Not Be Missed:** Medicine time of elderly and children will never be missed.")
+        st.write("- **Easy For Everyone:** People who cannot read-write much, can also use by speaking or sending photo.")
+        st.markdown("---")
+        st.markdown("### 📱 How To Use? - Step By Step")
+        st.write("**Step 1:** From left side, choose your language - Hindi or English.")
+        st.write("**Step 2:** Go to Home, write your problem in the bottom box, like 'my stomach is paining', and press Send.")
+        st.write("**Step 3:** App will tell you - Possible Causes, Danger Signs, and What To Do Now.")
+        st.write("**Step 4:** If app asks 'Would you like to see a doctor?' and problem seems more, press Yes and talk to doctor.")
+        st.write("**Step 5:** To remember medicine time, go to Medicine Reminder and set medicine name and time.")
+        st.write("**Step 6:** If emergency, go to Emergency page and call 108 or 104.")
+        st.write("**Step 7:** See Health Tips and Government Schemes page once daily, they have very useful things.")
+        st.markdown("---")
+        st.info("⚠️ **Important:** This app is only for information and first help. It cannot replace a doctor. If problem is more, fever is above 102, breathing problem, or injury, please see a doctor immediately or call 108.")
