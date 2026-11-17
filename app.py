@@ -1,5 +1,6 @@
 import streamlit as st
 import datetime
+import re
 st.set_page_config(page_title="Sehat Saathi", page_icon="🩺", layout="centered")
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -10,7 +11,7 @@ if "reminders" not in st.session_state:
 if "last_audio_id" not in st.session_state:
     st.session_state["last_audio_id"] = ""
 
-st.sidebar.write("Language")
+st.sidebar.write("Language - Menu Ki Bhasha")
 lang = st.sidebar.radio("Choose Language", ["English", "Hindi"], label_visibility="collapsed")
 IS_HINDI = (lang == "Hindi")
 if IS_HINDI:
@@ -33,11 +34,28 @@ def speech_to_text(audio_bytes):
     except Exception as e:
         return f"ERROR:{str(e)[:100]}"
 
+# ---------- LANGUAGE AUTO-DETECT - TU JO BOLEGI USI ME JAWAB ----------
+def detect_language(user_text):
+    t = user_text.lower()
+    # Agar Devanagari me likha hai toh Hindi
+    if re.search(r'[\u0900-\u097F]', user_text):
+        return "Hindi"
+    hindi_words = ["mere", "mera", "mujhe", "mujhko", "dard", "hai", "ho", "raha", "rahi", "gaya", "sar", "sir", "kamar", "pet", "badan", "bukhar", "sardi", "khansi", "khujli", "daane", "gala", "gale", "kaan", "daant", "aankh", "pair", "haath", "ghutna", "chakkar", "ulti", "dast", "kamzori", "neend", "chot", "seene", "saans"]
+    for w in hindi_words:
+        if w in t:
+            return "Hindi"
+    # English words
+    english_words = ["my", "i have", "pain", "paining", "head", "back", "body", "fever", "cold", "cough", "stomach", "throat", "chest", "leg", "knee", "eye", "ear", "tooth", "rash", "itching", "dizzy", "vomit"]
+    for w in english_words:
+        if w in t:
+            return "English"
+    # Kuch samajh na aaye toh sidebar wali bhasha lo
+    return "Hindi" if IS_HINDI else "English"
+
 # ---------- HAR SYMPTOM KE HISAB SE ALAG JAWAB ----------
 def get_instant_answer(user_text, lang):
     text = user_text.lower()
 
-    # Helper to make answer format same but content alag
     def make_answer(symptom_name, causes, dangers, dos, tip, summary, lang):
         if lang == "Hindi":
             c = "\n".join([f"- **{a}:** {b}" for a,b in causes])
@@ -90,152 +108,116 @@ Would you like to see a doctor?"""
 
 Would you like to see a doctor?"""
 
-    # 1. HEAD
     if "head" in text or "sar" in text or "sir" in text or "migraine" in text or "headache" in text:
-        return make_answer("Sir Dard / Headache" if lang=="Hindi" else "Headache",
-            [("Neend ki Kami","Raat ko neend poori na hone se subah uthte hi sar bhari lagta hai aur dard hone lagta hai."),("Zyada Phone","Din bhar phone dekhne se aankhon pe zor padta hai, isse sar ke aage wale hisse me dard hota hai."),("Gas / Bhook","Lambi der bhooke rehne se ya gas banne se bhi sar me dard hota hai.")],
-            [("Bahut Tez Dard","Agar achanak bahut tez dard ho, jaise pehle kabhi nahi hua, toh turant doctor ko dikhayein."),("Ulti / Chakkar","Sar dard ke saath ulti ya chakkar aaye, toh der mat karein.")],
-            [("Andhere Me Aaram","Light band karke andhere kamre me let jayein, phone mat dekhein."),("Thandi Patti","Sar pe thande paani ki patti rakhein, isse dard kam hoga."),("Gunguna Paani","Thoda-thoda karke gunguna paani piyein, khaali pet mat rahein.")],
-            ("Phone Kam Dekhein","Roz sone se 30 minute pehle phone band kar dein, sar dard kam ho jayega."),
-            "Aapka sar dard zyada tar neend ki kami aur phone dekhne ki wajah se lag raha hai, isliye aaj phone kam dekhiye aur thodi der so jayiye." if lang=="Hindi" else "Your headache seems mostly because of less sleep and too much phone, so use phone less today and take some sleep.", lang)
+        if lang == "Hindi":
+            return make_answer("Sir Dard", [("Neend ki Kami","Raat ko neend poori na hone se subah uthte hi sar bhari lagta hai aur dard hone lagta hai."),("Zyada Phone","Din bhar phone dekhne se aankhon pe zor padta hai, isse sar ke aage wale hisse me dard hota hai."),("Gas / Bhook","Lambi der bhooke rehne se ya gas banne se bhi sar me dard hota hai.")], [("Bahut Tez Dard","Agar achanak bahut tez dard ho, jaise pehle kabhi nahi hua, toh turant doctor ko dikhayein."),("Ulti / Chakkar","Sar dard ke saath ulti ya chakkar aaye, toh der mat karein.")], [("Andhere Me Aaram","Light band karke andhere kamre me let jayein, phone mat dekhein."),("Thandi Patti","Sar pe thande paani ki patti rakhein, isse dard kam hoga."),("Gunguna Paani","Thoda-thoda karke gunguna paani piyein, khaali pet mat rahein.")], ("Phone Kam Dekhein","Roz sone se 30 minute pehle phone band kar dein, sar dard kam ho jayega."), "Aapka sar dard zyada tar neend ki kami aur phone dekhne ki wajah se lag raha hai, isliye aaj phone kam dekhiye aur thodi der so jayiye.", lang)
+        else:
+            return make_answer("Headache", [("Less Sleep","When you do not sleep well at night, you wake up with a heavy head and headache starts."),("Too Much Phone","Watching phone all day puts pressure on your eyes. This causes pain in the front part of your head."),("Gas and Hunger","Staying hungry for a long time or gas also causes headache.")], [("Very Severe Pain","If you get sudden very severe headache, like never before, see a doctor immediately."),("Vomiting / Dizziness","If you feel vomiting or dizziness with headache, do not wait.")], [("Rest in Dark Room","Lie down in a dark room with lights off, do not see phone."),("Cold Cloth","Keep a cold wet cloth on your head, it will reduce headache."),("Warm Water","Drink warm water in small sips, do not stay empty stomach.")], ("Less Phone","Switch off phone 30 minutes before sleeping daily, headache will reduce."), "Your headache seems mostly because of less sleep and too much phone, so use phone less today and take some sleep.", lang)
 
-    # 2. BACK
     if "back" in text or "kamar" in text or "spine" in text:
-        return make_answer("Kamar Dard / Back Pain" if lang=="Hindi" else "Back Pain",
-            [("Galat Bethna","Lambi der jhuk ke bethne se kamar ki haddi pe zor padta hai, isse kamar dukhne lagti hai."),("Bhari Cheez Uthana","Achanak bhari balti uthane se kamar ki nas khich jati hai."),("Kamzori","Calcium aur Vitamin D ki kami se haddiyan kamzor ho jati hain.")],
-            [("Pair Me Dard","Agar dard kamar se pair tak ja raha hai ya pair sunn ho raha hai, toh turant doctor ko dikhayein."),("Chalne Me Dikkat","Agar chalne me bahut takleef ho, toh der mat karein.")],
-            [("Seedha Letein","Seedhe sakht bistar pe let jayein, naram gaddi pe mat letein."),("Garam Sek","Kamar pe din me 2 baar 10 minute garam sek karein."),("Bhari Kaam Band","2 din tak bhari cheez mat uthayein.")],
-            ("Roz Walk","Roz 20 minute seedha chaliye, kamar mazboot hogi."),
-            "Aapka kamar dard zyada tar galat bethne aur bhari kaam ki wajah se lag raha hai, 2 din aaram kijiye." if lang=="Hindi" else "Your back pain seems mostly because of wrong sitting and heavy work, take rest for 2 days.", lang)
+        if lang == "Hindi":
+            return make_answer("Kamar Dard", [("Galat Bethna","Lambi der jhuk ke bethne se kamar ki haddi pe zor padta hai."),("Bhari Cheez Uthana","Achanak bhari balti uthane se kamar ki nas khich jati hai."),("Kamzori","Calcium aur Vitamin D ki kami se haddiyan kamzor ho jati hain.")], [("Pair Me Dard","Agar dard kamar se pair tak ja raha hai, toh turant doctor ko dikhayein."),("Chalne Me Dikkat","Agar chalne me bahut takleef ho, toh der mat karein.")], [("Seedha Letein","Seedhe sakht bistar pe let jayein."),("Garam Sek","Kamar pe din me 2 baar 10 minute garam sek karein."),("Bhari Kaam Band","2 din tak bhari cheez mat uthayein.")], ("Roz Walk","Roz 20 minute seedha chaliye, kamar mazboot hogi."), "Aapka kamar dard zyada tar galat bethne aur bhari kaam ki wajah se lag raha hai, 2 din aaram kijiye.", lang)
+        else:
+            return make_answer("Back Pain", [("Wrong Sitting","Sitting bent for a long time puts pressure on back bone."),("Lifting Heavy Things","Suddenly lifting heavy bag pulls the back nerve."),("Weakness","Lack of Calcium and Vitamin D makes bones weak.")], [("Pain in Leg","If pain is going from back to leg, see a doctor immediately."),("Difficulty Walking","If you feel too much difficulty in walking, do not wait.")], [("Lie Straight","Lie straight on a hard bed."),("Hot Compress","Apply warm cloth on back for 10 minutes, 2 times a day."),("Stop Heavy Work","Do not lift heavy things for 2 days.")], ("Daily Walk","Walk straight for 20 minutes daily, your back will become strong."), "Your back pain seems mostly because of wrong sitting and heavy work, take rest for 2 days.", lang)
 
-    # 3. BODY
     if "body" in text or "badan" in text or "sharir" in text or "whole" in text:
-        return make_answer("Poora Badan Dard / Body Pain" if lang=="Hindi" else "Body Pain",
-            [("Thakan","Din bhar zyada kaam karne se poora sharir thak jata hai, har jagah dard hone lagta hai."),("Viral","Mausam badalne se halka virus lag jata hai, isme badan dard ke saath halka bukhar bhi hota hai."),("Paani ki Kami","Paani kam peene se muscles me dard hone lagta hai.")],
-            [("Tez Bukhar","Bukhar 102 se upar ho, toh turant doctor ko dikhayein."),("Saans me Dikkat","Saans lene me takleef ho, toh der mat karein.")],
-            [("Poora Aaram","Aaj bhari kaam band karke poora aaram kijiye."),("Garam Paani Se Nahaein","Gungune paani se nahane se muscles ko aaram milega."),("Gunguna Paani Piyein","Din bhar thoda-thoda gunguna paani piyein.")],
-            ("Roz Walk","Roz 30 minute halki walk se muscles mazboot hote hain."),
-            "Aapka badan dard zyada tar thakan aur viral ki wajah se lag raha hai, aaj aaram kijiye." if lang=="Hindi" else "Your body pain seems mostly because of tiredness and viral, take rest today.", lang)
+        if lang == "Hindi":
+            return make_answer("Poora Badan Dard", [("Thakan","Din bhar zyada kaam karne se poora sharir thak jata hai."),("Viral","Mausam badalne se halka virus lag jata hai, badan dard ke saath halka bukhar bhi hota hai."),("Paani ki Kami","Paani kam peene se muscles me dard hone lagta hai.")], [("Tez Bukhar","Bukhar 102 se upar ho, toh turant doctor ko dikhayein."),("Saans me Dikkat","Saans lene me takleef ho, toh der mat karein.")], [("Poora Aaram","Aaj bhari kaam band karke poora aaram kijiye."),("Garam Paani Se Nahaein","Gungune paani se nahane se muscles ko aaram milega."),("Gunguna Paani Piyein","Din bhar thoda-thoda gunguna paani piyein.")], ("Roz Walk","Roz 30 minute halki walk se muscles mazboot hote hain."), "Aapka badan dard zyada tar thakan aur viral ki wajah se lag raha hai, aaj aaram kijiye.", lang)
+        else:
+            return make_answer("Body Pain", [("Tiredness","Working too much makes the whole body tired."),("Viral Infection","Change in weather causes mild virus, with body pain and mild fever."),("Less Water","Drinking less water causes pain in muscles.")], [("High Fever","If fever goes above 102, see a doctor immediately."),("Breathing Problem","If you feel difficulty in breathing, do not wait.")], [("Full Rest","Stop all heavy work today and take full rest."),("Warm Water Bath","Bathing with warm water will relax muscles."),("Warm Water","Keep drinking warm water in small sips.")], ("Daily Walk","Walking 30 minutes daily makes muscles strong."), "Your body pain seems mostly because of tiredness and viral, take rest today.", lang)
 
-    # 4. FEVER
     if "fever" in text or "bukhar" in text:
-        return make_answer("Bukhar / Fever" if lang=="Hindi" else "Fever",
-            [("Viral Fever","Mausam badalne se virus se bukhar aa jata hai, sharir me dard aur thakan bhi hoti hai."),("Sardi","Gale me kharash aur sardi ke saath bhi halka bukhar aa sakta hai."),("Paani ki Kami","Paani kam peene se sharir garam ho jata hai.")],
-            [("Tez Bukhar","Bukhar 102 se upar ho, toh turant doctor ko dikhayein."),("Ulti / Chakkar","Ulti ya chakkar aaye, toh der mat karein.")],
-            [("Aaram Karein","Poora aaram karein, bahar ka kaam band karein."),("Thandi Patti","Sar pe thande paani ki patti rakhein."),("Gunguna Paani","Thoda-thoda karke gunguna paani piyein.")],
-            ("Tulsi Kadha","Tulsi aur adrak ka kadha peene se bukhar me aaram milta hai."),
-            "Aapka bukhar abhi shuru hua lag raha hai, 1 din aaram karke dekhiye." if lang=="Hindi" else "Your fever seems in starting stage, take rest for 1 day.", lang)
+        if lang == "Hindi":
+            return make_answer("Bukhar", [("Viral Fever","Mausam badalne se virus se bukhar aa jata hai."),("Sardi","Gale me kharash aur sardi ke saath bhi halka bukhar aa sakta hai."),("Paani ki Kami","Paani kam peene se sharir garam ho jata hai.")], [("Tez Bukhar","Bukhar 102 se upar ho, toh turant doctor ko dikhayein."),("Ulti / Chakkar","Ulti ya chakkar aaye, toh der mat karein.")], [("Aaram Karein","Poora aaram karein."),("Thandi Patti","Sar pe thande paani ki patti rakhein."),("Gunguna Paani","Thoda-thoda karke gunguna paani piyein.")], ("Tulsi Kadha","Tulsi aur adrak ka kadha peene se bukhar me aaram milta hai."), "Aapka bukhar abhi shuru hua lag raha hai, 1 din aaram karke dekhiye.", lang)
+        else:
+            return make_answer("Fever", [("Viral Fever","Change in weather causes viral infection."),("Cold","Throat infection and cold can also give mild fever."),("Less Water","Drinking less water makes body hot.")], [("High Fever","If fever goes above 102, see a doctor immediately."),("Vomiting / Dizziness","If you feel vomiting or dizziness, do not wait.")], [("Take Rest","Take full rest."),("Cold Sponge","Keep cold wet cloth on forehead."),("Warm Water","Drink warm water in small sips.")], ("Tulsi Kadha","Tulsi and ginger kadha gives relief in fever."), "Your fever seems in starting stage, take rest for 1 day.", lang)
 
-    # 5. COLD / COUGH / THROAT
     if "cold" in text or "cough" in text or "khansi" in text or "sardi" in text or "throat" in text or "gala" in text or "gale" in text:
-        return make_answer("Sardi-Khansi / Cold-Cough" if lang=="Hindi" else "Cold-Cough",
-            [("Viral Infection","Mausam badalne se gale me virus lag jata hai, isse sardi-khansi hoti hai."),("Thanda Paani","Thanda paani ya ice-cream se gala kharab ho jata hai."),("Dhool","Dhool-mitti se allergy ho jati hai aur khansi aane lagti hai.")],
-            [("Saans me Dikkat","Saans lene me takleef ho, toh turant doctor ko dikhayein."),("Khoon Wali Khansi","Khansi me khoon aaye, toh der mat karein.")],
-            [("Garam Paani","Din bhar gunguna paani piyein."),("Haldi Doodh","Raat ko haldi wala garam doodh piyein."),("Bhapa","Garam paani ka bhapa lene se naak khul jati hai.")],
-            ("Tulsi-Adrak","Tulsi aur adrak ki chai se gale ko aaram milta hai."),
-            "Aapki sardi-khansi abhi shuru hui lag rahi hai, 2 din garam cheezein lijiye." if lang=="Hindi" else "Your cold-cough seems in starting stage, take warm things for 2 days.", lang)
+        if lang == "Hindi":
+            return make_answer("Sardi-Khansi", [("Viral Infection","Mausam badalne se gale me virus lag jata hai."),("Thanda Paani","Thanda paani ya ice-cream se gala kharab ho jata hai."),("Dhool","Dhool-mitti se allergy ho jati hai.")], [("Saans me Dikkat","Saans lene me takleef ho, toh turant doctor ko dikhayein."),("Khoon Wali Khansi","Khansi me khoon aaye, toh der mat karein.")], [("Garam Paani","Din bhar gunguna paani piyein."),("Haldi Doodh","Raat ko haldi wala garam doodh piyein."),("Bhapa","Garam paani ka bhapa lene se naak khul jati hai.")], ("Tulsi-Adrak","Tulsi aur adrak ki chai se gale ko aaram milta hai."), "Aapki sardi-khansi abhi shuru hui lag rahi hai, 2 din garam cheezein lijiye.", lang)
+        else:
+            return make_answer("Cold-Cough", [("Viral Infection","Change in weather causes virus in throat."),("Cold Water","Cold water or ice-cream makes throat bad."),("Dust Allergy","Dust causes allergy and cough starts.")], [("Breathing Problem","If you feel difficulty in breathing, see doctor immediately."),("Blood in Cough","If blood comes in cough, do not wait.")], [("Warm Water","Drink warm water through the day."),("Turmeric Milk","Drink warm turmeric milk at night."),("Steam","Take steam from hot water.")], ("Tulsi-Ginger","Tulsi and ginger tea gives relief to throat."), "Your cold-cough seems in starting stage, take warm things for 2 days.", lang)
 
-    # 6. STOMACH / VOMITING / LOOSE MOTION
     if "stomach" in text or "pet" in text or "gas" in text or "ulti" in text or "vomit" in text or "dast" in text or "loose" in text or "diarrhea" in text:
-        return make_answer("Pet Dard / Stomach Problem" if lang=="Hindi" else "Stomach Problem",
-            [("Gas","Bahar ka khana ya jaldi khane se pet me gas ban jati hai."),("Acidity","Masaledar khana ya khaali pet rehne se acidity ho jati hai."),("Kabz / Infection","Paani kam peene se kabz hota hai, ganda khana khane se infection ho jata hai.")],
-            [("Tez Dard","Pet me bahut tez dard ho ya ulti aaye, toh turant doctor ko dikhayein."),("Khoon","Potty me khoon aaye, toh der mat karein.")],
-            [("Halka Khana","Aaj khichdi, dahi jaisa halka khana khayein."),("ORS Paani","Thoda-thoda karke ORS / namak-cheeni ka paani piyein."),("Walk","Khane ke baad 10 minute halki walk karein.")],
-            ("Ajwain Paani","Ajwain ka paani gas me turant aaram deta hai."),
-            "Aapka pet dard gas aur acidity se lag raha hai, aaj halka khana khayein." if lang=="Hindi" else "Your stomach pain seems due to gas and acidity, eat light food today.", lang)
+        if lang == "Hindi":
+            return make_answer("Pet Dard", [("Gas","Bahar ka khana ya jaldi khane se pet me gas ban jati hai."),("Acidity","Masaledar khana ya khaali pet rehne se acidity ho jati hai."),("Kabz","Paani kam peene se kabz hota hai.")], [("Tez Dard","Pet me bahut tez dard ho, toh turant doctor ko dikhayein."),("Khoon","Potty me khoon aaye, toh der mat karein.")], [("Halka Khana","Aaj khichdi, dahi jaisa halka khana khayein."),("ORS Paani","Thoda-thoda karke ORS piyein."),("Walk","Khane ke baad 10 minute halki walk karein.")], ("Ajwain Paani","Ajwain ka paani gas me turant aaram deta hai."), "Aapka pet dard gas aur acidity se lag raha hai, aaj halka khana khayein.", lang)
+        else:
+            return make_answer("Stomach Problem", [("Gas","Eating outside food causes gas."),("Acidity","Spicy food or empty stomach causes acidity."),("Constipation","Drinking less water causes constipation.")], [("Severe Pain","If stomach pain is very severe, see doctor immediately."),("Blood","If blood comes in stool, do not wait.")], [("Light Food","Eat light food like khichdi, curd."),("ORS Water","Drink ORS in small sips."),("Walk","Walk 10 minutes after food.")], ("Ajwain Water","Ajwain water gives instant relief in gas."), "Your stomach pain seems due to gas and acidity, eat light food today.", lang)
 
-    # 7. CHEST / BREATHING
-    if "chest" in text or "seene" in text or "saans" in text or "breath" in text or "asthma" in text:
-        return make_answer("Seene Me Dard / Chest Problem" if lang=="Hindi" else "Chest Problem",
-            [("Gas","Pet ki gas upar chadhne se seene me bhari pan aur dard lagta hai."),("Sardi / Allergy","Sardi aur dhool se seene me jakdan ho jati hai."),("Thakan","Zyada kaam karne se saans phoolne lagti hai.")],
-            [("Bahut Tez Dard","Seene me bahut tez dard ho ya saans ruk rahi ho, toh turant 108 pe call karein, wait mat karein."),("Pasina / Chakkar","Seene ke dard ke saath pasina ya chakkar aaye, toh turant hospital jayein.")],
-            [("Seedha Bethein","Seedha beth jayein, letiye nahi, kapde dheele kar dein."),("Hawa","Khidki khol dein, bheed mat lagayein."),("Gunguna Paani","Thoda-thoda gunguna paani piyein.")],
-            ("Dhool Se Bachein","Dhool aur dhuein se door rahein, mask pehnein."),
-            "Aapke seene ka dard gas aur sardi se lag raha hai, lekin agar dard tez hai toh turant doctor ko dikhayein." if lang=="Hindi" else "Your chest pain seems due to gas and cold, but if pain is severe, see doctor immediately.", lang)
+    if "chest" in text or "seene" in text or "saans" in text or "breath" in text:
+        if lang == "Hindi":
+            return make_answer("Seene Me Dard", [("Gas","Pet ki gas upar chadhne se seene me bhari pan lagta hai."),("Sardi","Sardi aur dhool se seene me jakdan ho jati hai."),("Thakan","Zyada kaam karne se saans phoolne lagti hai.")], [("Bahut Tez Dard","Seene me bahut tez dard ho, toh turant 108 pe call karein."),("Pasina","Seene ke dard ke saath pasina aaye, toh turant hospital jayein.")], [("Seedha Bethein","Seedha beth jayein, kapde dheele kar dein."),("Hawa","Khidki khol dein."),("Gunguna Paani","Thoda-thoda gunguna paani piyein.")], ("Dhool Se Bachein","Dhool aur dhuein se door rahein."), "Aapke seene ka dard gas aur sardi se lag raha hai, lekin dard tez hai toh turant doctor ko dikhayein.", lang)
+        else:
+            return make_answer("Chest Problem", [("Gas","Gas from stomach goes up and causes heaviness in chest."),("Cold","Cold and dust causes tightness in chest."),("Tiredness","Too much work causes breathlessness.")], [("Severe Pain","If chest pain is very severe, call 108 immediately."),("Sweating","If sweating with chest pain, go to hospital fast.")], [("Sit Straight","Sit straight, loosen clothes."),("Air","Open windows."),("Warm Water","Drink warm water in small sips.")], ("Avoid Dust","Stay away from dust and smoke."), "Your chest pain seems due to gas and cold, but if pain is severe, see doctor immediately.", lang)
 
-    # 8. LEG / KNEE / HAND / JOINT
     if "leg" in text or "pair" in text or "knee" in text or "ghutna" in text or "hand" in text or "haath" in text or "joint" in text or "shoulder" in text or "kandha" in text:
-        return make_answer("Haath-Pair / Joint Dard" if lang=="Hindi" else "Leg / Joint Pain",
-            [("Thakan / Chot","Zyada chalne ya halki chot lagne se haath-pair me dard ho jata hai."),("Calcium ki Kami","Calcium aur Vitamin D ki kami se ghutno aur jodo me dard hota hai."),("Galat Bethna","Galat tarike se bethne se ghutne pe zor padta hai.")],
-            [("Sujan","Agar bahut sujan aa jaye ya chal na payein, toh doctor ko dikhayein."),("Tez Dard","Dard 2 din se zyada rahe, toh der mat karein.")],
-            [("Aaram","Us pair / haath ko aaram dein, bhari kaam mat karein."),("Garam Sek","Dard wali jagah pe 10 minute garam sek karein."),("Pair Upar Rakhein","Pair me dard hai toh pair ko takiye pe upar rakh ke letein.")],
-            ("Doodh Piyein","Roz 1 gilas doodh piyein, haddiyan mazboot hongi."),
-            "Aapka haath-pair ka dard zyada tar thakan aur calcium ki kami se lag raha hai, 2 din aaram kijiye." if lang=="Hindi" else "Your leg/joint pain seems mostly due to tiredness and calcium deficiency, take rest for 2 days.", lang)
+        if lang == "Hindi":
+            return make_answer("Haath-Pair Dard", [("Thakan","Zyada chalne se haath-pair me dard ho jata hai."),("Calcium ki Kami","Calcium ki kami se ghutno me dard hota hai."),("Galat Bethna","Galat bethne se ghutne pe zor padta hai.")], [("Sujan","Bahut sujan aa jaye, toh doctor ko dikhayein."),("Tez Dard","Dard 2 din se zyada rahe, toh der mat karein.")], [("Aaram","Us pair ko aaram dein."),("Garam Sek","10 minute garam sek karein."),("Pair Upar Rakhein","Pair ko takiye pe upar rakh ke letein.")], ("Doodh Piyein","Roz 1 gilas doodh piyein."), "Aapka haath-pair ka dard thakan aur calcium ki kami se lag raha hai.", lang)
+        else:
+            return make_answer("Leg / Joint Pain", [("Tiredness","Walking too much causes leg pain."),("Calcium Deficiency","Lack of Calcium causes knee pain."),("Wrong Posture","Wrong sitting puts pressure on knee.")], [("Swelling","If too much swelling, see doctor."),("Severe Pain","If pain stays more than 2 days, do not wait.")], [("Rest","Give rest to that leg."),("Hot Compress","Apply warm cloth for 10 minutes."),("Raise Leg","Keep leg raised on pillow.")], ("Drink Milk","Drink 1 glass milk daily."), "Your leg pain seems due to tiredness and calcium deficiency.", lang)
 
-    # 9. EYE / EAR / TOOTH
     if "eye" in text or "aankh" in text or "ankh" in text:
-        return make_answer("Aankh Ki Problem" if lang=="Hindi" else "Eye Problem",
-            [("Phone / Dhool","Zyada phone dekhne ya dhool jaane se aankh me jalan aur dard hota hai."),("Neend ki Kami","Neend poori na hone se aankh laal aur bhari ho jati hai."),("Allergy","Dhool se aankh me allergy ho jati hai.")],
-            [("Dikhai Kam","Dikhai kam ho ya aankh me bahut tez dard ho, toh turant doctor ko dikhayein."),("Pus","Aankh se pus aa raha ho, toh der mat karein.")],
-            [("Aankh Mat Maslein","Aankh ko maslein nahi, saaf paani se dhoyein."),("Phone Kam","Phone dekhna kam kar dein, 20 minute me break lein."),("Thandi Patti","Aankh pe thandi patti rakhein.")],
-            ("Dhoop Se Bachein","Dhoop me chashma pehnein."),
-            "Aapki aankh ki problem zyada tar phone aur dhool ki wajah se lag rahi hai." if lang=="Hindi" else "Your eye problem seems mostly due to phone and dust.", lang)
+        if lang == "Hindi":
+            return make_answer("Aankh Ki Problem", [("Phone / Dhool","Zyada phone dekhne se aankh me jalan hoti hai."),("Neend ki Kami","Neend poori na hone se aankh laal ho jati hai."),("Allergy","Dhool se aankh me allergy ho jati hai.")], [("Dikhai Kam","Dikhai kam ho, toh turant doctor ko dikhayein."),("Pus","Aankh se pus aaye, toh der mat karein.")], [("Aankh Mat Maslein","Aankh ko maslein nahi, saaf paani se dhoyein."),("Phone Kam","Phone kam dekhiye."),("Thandi Patti","Aankh pe thandi patti rakhein.")], ("Dhoop Se Bachein","Dhoop me chashma pehnein."), "Aapki aankh ki problem phone aur dhool ki wajah se lag rahi hai.", lang)
+        else:
+            return make_answer("Eye Problem", [("Phone / Dust","Too much phone causes burning in eyes."),("Less Sleep","Less sleep makes eyes red."),("Allergy","Dust causes allergy in eyes.")], [("Less Vision","If vision is less, see doctor immediately."),("Pus","If pus comes from eyes, do not wait.")], [("Do Not Rub","Do not rub eyes, wash with clean water."),("Less Phone","Use phone less."),("Cold Cloth","Keep cold cloth on eyes.")], ("Avoid Sun","Wear glasses in sunlight."), "Your eye problem seems due to phone and dust.", lang)
+
     if "ear" in text or "kaan" in text:
-        return make_answer("Kaan Me Dard" if lang=="Hindi" else "Ear Pain",
-            [("Sardi","Sardi ke saath kaan me dard ho jata hai."),("Paani Chala Jana","Nahaate time kaan me paani chale jaane se dard hota hai."),("Mail","Kaan me mail jamne se bhi dard hota hai.")],
-            [("Behra Pan","Sunai kam de ya kaan se pus aaye, toh doctor ko dikhayein."),("Tez Bukhar","Kaan dard ke saath tez bukhar ho, toh der mat karein.")],
-            [("Kaan Me Kuch Mat Dalein","Kaan me teeli ya kuch mat dalein."),("Garam Sek","Kaan pe halka garam sek karein."),("Aaram","Thodi der aaram karein.")],
-            ("Kaan Saaf Rakhein","Kaan ko saaf aur sukha rakhein."),
-            "Aapke kaan ka dard sardi ki wajah se lag raha hai." if lang=="Hindi" else "Your ear pain seems due to cold.", lang)
+        if lang == "Hindi":
+            return make_answer("Kaan Me Dard", [("Sardi","Sardi ke saath kaan me dard ho jata hai."),("Paani","Nahaate time kaan me paani jaane se dard hota hai."),("Mail","Kaan me mail jamne se dard hota hai.")], [("Sunai Kam","Sunai kam de, toh doctor ko dikhayein."),("Tez Bukhar","Kaan dard ke saath tez bukhar ho, toh der mat karein.")], [("Kuch Mat Dalein","Kaan me teeli mat dalein."),("Garam Sek","Halka garam sek karein."),("Aaram","Thodi der aaram karein.")], ("Kaan Saaf Rakhein","Kaan ko saaf aur sukha rakhein."), "Aapke kaan ka dard sardi ki wajah se lag raha hai.", lang)
+        else:
+            return make_answer("Ear Pain", [("Cold","Cold causes ear pain."),("Water","Water going in ear during bath causes pain."),("Wax","Wax in ear causes pain.")], [("Less Hearing","If hearing is less, see doctor."),("High Fever","If high fever with ear pain, do not wait.")], [("Do Not Insert","Do not insert anything in ear."),("Warm Compress","Apply light warm compress."),("Rest","Take rest.")], ("Keep Ear Clean","Keep ear clean and dry."), "Your ear pain seems due to cold.", lang)
+
     if "tooth" in text or "daant" in text or "dant" in text:
-        return make_answer("Daant Me Dard" if lang=="Hindi" else "Tooth Pain",
-            [("Keeda","Daant me keeda lagne se dard hota hai."),("Thanda-Garam","Thanda-garam khane se daant me jhanjhanahat hoti hai."),("Masuda","Masude me sujan se bhi daant dukhne lagta hai.")],
-            [("Sujan","Gaalo pe sujan aa jaye ya bukhar ho, toh doctor ko dikhayein."),("Dard Na Ruke","Dard 2 din se na ruke, toh der mat karein.")],
-            [("Namak Paani","Gungune namak wale paani se kullla karein."),("Laung","Dard wale daant pe laung ka tel lagayein."),("Thanda Mat Khayein","Thanda aur meetha mat khayein.")],
-            ("Brush","Din me 2 baar brush karein."),
-            "Aapke daant ka dard keede aur masude ki sujan se lag raha hai." if lang=="Hindi" else "Your tooth pain seems due to cavity and gum swelling.", lang)
+        if lang == "Hindi":
+            return make_answer("Daant Me Dard", [("Keeda","Daant me keeda lagne se dard hota hai."),("Thanda-Garam","Thanda-garam khane se daant me jhanjhanahat hoti hai."),("Masuda","Masude me sujan se daant dukhne lagta hai.")], [("Sujan","Gaalo pe sujan aa jaye, toh doctor ko dikhayein."),("Dard Na Ruke","Dard 2 din se na ruke, toh der mat karein.")], [("Namak Paani","Gungune namak paani se kullla karein."),("Laung","Laung ka tel lagayein."),("Thanda Mat Khayein","Thanda aur meetha mat khayein.")], ("Brush","Din me 2 baar brush karein."), "Aapke daant ka dard keede aur masude ki sujan se lag raha hai.", lang)
+        else:
+            return make_answer("Tooth Pain", [("Cavity","Cavity in tooth causes pain."),("Cold-Hot","Cold-hot food causes sensitivity."),("Gum Swelling","Gum swelling causes tooth pain.")], [("Swelling","If cheek swells, see doctor."),("Pain Not Stopping","If pain does not stop in 2 days, do not wait.")], [("Salt Water","Gargle with warm salt water."),("Clove Oil","Apply clove oil."),("Avoid Cold","Avoid cold and sweet.")], ("Brush","Brush 2 times a day."), "Your tooth pain seems due to cavity and gum swelling.", lang)
 
-    # 10. SKIN / RASH
     if "daane" in text or "rash" in text or "khujli" in text or "itching" in text or "chot" in text:
-        return make_answer("Daane / Khujli" if lang=="Hindi" else "Rash / Itching",
-            [("Allergy","Naye sabun ya dhool se allergy ho jati hai, isse daane aur khujli hoti hai."),("Garmi","Garmi me pasina jamne se daane nikal aate hain."),("Infection","Saaf-safai na rakhne se infection ho jata hai.")],
-            [("Pus","Daano se pus ya paani nikle, toh doctor ko dikhayein."),("Tez Bukhar","Daano ke saath tez bukhar ho, toh der mat karein.")],
-            [("Khujlayein Nahi","Daano ko khujlayein nahi."),("Saaf Rakhein","Saaf paani se dho kar sukha rakhein."),("Nariyal Tel","Halka nariyal tel lagayein.")],
-            ("Saaf Kapde","Roz saaf kapde pehnein."),
-            "Aapki photo doctor ko dikhane ke liye save ho gayi hai." if lang=="Hindi" else "Your photo is saved to show to doctor.", lang)
+        if lang == "Hindi":
+            return make_answer("Daane / Khujli", [("Allergy","Naye sabun ya dhool se allergy ho jati hai."),("Garmi","Garmi me pasina jamne se daane nikal aate hain."),("Infection","Saaf-safai na rakhne se infection ho jata hai.")], [("Pus","Daano se pus nikle, toh doctor ko dikhayein."),("Tez Bukhar","Daano ke saath tez bukhar ho, toh der mat karein.")], [("Khujlayein Nahi","Daano ko khujlayein nahi."),("Saaf Rakhein","Saaf paani se dho kar sukha rakhein."),("Nariyal Tel","Halka nariyal tel lagayein.")], ("Saaf Kapde","Roz saaf kapde pehnein."), "Aapki photo doctor ko dikhane ke liye save ho gayi hai.", lang)
+        else:
+            return make_answer("Rash / Itching", [("Allergy","New soap or dust causes allergy."),("Heat","Sweat causes rashes in heat."),("Infection","Lack of cleanliness causes infection.")], [("Pus","If pus comes, see doctor."),("High Fever","If high fever with rashes, do not wait.")], [("Do Not Scratch","Do not scratch."),("Keep Clean","Wash with clean water and keep dry."),("Coconut Oil","Apply light coconut oil.")], ("Clean Clothes","Wear clean clothes daily."), "Your photo is saved to show to doctor.", lang)
 
-    # 11. DIZZINESS / WEAKNESS / SLEEP
     if "chakkar" in text or "dizz" in text or "kamzori" in text or "weak" in text or "neend" in text or "sleep" in text:
-        return make_answer("Chakkar / Kamzori" if lang=="Hindi" else "Dizziness / Weakness",
-            [("Khoon ki Kami","Khoon ki kami se chakkar aata hai aur kamzori lagti hai."),("Bhook / Paani ki Kami","Bhooke rehne ya paani kam peene se chakkar aata hai."),("Neend ki Kami","Neend poori na hone se din bhar kamzori lagti hai.")],
-            [("Behosh","Behosh ho jayein ya baar-baar chakkar aaye, toh turant doctor ko dikhayein."),("Seene Me Dard","Chakkar ke saath seene me dard ho, toh 108 pe call karein.")],
-            [("Beth Jayein","Chakkar aaye toh turant beth jayein, akele mat chalein."),("Paani Piyein","Thoda-thoda karke paani / ORS piyein."),("Kuch Khayein","Halka kuch kha lein, khaali pet mat rahein.")],
-            ("Paalak Khayein","Roz paalak aur gud khayein, khoon badhega."),
-            "Aapka chakkar khoon ki kami aur neend ki kami se lag raha hai." if lang=="Hindi" else "Your dizziness seems due to low blood and less sleep.", lang)
+        if lang == "Hindi":
+            return make_answer("Chakkar / Kamzori", [("Khoon ki Kami","Khoon ki kami se chakkar aata hai."),("Bhook","Bhooke rehne se chakkar aata hai."),("Neend ki Kami","Neend poori na hone se kamzori lagti hai.")], [("Behosh","Behosh ho jayein, toh turant doctor ko dikhayein."),("Seene Me Dard","Chakkar ke saath seene me dard ho, toh 108 pe call karein.")], [("Beth Jayein","Chakkar aaye toh turant beth jayein."),("Paani Piyein","Thoda-thoda paani piyein."),("Kuch Khayein","Halka kuch kha lein.")], ("Paalak Khayein","Roz paalak aur gud khayein."), "Aapka chakkar khoon ki kami aur neend ki kami se lag raha hai.", lang)
+        else:
+            return make_answer("Dizziness / Weakness", [("Low Blood","Low blood causes dizziness."),("Hunger","Staying hungry causes dizziness."),("Less Sleep","Less sleep causes weakness.")], [("Faint","If you faint, see doctor immediately."),("Chest Pain","If chest pain with dizziness, call 108.")], [("Sit Down","Sit down immediately when dizzy."),("Drink Water","Drink water in small sips."),("Eat Something","Eat something light.")], ("Eat Palak","Eat palak and gud daily."), "Your dizziness seems due to low blood and less sleep.", lang)
 
-    # 12. AGAR KOI NAYA SYMPTOM HAI - USI KE NAAM SE JAWAB
-    # Yahi wala part sabse important hai - ab same nahi aayega
+    # NAYA SYMPTOM - USI KE NAAM SE, USI BHASHA ME
     clean = user_text.strip()
     if lang == "Hindi":
         return f"""Aapki takleef samajh sakte hain, please take rest.
 
 **Possible Causes - {clean} ki wajah:**
 
-- **Thakan:** Neend poori na hone ya zyada kaam karne se {clean} me dard / takleef hone lagti hai.
+- **Thakan:** Neend poori na hone ya zyada kaam karne se {clean} me takleef hone lagti hai.
 
-- **Infection / Sardi:** Mausam badalne se {clean} me infection ho jata hai, isse dard aur jalan hoti hai.
+- **Infection:** Mausam badalne se {clean} me infection ho jata hai.
 
-- **Kamzori:** Paani kam peene ya khoon ki kami se {clean} me kamzori aur dard mehsoos hota hai.
+- **Kamzori:** Paani kam peene se {clean} me kamzori aur dard mehsoos hota hai.
 
 **Danger Signs:**
 
-- **Tez Dard:** Agar {clean} me bahut tez dard ho ya 2 din se zyada rahe, toh turant doctor ko dikhayein.
+- **Tez Dard:** Agar {clean} me bahut tez dard ho, toh turant doctor ko dikhayein.
 
 - **Bukhar / Sujan:** {clean} ke saath tez bukhar ya sujan ho, toh der mat karein.
 
 **What To Do Now:**
 
-- **Aaram Karein:** {clean} wali jagah ko aaram dein, bhari kaam mat karein.
+- **Aaram Karein:** {clean} wali jagah ko aaram dein.
 
-- **Garam Sek / Thandi Patti:** {clean} pe halka garam sek karein, isse aaram milega.
+- **Garam Sek:** {clean} pe halka garam sek karein.
 
-- **Gunguna Paani Piyein:** Din bhar gunguna paani piyein, isse takleef kam hogi.
+- **Gunguna Paani Piyein:** Din bhar gunguna paani piyein.
 
 **Health Tip:**
 
-- **Roz Walk:** Roz 30 minute halki walk se sharir mazboot rehta hai aur {clean} ki takleef kam hoti hai.
+- **Roz Walk:** Roz 30 minute halki walk se {clean} ki takleef kam hoti hai.
 
-Aapki takleef - {clean} - zyada tar thakan aur mausam ki wajah se lag rahi hai, 1-2 din aaram kijiye. Agar aaram na mile, toh doctor se baat kar lijiyega.
+Aapki takleef - {clean} - zyada tar thakan ki wajah se lag rahi hai, 1-2 din aaram kijiye.
 
 Would you like to see a doctor?"""
     else:
@@ -243,39 +225,39 @@ Would you like to see a doctor?"""
 
 **Possible Causes - Why {clean} happens:**
 
-- **Tiredness:** When you do not sleep well or work too much, you feel pain / problem in {clean}.
+- **Tiredness:** When you do not sleep well or work too much, you feel problem in {clean}.
 
-- **Infection / Cold:** Change in weather causes infection in {clean}, this causes pain and burning.
+- **Infection:** Change in weather causes infection in {clean}.
 
-- **Weakness:** Drinking less water or low blood causes weakness and pain in {clean}.
+- **Weakness:** Drinking less water causes weakness and pain in {clean}.
 
 **Danger Signs:**
 
-- **Severe Pain:** If pain in {clean} is very severe or stays more than 2 days, see a doctor immediately.
+- **Severe Pain:** If pain in {clean} is very severe, see a doctor immediately.
 
 - **Fever / Swelling:** If you get high fever or swelling with {clean}, do not wait.
 
 **What To Do Now:**
 
-- **Take Rest:** Give rest to {clean}, do not do heavy work.
+- **Take Rest:** Give rest to {clean}.
 
-- **Hot Compress / Cold Cloth:** Apply warm cloth on {clean}, it will give relief.
+- **Hot Compress:** Apply warm cloth on {clean}.
 
-- **Drink Warm Water:** Drink warm water through the day, it will reduce problem.
+- **Drink Warm Water:** Drink warm water through the day.
 
 **Health Tip:**
 
-- **Daily Walk:** Walking 30 minutes daily keeps your body strong and reduces {clean} problem.
+- **Daily Walk:** Walking 30 minutes daily reduces {clean} problem.
 
-Your problem - {clean} - seems mostly because of tiredness and weather, take rest for 1-2 days. If no relief, please talk to a doctor.
+Your problem - {clean} - seems mostly because of tiredness, take rest for 1-2 days.
 
 Would you like to see a doctor?"""
 
-def ask_reply(user_text, lang, placeholder):
-    instant = get_instant_answer(user_text, lang)
-    if instant:
-        placeholder.markdown(instant)
-        return instant
+def ask_reply(user_text, sidebar_lang, placeholder):
+    # Sidebar ko ignore karo, user ne jo bola usi se language lo
+    real_lang = detect_language(user_text)
+    instant = get_instant_answer(user_text, real_lang)
+    placeholder.markdown(instant)
     return instant
 
 # ================= HOME =================
@@ -309,7 +291,7 @@ if menu in ["🏠 Home", "🏠 होम"]:
                 st.rerun()
     st.markdown("---")
     with st.form("chat_form", clear_on_submit=True):
-        chat_text = st.text_input("Type...", label_visibility="collapsed", placeholder="Apni takleef likhein..." if IS_HINDI else "Write your symptom...")
+        chat_text = st.text_input("Type...", label_visibility="collapsed", placeholder="Apni takleef likhein... / Write your symptom..." if IS_HINDI else "Write your symptom...")
         submitted = st.form_submit_button("➤ Send", use_container_width=True)
     if submitted and chat_text.strip() != "":
         st.session_state.messages.append({"role": "user", "content": chat_text})
