@@ -4,52 +4,45 @@ import re
 import urllib.parse
 st.set_page_config(page_title="Sehat Saathi - India", page_icon="🩺", layout="centered")
 
-# ---------- OMBRE COLOUR - PURA APP JAISA, TEXT SAFA DIKHEGA ----------
+# ---------- LIGHT OMBRE - SITE JAISA, AESTHETIC, HALKA ----------
 st.markdown("""
 <style>
-/* PURA BACKGROUND - HALKA OMBRE */
-.stApp { background: linear-gradient(180deg, #EDE9FE 0%, #FDF2F8 40%, #EFF6FF 100%) !important; }
+/* BACKGROUND - BAHUT HALKA OMBRE - PEACH SE LAVENDER SE SKY */
+.stApp { background: linear-gradient(180deg, #FFF7ED 0%, #FEF3F2 35%, #EEF2FF 70%, #F0FDF4 100%) !important; }
 .block-container { background: transparent !important; max-width: 1100px !important; padding: 1rem 2rem 100px 2rem !important; }
-h1, h2, h3, p, label, .stMarkdown, .stWrite, span, div { color: #1E1B4B !important; }
-section[data-testid="stSidebar"] { background: linear-gradient(180deg, #7C3AED, #EC4899) !important; border-right: none; }
-section[data-testid="stSidebar"] * { color: white !important; font-weight: 600 !important; }
-section[data-testid="stSidebar"] button { background: white !important; color: #7C3AED !important; }
-/* BOXES - WHITE, GOL, EMPTY LOOK */
+h1, h2, h3, p, label, .stMarkdown, .stWrite, span, div { color: #334155 !important; }
+/* SIDEBAR - WHITE, SITE JAISA, PURPLE NAHI */
+section[data-testid="stSidebar"] { background: #FFFFFF !important; border-right: 1px solid #E2E8F0; }
+section[data-testid="stSidebar"] * { color: #334155 !important; font-weight: 500 !important; }
+/* BOXES - WHITE, HALKA BORDER, EMPTY LOOK */
 .stTextInput input, .stSelectbox div[data-baseweb="select"] div, .stNumberInput input, .stTextArea textarea {
-    background: white !important; color: #1E1B4B !important; border: 2px solid #C4B5FD !important; border-radius: 16px !important; min-height: 52px !important; font-size: 16px !important; box-shadow: 0 2px 10px rgba(124,58,237,0.08) !important;
+    background: #FFFFFF !important; color: #334155 !important; border: 1.5px solid #E2E8F0 !important; border-radius: 12px !important; min-height: 50px !important; font-size: 16px !important;
 }
-.stTextInput input::placeholder { color: #A78BFA !important; }
-/* BUTTON - OMBRE PURPLE TO PINK */
+.stTextInput input::placeholder { color: #94A3B8 !important; }
+/* BUTTON - HALKA OMBRE, PAR TEXT WHITE, SAAF DIKHEGA */
 .stButton button, .stLinkButton a {
-    background: linear-gradient(90deg, #7C3AED, #EC4899, #2563EB) !important; color: white !important; border: none !important; border-radius: 25px !important; font-weight: 800 !important; min-height: 52px !important; font-size: 16px !important; box-shadow: 0 4px 15px rgba(236,72,153,0.35) !important;
+    background: linear-gradient(90deg, #6366F1, #8B5CF6) !important; color: #FFFFFF !important; border: none !important; border-radius: 12px !important; font-weight: 700 !important; min-height: 50px !important; font-size: 16px !important; box-shadow: 0 2px 8px rgba(99,102,241,0.20) !important;
 }
-.stButton button *, .stLinkButton a * { color: white !important; }
-div[data-testid="stChatMessage"] { background: white !important; border-radius: 20px !important; border: 2px solid #E9D5FF !important; box-shadow: 0 2px 12px rgba(0,0,0,0.05) !important; }
-div[data-testid="stChatMessage"] * { color: #1E1B4B !important; }
-/* HEADER - BADA OMBRE */
-.ai-header { background: linear-gradient(90deg, #7C3AED, #EC4899, #2563EB); padding: 22px; border-radius: 24px; text-align: center; margin-bottom: 14px; box-shadow: 0 6px 20px rgba(124,58,237,0.30); }
-.ai-header h1 { font-size: 30px; margin: 0; color: white !important; text-shadow: 0 2px 8px rgba(0,0,0,0.2); }
-.ai-header p { margin: 6px 0 0 0; color: #FDE68A !important; font-size: 14px; font-weight: 700; }
-/* DOCTOR CARD - PURPLE OMBRE BORDER */
-.doctor-card { background: white; border: 2px solid #7C3AED; border-radius: 20px; padding: 16px; margin: 12px 0; box-shadow: 0 4px 15px rgba(124,58,237,0.12); }
-.doctor-card b, .doctor-card span, .doctor-card p { color: #1E1B4B !important; }
-.online-card { background: white; border: 2px solid #EC4899; border-radius: 20px; padding: 16px; margin: 12px 0; box-shadow: 0 4px 15px rgba(236,72,153,0.12); }
-.online-card b, .online-card span { color: #1E1B4B !important; }
-.info-box { background: #FEF3C7; border-radius: 16px; padding: 14px; border: 2px solid #F59E0B; }
-.info-box * { color: #1E1B4B !important; }
-/* LAPTOP */
-@media (min-width: 1024px) {
-    .block-container { max-width: 1100px !important; padding: 1.5rem 2.5rem 100px 2.5rem !important; }
-}
-/* TABLET */
-@media (min-width: 769px) and (max-width: 1023px) {
-    .block-container { max-width: 92% !important; padding: 1rem 1.5rem 100px 1.5rem !important; }
-}
-/* PHONE - FULL APP JAISA */
+.stButton button *, .stLinkButton a * { color: #FFFFFF !important; font-weight: 700 !important; }
+div[data-testid="stChatMessage"] { background: #FFFFFF !important; border-radius: 16px !important; border: 1px solid #E2E8F0 !important; box-shadow: 0 1px 6px rgba(0,0,0,0.04) !important; }
+div[data-testid="stChatMessage"] * { color: #334155 !important; }
+/* HEADER - HALKA OMBRE, SITE JAISA */
+.ai-header { background: linear-gradient(90deg, #EEF2FF, #FDF2F8, #FFF7ED); padding: 20px; border-radius: 20px; text-align: center; margin-bottom: 14px; border: 1px solid #E0E7FF; }
+.ai-header h1 { font-size: 28px; margin: 0; color: #4338CA !important; }
+.ai-header p { margin: 6px 0 0 0; color: #64748B !important; font-size: 14px; font-weight: 500; }
+/* CARDS - WHITE, HALKA SHADOW */
+.doctor-card { background: #FFFFFF; border: 1px solid #E0E7FF; border-radius: 16px; padding: 16px; margin: 12px 0; box-shadow: 0 2px 10px rgba(99,102,241,0.08); }
+.doctor-card b, .doctor-card span, .doctor-card p { color: #334155 !important; }
+.online-card { background: #FFFFFF; border: 1px solid #FCE7F3; border-radius: 16px; padding: 16px; margin: 12px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.04); }
+.online-card b, .online-card span { color: #334155 !important; }
+.info-box { background: #FFFBEB; border-radius: 14px; padding: 14px; border: 1px solid #FDE68A; }
+.info-box * { color: #334155 !important; }
+@media (min-width: 1024px) { .block-container { max-width: 1100px !important; padding: 1.5rem 2.5rem 100px 2.5rem !important; } }
+@media (min-width: 769px) and (max-width: 1023px) { .block-container { max-width: 92% !important; padding: 1rem 1.5rem 100px 1.5rem !important; } }
 @media (max-width: 768px) {
     .block-container { max-width: 100% !important; padding: 10px 12px 100px 12px !important; }
-    .ai-header h1 { font-size: 26px !important; }
-    .stButton button { min-height: 54px !important; font-size: 17px !important; }
+    .ai-header h1 { font-size: 24px !important; }
+    .stButton button { min-height: 52px !important; font-size: 17px !important; }
 }
 </style>
 """, unsafe_allow_html=True)
@@ -71,13 +64,13 @@ if "uploader_key" not in st.session_state:
 if "photo_sent" not in st.session_state:
     st.session_state.photo_sent = False
 
-st.sidebar.write("🌈 Language - Menu Ki Bhasha")
+st.sidebar.write("Language - Menu Ki Bhasha")
 lang = st.sidebar.radio("Choose Language", ["English", "Hindi"], label_visibility="collapsed")
 IS_HINDI = (lang == "Hindi")
 if IS_HINDI:
-    menu = st.sidebar.radio("✨ मेनू", ["🏠 होम", "💊 दवाई रिमाइंडर", "👨‍⚕️ डॉक्टर से बात करें", "🚨 आपातकाल", "💡 स्वास्थ्य टिप्स", "⚖️ बीएमआई कैलकुलेटर", "🏛️ सरकारी योजनाएं", "ℹ️ ऐप के बारे में"])
+    menu = st.sidebar.radio("मेनू", ["🏠 होम", "💊 दवाई रिमाइंडर", "👨‍⚕️ डॉक्टर से बात करें", "🚨 आपातकाल", "💡 स्वास्थ्य टिप्स", "⚖️ बीएमआई कैलकुलेटर", "🏛️ सरकारी योजनाएं", "ℹ️ ऐप के बारे में"])
 else:
-    menu = st.sidebar.radio("✨ Menu", ["🏠 Home", "💊 Medicine Reminder", "👨‍⚕️ Talk To Doctor", "🚨 Emergency", "💡 Health Tips", "⚖️ BMI Calculator", "🏛️ Government Schemes", "ℹ️ About App"])
+    menu = st.sidebar.radio("Menu", ["🏠 Home", "💊 Medicine Reminder", "👨‍⚕️ Talk To Doctor", "🚨 Emergency", "💡 Health Tips", "⚖️ BMI Calculator", "🏛️ Government Schemes", "ℹ️ About App"])
 
 def T(hi, en):
     return hi if IS_HINDI else en
@@ -170,6 +163,7 @@ DOCTOR_INFO = {
     "general": {"spec_hi":"सामान्य चिकित्सक","spec_en":"General Physician","work_hi":"आम बीमारियों का इलाज करते हैं, जरूरत हो तो सही स्पेशलिस्ट के पास भेजते हैं।","work_en":"Treats common diseases and refers to right specialist if needed.","when_hi":"तकलीफ 2-3 दिन से ज्यादा रहे, तो दिखाएं।","when_en":"If problem stays more than 2-3 days, see doctor.","fees_hi":"₹200 - ₹500","fees_en":"Rs. 200 - Rs. 500"},
 }
 
+# ---------- ONLINE DOCTOR - DIRECT CONTACT - SACH WALA ----------
 def show_doctor_detail_card(user_text, loc):
     cat = get_category_for(user_text)
     info = DOCTOR_INFO[cat]
@@ -180,20 +174,27 @@ def show_doctor_detail_card(user_text, loc):
     work = info["work_hi"] if IS_HINDI else info["work_en"]
     when = info["when_hi"] if IS_HINDI else info["when_en"]
     fees = info["fees_hi"] if IS_HINDI else info["fees_en"]
+    # PHYSICAL
     st.markdown(f"""<div class="doctor-card"><b>👨‍⚕️ {T('आपको इस डॉक्टर की जरूरत है:','You need this doctor:')} {spec}</b><br><br><span><b>{T('ये डॉक्टर क्या करते हैं?','What does this doctor do?')}</b><br>{work}</span><br><br><span><b>{T('कब दिखाना चाहिए?','When to see?')}</b><br>{when}</span><br><br><span><b>{T('अंदाज़न फीस:','Approx Fees:')}</b> {fees}</span><br><br><span><b>{T('आपका इलाका:','Your Area:')}</b> {city}, {pincode}, India</span></div>""", unsafe_allow_html=True)
     maps_q = urllib.parse.quote(f"{spec_en} doctor near {city} {pincode} India")
-    st.markdown(f"""<div class="info-box"><b>{T('आपके पास के डॉक्टर - Maps पर असली डॉक्टर देखें','Doctors Near You - See Real Doctors On Maps')}</b><br>{T('हम किसी भी शहर के डॉक्टर का नाम अपने आप से नहीं बनाते। नीचे वाले बटन पर क्लिक करें, गूगल मैप्स आपके शहर और पिनकोड के असली डॉक्टर दिखा देगा।','We do not make up doctor names for any city. Click below button, Google Maps will show real doctors of your city and pincode.')}</div>""", unsafe_allow_html=True)
+    st.markdown(f"""<div class="info-box"><b>{T('आपके पास के डॉक्टर - Maps पर असली डॉक्टर देखें','Doctors Near You - See Real Doctors On Maps')}</b><br>{T('हम किसी भी शहर के डॉक्टर का नाम अपने आप से नहीं बनाते। नीचे वाले बटन पर क्लिक करें, गूगल मैप्स आपके शहर और पिनकोड के असली डॉक्टर दिखा देगा - नाम, नंबर, रेटिंग सब।','We do not make up doctor names for any city. Click below button, Google Maps will show real doctors of your city and pincode - name, number, rating.')}</div>""", unsafe_allow_html=True)
     st.link_button(f"📍 {T('मेरे पास के डॉक्टर देखें - Maps','See Doctors Near Me - Maps')}", f"https://www.google.com/maps/search/{maps_q}", use_container_width=True)
-    st.markdown(f"### {T('🌐 ऑनलाइन डॉक्टर - असली डॉक्टर की डिटेल उसी साइट पर','🌐 Online Doctors - Real Doctor Details On Same Site')}")
-    st.write(T(f"आपकी तकलीफ के लिए ऑनलाइन भी यही डॉक्टर चाहिए: {spec}. नीचे किसी भी साइट पर क्लिक करें, वो साइट आपके शहर {city} के असली डॉक्टरों की लिस्ट दिखाएगी - नाम, फोटो, फीस, रेटिंग, टाइमिंग सब कुछ।","For your problem, you need same doctor online also: " + spec + f". Click any site below, that site will show real doctors list of your city {city} - name, photo, fees, rating, timing."))
-    st.markdown(f"""<div class="online-card"><b>🩺 {T('ई-संजीवनी - सरकारी, फ्री','eSanjeevani - Govt, FREE')}</b><br><span>{T('वीडियो कॉल पर डॉक्टर से बात - सुबह 10 से शाम 4 - बिल्कुल फ्री','Video call with doctor - 10 AM to 4 PM - Totally FREE')}</span></div>""", unsafe_allow_html=True)
-    st.link_button(T("🩺 ई-संजीवनी खोलें - ऑनलाइन डॉक्टर","🩺 Open eSanjeevani - Online Doctor"), "https://esanjeevani.mohfw.gov.in", use_container_width=True)
-    st.link_button(T("📞 104 - हेल्थ हेल्पलाइन पर कॉल करें","📞 104 - Health Helpline Call"), "tel:104", use_container_width=True)
-    st.markdown(f"""<div class="online-card"><b>💻 {T('प्रैक्टो - असली डॉक्टर','Practo - Real Doctors')}</b><br><span><b>{T('डॉक्टर:','Doctor:')}</b> {spec}</span><br><span><b>{T('शहर:','City:')}</b> {city}</span><br><span>{T('नीचे क्लिक करते ही प्रैक्टो आपके शहर के असली डॉक्टर दिखाएगा - नाम, फोटो, फीस, रेटिंग, टाइमिंग।','On clicking below, Practo will show real doctors of your city - name, photo, fees, rating, timing.')}</span></div>""", unsafe_allow_html=True)
-    st.link_button(T(f"💻 प्रैक्टो पर {city} के {spec} देखें","💻 See Real Doctors On Practo"), f"https://www.practo.com/search/doctors?speciality={urllib.parse.quote(spec_en)}&city={urllib.parse.quote(city)}", use_container_width=True)
-    st.markdown(f"""<div class="online-card"><b>🏥 {T('अपोलो 24/7 - असली डॉक्टर','Apollo 24/7 - Real Doctors')}</b><br><span><b>{T('डॉक्टर:','Doctor:')}</b> {spec}</span><br><span><b>{T('शहर:','City:')}</b> {city}</span><br><span>{T('नीचे क्लिक करते ही अपोलो आपके शहर के असली डॉक्टर दिखाएगा - नाम, फीस, रेटिंग, टाइमिंग।','On clicking below, Apollo will show real doctors of your city - name, fees, rating, timing.')}</span><br><span><b>{T('डायरेक्ट नंबर:','Direct Number:')}</b> 1860-500-1066</span></div>""", unsafe_allow_html=True)
-    st.link_button(T(f"🏥 अपोलो पर {city} के {spec} देखें","🏥 See Real Doctors On Apollo"), f"https://www.apollo247.com/search/doctors?speciality={urllib.parse.quote(spec_en)}&city={urllib.parse.quote(city)}", use_container_width=True)
-    st.link_button(T("📞 1860-500-1066 पर कॉल करें - अपोलो","📞 Call 1860-500-1066 - Apollo"), "tel:18605001066", use_container_width=True)
+    # ONLINE - DIRECT CONTACT
+    st.markdown(f"### {T('🌐 ऑनलाइन डॉक्टर - डायरेक्ट संपर्क करें','🌐 Online Doctors - Contact Directly')}")
+    st.write(T(f"आपकी तकलीफ के लिए ऑनलाइन भी यही डॉक्टर चाहिए: {spec}. नीचे से किसी एक को चुनें, सीधा डॉक्टर से बात हो जाएगी।","For your problem, you need same doctor online also: " + spec + ". Choose any one below, you will directly talk to doctor."))
+    # 1. eSanjeevani - DIRECT VIDEO CALL - NO NAME NEEDED
+    st.markdown(f"""<div class="online-card"><b>🩺 {T('ई-संजीवनी - सरकारी, फ्री - डायरेक्ट वीडियो कॉल','eSanjeevani - Govt, FREE - Direct Video Call')}</b><br><span>{T('कोई नाम ढूंढना नहीं है। लिंक पर क्लिक करते ही सरकारी डॉक्टर से सीधी वीडियो कॉल हो जाएगी।','No need to search name. On clicking link, direct video call with Govt doctor.')}</span><br><span><b>{T('समय:','Timing:')}</b> {T('सुबह 10 - शाम 4','10 AM - 4 PM')}</span><br><span><b>{T('फीस:','Fees:')}</b> {T('बिल्कुल फ्री','Totally FREE')}</span></div>""", unsafe_allow_html=True)
+    st.link_button(T("🩺 डायरेक्ट वीडियो कॉल करें - ई-संजीवनी","🩺 Direct Video Call - eSanjeevani"), "https://esanjeevani.mohfw.gov.in", use_container_width=True)
+    # 2. 104 - DIRECT CALL
+    st.markdown(f"""<div class="online-card"><b>📞 {T('104 - हेल्थ हेल्पलाइन - डायरेक्ट कॉल','104 - Health Helpline - Direct Call')}</b><br><span>{T('इस नंबर पर कॉल करते ही डॉक्टर / नर्स से सीधी बात हो जाएगी।','On calling this number, you will directly talk to doctor / nurse.')}</span><br><span><b>{T('नंबर:','Number:')}</b> 104 - {T('बिल्कुल फ्री','Totally FREE')}</span></div>""", unsafe_allow_html=True)
+    st.link_button(T("📞 104 पर डायरेक्ट कॉल करें","📞 Call 104 Directly"), "tel:104", use_container_width=True)
+    # 3. Practo - DIRECT DOCTOR PROFILE - CITY + SPECIALITY
+    st.markdown(f"""<div class="online-card"><b>💻 {T('प्रैक्टो - डायरेक्ट डॉक्टर से चैट / कॉल','Practo - Chat / Call Doctor Directly')}</b><br><span><b>{T('डॉक्टर:','Doctor:')}</b> {spec}</span><br><span><b>{T('शहर:','City:')}</b> {city}</span><br><span>{T('नीचे क्लिक करते ही प्रैक्टो आपके शहर के असली डॉक्टरों की लिस्ट खोलेगा। किसी भी डॉक्टर के प्रोफाइल पर क्लिक करें, वहां Call / Chat / Book का बटन होगा, उसी से आप सीधा उस डॉक्टर से संपर्क कर सकते हैं। हम नाम अपने आप से नहीं बनाते, साइट खुद असली डॉक्टर दिखाती है।','On clicking below, Practo will open real doctors list of your city. Click any doctor profile, there you will see Call / Chat / Book button, from there you can directly contact that doctor. We do not make up names, site shows real doctors.')}</span></div>""", unsafe_allow_html=True)
+    st.link_button(T(f"💻 {city} के {spec} से डायरेक्ट चैट / कॉल करें - प्रैक्टो","💻 Chat / Call Doctor Directly - Practo"), f"https://www.practo.com/search/doctors?speciality={urllib.parse.quote(spec_en)}&city={urllib.parse.quote(city)}", use_container_width=True)
+    # 4. Apollo - DIRECT NUMBER + DIRECT LINK
+    st.markdown(f"""<div class="online-card"><b>🏥 {T('अपोलो 24/7 - डायरेक्ट कॉल + डायरेक्ट लिंक','Apollo 24/7 - Direct Call + Direct Link')}</b><br><span><b>{T('डॉक्टर:','Doctor:')}</b> {spec}</span><br><span><b>{T('शहर:','City:')}</b> {city}</span><br><span>{T('नीचे वाले नंबर पर कॉल करते ही अपोलो का डॉक्टर आपसे सीधी बात करेगा। या लिंक पर क्लिक करके किसी भी डॉक्टर के प्रोफाइल से Call / Video Call करें।','On calling below number, Apollo doctor will directly talk to you. Or click link and Call / Video Call any doctor from profile.')}</span><br><span><b>{T('डायरेक्ट नंबर:','Direct Number:')}</b> 1860-500-1066</span></div>""", unsafe_allow_html=True)
+    st.link_button(T("📞 1860-500-1066 पर डायरेक्ट कॉल करें - अपोलो","📞 Call 1860-500-1066 Directly - Apollo"), "tel:18605001066", use_container_width=True)
+    st.link_button(T(f"🏥 {city} के {spec} से डायरेक्ट कॉल करें - अपोलो","🏥 Call Doctor Directly - Apollo"), f"https://www.apollo247.com/search/doctors?speciality={urllib.parse.quote(spec_en)}&city={urllib.parse.quote(city)}", use_container_width=True)
     st.link_button(T("🚑 108 - एम्बुलेंस","🚑 108 - Ambulance"), "tel:108", use_container_width=True)
 
 def show_location_form(for_text):
@@ -220,8 +221,8 @@ def show_floating_banner():
         items += f'<div class="tip" style="animation-delay:{delay}s;">{tip}</div>'
     st.markdown(f"""
     <style>
-    .banner-wrap {{ position: fixed; bottom: 0; left: 0; right: 0; z-index: 9999; background: linear-gradient(90deg,#7C3AED,#EC4899,#2563EB); height: 48px; overflow: hidden; }}
-    .banner-wrap .tip {{ position: absolute; left: 0; right: 0; top: 0; height: 48px; display: flex; align-items: center; justify-content: center; color: white !important; font-weight: 700; font-size: 15px; padding: 0 10px; text-align: center; opacity: 0; animation: tipCycle 24s linear infinite; }}
+    .banner-wrap {{ position: fixed; bottom: 0; left: 0; right: 0; z-index: 9999; background: linear-gradient(90deg,#EEF2FF,#FDF2F8); height: 48px; overflow: hidden; border-top: 1px solid #E0E7FF; }}
+    .banner-wrap .tip {{ position: absolute; left: 0; right: 0; top: 0; height: 48px; display: flex; align-items: center; justify-content: center; color: #4338CA !important; font-weight: 600; font-size: 14px; padding: 0 10px; text-align: center; opacity: 0; animation: tipCycle 24s linear infinite; }}
     @keyframes tipCycle {{ 0% {{opacity: 0;}} 1% {{opacity: 1;}} 15% {{opacity: 1;}} 17% {{opacity: 0;}} 100% {{opacity: 0;}} }}
     </style>
     <div class="banner-wrap">{items}</div>
@@ -437,8 +438,8 @@ def ask_reply_photo(photo_keyword, photo_desc, placeholder):
     return instant
 
 if menu in ["🏠 Home", "🏠 होम"]:
-    st.markdown(f"""<div class="ai-header"><h1>🩺 Sehat Saathi ✨</h1><p>{T('आपका एआई हेल्थ असिस्टेंट - अपनी तकलीफ लिखें, तुरंत सलाह पाएं','Your AI Health Assistant - Write your symptom, get instant advice')}</p></div>""", unsafe_allow_html=True)
-    st.write(T("नमस्ते, मैं यहाँ आपकी मदद करने के लिए हूँ! 👋","Hello, I am here to help you! 👋"))
+    st.markdown(f"""<div class="ai-header"><h1>🩺 Sehat Saathi</h1><p>{T('आपका एआई हेल्थ असिस्टेंट - अपनी तकलीफ लिखें, तुरंत सलाह पाएं','Your AI Health Assistant - Write your symptom, get instant advice')}</p></div>""", unsafe_allow_html=True)
+    st.write(T("नमस्ते, मैं यहाँ आपकी मदद करने के लिए हूँ!","Hello, I am here to help you!"))
     st.write(T("अपनी तकलीफ लिखें, बोलें या फोटो भेजें।","Write your problem, speak or send photo."))
     for m in st.session_state.messages:
         with st.chat_message(m["role"]):
