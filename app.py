@@ -4,7 +4,6 @@ import re
 import urllib.parse
 st.set_page_config(page_title="Sehat Saathi - India", page_icon="🩺", layout="centered")
 
-# ---------- PREMIUM OMBRE - WARM CREAM TO PEACH TO MINT ----------
 st.markdown("""
 <style>
 .stApp { background: linear-gradient(180deg, #FFFBF2 0%, #FFF7ED 25%, #FEF3F2 50%, #EEF2FF 75%, #F0FDF4 100%) !important; }
@@ -84,7 +83,6 @@ def detect_language(user_text):
         if w in user_text.lower(): return "Hindi"
     return "Hindi" if IS_HINDI else "English"
 
-# ============ NEW: MEDICINE INFO DATABASE ============
 MEDICINE_DB = {
     "paracetamol": ("Paracetamol / Crocin / Dolo 650", "पैरासिटामोल / क्रोसिन / डोलो 650", "Bukhar aur halka dard kam karne wali dawai hai. Ye dimaag ko pain aur bukhar ka signal bhejne se rokti hai.", "This medicine reduces fever and mild pain. It stops the brain from receiving pain and fever signals.", "Bukhar ya dard hone par, khana khane ke baad, din me 3-4 baar se zyada nahi.", "After food, when you have fever or pain, not more than 3-4 times a day.", "Jyada dose lene se liver kharab ho sakta hai. Khali pet mat lo.", "Too much dose can damage liver. Do not take on empty stomach."),
     "crocin": ("Paracetamol / Crocin / Dolo 650", "पैरासिटामोल / क्रोसिन / डोलो 650", "Bukhar aur halka dard kam karne wali dawai hai.", "This medicine reduces fever and mild pain.", "Khana khane ke baad, din me 3-4 baar se zyada nahi.", "After food, not more than 3-4 times a day.", "Jyada dose se liver kharab ho sakta hai.", "Too much dose can damage liver."),
@@ -308,7 +306,6 @@ def ask_reply(user_text, placeholder):
 
 def ask_reply_photo(photo_keyword, photo_desc, placeholder):
     real_lang = "Hindi" if IS_HINDI else "English"
-    # PHOTO OUT OF CONTEXT CHECK - agar photo_desc me health se bahar ki baat hai toh answer nahi
     if photo_desc.strip() != "":
         if not is_health_related(photo_desc):
             msg = out_of_context_msg(real_lang)
@@ -323,7 +320,6 @@ if menu in ["🏠 Home", "🏠 होम"]:
     st.markdown(f"""<div class="ai-header"><h1>🩺 Sehat Saathi ✨</h1><p>{T('आपका एआई हेल्थ असिस्टेंट - अपनी तकलीफ लिखें, तुरंत सलाह पाएं','Your AI Health Assistant - Write your symptom, get instant advice')}</p></div>""", unsafe_allow_html=True)
     st.write(T("नमस्ते, मैं यहाँ आपकी मदद करने के लिए हूँ! 👋","Hello, I am here to help you! 👋"))
     st.write(T("अपनी तकलीफ लिखें, बोलें या फोटो भेजें।","Write your problem, speak or send photo."))
-    # ===== HISTORY - PEHLE QUESTION / PHOTO, USKE NEECHE ANSWER =====
     for m in st.session_state.messages:
         with st.chat_message(m["role"]):
             if m.get("content") == "DOCTORS_BOX":
@@ -356,7 +352,6 @@ if menu in ["🏠 Home", "🏠 होम"]:
                         st.session_state.messages.append({"role": "assistant", "content": T("ठीक है, अपना ख्याल रखिए। तकलीफ बढ़े तो तुरंत 104 या 108 पर कॉल कीजिएगा।","Okay, take care. If problem increases, call 104 or 108 immediately.")})
                         st.rerun()
     st.markdown("---")
-    # ===== WRITE YOUR SYMPTOM BOX - ANSWER ISKE NEECHE AAYEGA =====
     st.write(f"**{T('✍️ अपनी तकलीफ लिखें','✍️ Write Your Symptom')}**")
     with st.form("chat_form", clear_on_submit=True):
         chat_text = st.text_input("Type...", label_visibility="collapsed", placeholder="", value="")
@@ -365,7 +360,6 @@ if menu in ["🏠 Home", "🏠 होम"]:
         st.session_state.messages.append({"role": "user", "content": chat_text})
         st.session_state.doctor_asked = False
         st.session_state.doctor_step = "none"
-        # Pehle user ka question dikhao, phir uske neeche answer
         with st.chat_message("user"):
             st.markdown(chat_text)
         with st.chat_message("assistant"):
@@ -399,7 +393,6 @@ if menu in ["🏠 Home", "🏠 होम"]:
             elif "खुजली" in photo_type or "Itching" in photo_type: kw = "खुजली दाने" if IS_HINDI else "khujli rash"
             else: kw = "एलर्जी दाने" if IS_HINDI else "allergy daane"
             photo_text = f"{kw} {photo_desc}".strip()
-            # PEHLE PHOTO UPAR, PHIR USKE NEECHE ANSWER - upar answer nahi
             with st.chat_message("user"):
                 st.image(uploaded_photo, caption=T("📸 आपकी फोटो","📸 Your Photo"), use_container_width=True)
                 st.markdown(f"**{T('आपने लिखा:','You wrote:')}** {photo_text}")
@@ -418,7 +411,6 @@ if menu in ["🏠 Home", "🏠 होम"]:
         with st.spinner(T("सुन रहे हैं...","Listening...")):
             voice_text = speech_to_text(audio_input.read())
         if voice_text and not voice_text.startswith("ERROR:"):
-            # PEHLE AUDIO / BOLA HUA TEXT UPAR, PHIR USKE NEECHE ANSWER
             with st.chat_message("user"):
                 st.markdown(f"🎤 {T('आपने बोला:','You said:')} {voice_text}")
             st.session_state.messages.append({"role": "user", "content": voice_text})
@@ -442,7 +434,6 @@ elif menu in ["💊 Medicine Info", "💊 दवाई की जानकार
         if med_input.strip() == "":
             st.warning(T("पहले दवाई का नाम लिखिए।","First write medicine name."))
         else:
-            # PEHLE DAWAI KA NAAM UPAR, PHIR USKE NEECHE ANSWER
             st.markdown(f"**{T('आपने लिखा:','You wrote:')}** {med_input}")
             st.markdown("---")
             lang_now = "Hindi" if IS_HINDI else "English"
@@ -585,7 +576,6 @@ elif menu in ["🏥 Hospital Finder", "🏥 अस्पताल खोजे�
             st.link_button(T("📞 104 - हेल्थ हेल्पलाइन","📞 104 - Health Helpline"), "tel:104", use_container_width=True)
     show_floating_banner()
 
-elif menu in ["💡 Health Tips```python
 elif menu in ["💡 Health Tips", "💡 स्वास्थ्य टिप्स"]:
     st.title(T("💡 स्वास्थ्य टिप्स - रोज़ का रूटीन","💡 Health Tips - Daily Routine"))
     st.write(T("ये छोटी-छोटी आदतें आपको बड़े रोग से बचा सकती हैं।","These small habits can save you from big diseases."))
@@ -608,7 +598,7 @@ elif menu in ["💡 Health Tips", "💡 स्वास्थ्य टिप्
     st.write(T("- **दांत:** दिन में 2 बार ब्रश करें","- **Teeth:** Brush 2 times a day"))
     st.markdown(f"### {T('👶 7. बच्चों के लिए','👶 7. For Children')}")
     st.write(T("- **टीका:** बच्चों के सारे टीके समय पर लगवाएं, पीएचसी में फ्री लगते हैं","- **Vaccination:** Get all vaccines on time, FREE in PHC"))
-    st.write(T("- **दूध:** रोज़ 1 गिलास दूध पिलाएं","- **Milk:** Give 1 glass milk daily"))
+    st.write(T("- **दूध:** रोज़ 1 गिलास दूध पिलाएं- **दूध:** रोज़ 1 गिलास दूध पिलाएं","- **Milk:** Give 1 glass milk daily"))
     st.markdown(f"### {T('👵 8. बुजुर्गों के लिए','👵 8. For Elderly')}")
     st.write(T("- **बीपी-शुगर जांच:** महीने में 1 बार बीपी और शुगर जांच करवाएं, पीएचसी में फ्री होता है","- **BP-Sugar Check:** Check BP and sugar once a month, FREE in PHC"))
     st.write(T("- **दवाई समय पर:** दवाई का समय कभी मत छोड़ें","- **Medicine On Time:** Never miss medicine time"))
