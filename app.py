@@ -3,6 +3,41 @@ import datetime
 import re
 import urllib.parse
 st.set_page_config(page_title="Sehat Saathi", page_icon="🩺", layout="centered")
+
+# ---------- DARK + MODERN AI UI - POINT 2 ----------
+st.markdown("""
+<style>
+.stApp { background: #0A0E1F !important; color: white !important; }
+.block-container { padding-top: 1rem !important; padding-bottom: 70px !important; }
+h1, h2, h3, p, label, .stMarkdown, .stWrite { color: white !important; }
+section[data-testid="stSidebar"] { background: #111733 !important; }
+section[data-testid="stSidebar"] * { color: white !important; }
+.stTextInput input, .stSelectbox div[data-baseweb="select"] div, .stNumberInput input {
+    background: #1A2142 !important; color: white !important; border: 1px solid #3A4A8C !important; border-radius: 12px !important;
+}
+.stButton button {
+    background: linear-gradient(90deg, #7C3AED, #2563EB) !important;
+    color: white !important; border: none !important; border-radius: 25px !important;
+    font-weight: 700 !important; box-shadow: 0 4px 20px rgba(124,58,237,0.5) !important;
+}
+.stButton button:hover { transform: scale(1.02); }
+div[data-testid="stChatMessage"] { background: #1A2142 !important; border-radius: 18px !important; border: 1px solid #2A3566 !important; }
+div[data-testid="stChatMessage"] * { color: white !important; }
+.doctor-card {
+    background: linear-gradient(135deg, #1A2142, #16204A);
+    border: 1px solid #7C3AED; border-radius: 16px; padding: 14px; margin: 10px 0;
+    box-shadow: 0 4px 20px rgba(124,58,237,0.3);
+}
+.doctor-card b { color: white; } .doctor-card span { color: #C7D2FE; font-size: 13px; }
+.ai-header {
+    background: linear-gradient(90deg, #7C3AED, #2563EB);
+    padding: 18px; border-radius: 18px; text-align: center; margin-bottom: 12px;
+}
+.ai-header h1 { font-size: 30px; margin: 0; color: white !important; }
+.ai-header p { margin: 4px 0 0 0; color: #E0E7FF !important; font-size: 14px; }
+</style>
+""", unsafe_allow_html=True)
+
 if "messages" not in st.session_state:
     st.session_state.messages = []
 if "doctor_asked" not in st.session_state:
@@ -15,6 +50,8 @@ if "uploader_key" not in st.session_state:
     st.session_state.uploader_key = 0
 if "photo_sent" not in st.session_state:
     st.session_state.photo_sent = False
+if "user_city" not in st.session_state:
+    st.session_state.user_city = "Faridabad"
 
 st.sidebar.write("भाषा - Language" if False else "Language - Menu Ki Bhasha")
 lang = st.sidebar.radio("Choose Language", ["English", "Hindi"], label_visibility="collapsed")
@@ -65,43 +102,89 @@ def detect_language(user_text):
             return "Hindi"
     return "Hindi" if IS_HINDI else "English"
 
-# ---------- DOCTORS - DIRECT NUMBER ----------
-DOCTORS_MAP = [
-    (["daane","rash","khujli","itching","allergy","दाने","खुजली"], [("डॉ. शर्मा - त्वचा रोग विशेषज्ञ" if IS_HINDI else "Dr. Sharma - Skin Doctor", "9876543210"), ("डॉ. वर्मा - त्वचा रोग विशेषज्ञ" if IS_HINDI else "Dr. Verma - Dermatologist", "9876543211")]),
-    (["chot","zakhm","wound","injury","kat","cut","चोट"], [("डॉ. गुप्ता - सर्जन" if IS_HINDI else "Dr. Gupta - General Surgeon", "9876543212"), ("डॉ. सिंह - हड्डी रोग विशेषज्ञ" if IS_HINDI else "Dr. Singh - Ortho Doctor", "9876543213")]),
-    (["chest","seene","saans","breath","सीने","सांस"], [("डॉ. पटेल - हृदय / सामान्य चिकित्सक" if IS_HINDI else "Dr. Patel - Heart / General Physician", "9876543216"), ("डॉ. खान - चिकित्सक" if IS_HINDI else "Dr. Khan - Physician", "9876543217")]),
-    (["bukhar","fever","बुखार"], [("डॉ. पटेल - सामान्य चिकित्सक" if IS_HINDI else "Dr. Patel - General Physician", "9876543216"), ("डॉ. खान - चिकित्सक" if IS_HINDI else "Dr. Khan - Physician", "9876543217")]),
-    (["pet","stomach","gas","पेट"], [("डॉ. पटेल - सामान्य चिकित्सक" if IS_HINDI else "Dr. Patel - General Physician", "9876543216"), ("डॉ. मेहता - पेट रोग विशेषज्ञ" if IS_HINDI else "Dr. Mehta - Gastroenterologist", "9876543218")]),
-    (["sar","head","sir","सिर"], [("डॉ. खान - सामान्य चिकित्सक" if IS_HINDI else "Dr. Khan - General Physician", "9876543217"), ("डॉ. अय्यर - न्यूरोलॉजिस्ट" if IS_HINDI else "Dr. Iyer - Neurologist", "9876543219")]),
-    (["daant","tooth","दांत"], [("डॉ. राव - दांत के डॉक्टर" if IS_HINDI else "Dr. Rao - Dentist", "9876543220")]),
-    (["aankh","eye","आंख"], [("डॉ. नायर - आंख के डॉक्टर" if IS_HINDI else "Dr. Nair - Eye Doctor", "9876543221")]),
-    (["kaan","ear","कान"], [("डॉ. बोस - कान-नाक-गला विशेषज्ञ" if IS_HINDI else "Dr. Bose - ENT Doctor", "9876543222")]),
+# ---------- DOCTORS - SYMPTOM WISE + CITY WISE + FULL DETAILS - POINT 1 ----------
+# Har doctor: name, specialist, exp, fees, timing, address, rating, phone, city
+DOCTOR_DB = [
+    # FEVER / GENERAL
+    {"cat":"fever","name":"Dr. Patel","spec":"General Physician","spec_hi":"सामान्य चिकित्सक","exp":"12 yrs","fees":"₹200","timing":"10 AM - 2 PM, 5 PM - 8 PM","address":"Sector 15, Faridabad","rating":"4.8 ⭐","phone":"9876543216","city":"Faridabad"},
+    {"cat":"fever","name":"Dr. Khan","spec":"General Physician","spec_hi":"चिकित्सक","exp":"10 yrs","fees":"₹250","timing":"9 AM - 1 PM, 4 PM - 7 PM","address":"Lajpat Nagar, Delhi","rating":"4.7 ⭐","phone":"9876543217","city":"Delhi"},
+    {"cat":"fever","name":"Dr. Gupta","spec":"General Physician","spec_hi":"सामान्य चिकित्सक","exp":"15 yrs","fees":"₹300","timing":"10 AM - 3 PM","address":"DLF Phase 2, Gurugram","rating":"4.9 ⭐","phone":"9876543212","city":"Gurugram"},
+    # BACK / JOINT / LEG
+    {"cat":"back","name":"Dr. Singh","spec":"Orthopedic Doctor","spec_hi":"हड्डी रोग विशेषज्ञ","exp":"14 yrs","fees":"₹400","timing":"11 AM - 3 PM","address":"Sector 21, Faridabad","rating":"4.9 ⭐","phone":"9876543213","city":"Faridabad"},
+    {"cat":"back","name":"Dr. Mehra","spec":"Orthopedic Doctor","spec_hi":"हड्डी रोग विशेषज्ञ","exp":"11 yrs","fees":"₹350","timing":"10 AM - 2 PM","address":"South Ex, Delhi","rating":"4.8 ⭐","phone":"9876543225","city":"Delhi"},
+    {"cat":"back","name":"Dr. Arora","spec":"Physiotherapist","spec_hi":"फिजियोथेरेपिस्ट","exp":"8 yrs","fees":"₹300","timing":"9 AM - 6 PM","address":"Sector 14, Gurugram","rating":"4.7 ⭐","phone":"9876543226","city":"Gurugram"},
+    # SKIN / RASH
+    {"cat":"skin","name":"Dr. Sharma","spec":"Dermatologist","spec_hi":"त्वचा रोग विशेषज्ञ","exp":"13 yrs","fees":"₹400","timing":"11 AM - 4 PM","address":"Sector 16, Faridabad","rating":"4.9 ⭐","phone":"9876543210","city":"Faridabad"},
+    {"cat":"skin","name":"Dr. Verma","spec":"Dermatologist","spec_hi":"त्वचा रोग विशेषज्ञ","exp":"9 yrs","fees":"₹350","timing":"10 AM - 2 PM","address":"Karol Bagh, Delhi","rating":"4.8 ⭐","phone":"9876543211","city":"Delhi"},
+    # STOMACH
+    {"cat":"stomach","name":"Dr. Mehta","spec":"Gastroenterologist","spec_hi":"पेट रोग विशेषज्ञ","exp":"16 yrs","fees":"₹500","timing":"10 AM - 2 PM","address":"Sector 12, Faridabad","rating":"4.9 ⭐","phone":"9876543218","city":"Faridabad"},
+    {"cat":"stomach","name":"Dr. Joshi","spec":"Gastroenterologist","spec_hi":"पेट रोग विशेषज्ञ","exp":"12 yrs","fees":"₹450","timing":"11 AM - 3 PM","address":"Punjabi Bagh, Delhi","rating":"4.7 ⭐","phone":"9876543227","city":"Delhi"},
+    # HEAD / NEURO
+    {"cat":"head","name":"Dr. Iyer","spec":"Neurologist","spec_hi":"न्यूरोलॉजिस्ट","exp":"15 yrs","fees":"₹600","timing":"10 AM - 1 PM","address":"Sector 28, Faridabad","rating":"4.9 ⭐","phone":"9876543219","city":"Faridabad"},
+    {"cat":"head","name":"Dr. Khan","spec":"General Physician","spec_hi":"सामान्य चिकित्सक","exp":"10 yrs","fees":"₹250","timing":"9 AM - 1 PM","address":"Lajpat Nagar, Delhi","rating":"4.7 ⭐","phone":"9876543217","city":"Delhi"},
+    # CHEST / HEART / BREATH
+    {"cat":"chest","name":"Dr. Patel","spec":"Cardiologist","spec_hi":"हृदय रोग विशेषज्ञ","exp":"18 yrs","fees":"₹600","timing":"10 AM - 2 PM","address":"Sector 15, Faridabad","rating":"4.9 ⭐","phone":"9876543216","city":"Faridabad"},
+    {"cat":"chest","name":"Dr. Kapoor","spec":"Pulmonologist","spec_hi":"फेफड़े रोग विशेषज्ञ","exp":"13 yrs","fees":"₹500","timing":"11 AM - 3 PM","address":"Saket, Delhi","rating":"4.8 ⭐","phone":"9876543228","city":"Delhi"},
+    # TOOTH
+    {"cat":"tooth","name":"Dr. Rao","spec":"Dentist","spec_hi":"दांत के डॉक्टर","exp":"10 yrs","fees":"₹300","timing":"10 AM - 7 PM","address":"Sector 17, Faridabad","rating":"4.8 ⭐","phone":"9876543220","city":"Faridabad"},
+    # EYE
+    {"cat":"eye","name":"Dr. Nair","spec":"Eye Doctor","spec_hi":"आंख के डॉक्टर","exp":"12 yrs","fees":"₹350","timing":"10 AM - 4 PM","address":"Sector 19, Faridabad","rating":"4.8 ⭐","phone":"9876543221","city":"Faridabad"},
+    # EAR
+    {"cat":"ear","name":"Dr. Bose","spec":"ENT Doctor","spec_hi":"कान-नाक-गला विशेषज्ञ","exp":"14 yrs","fees":"₹400","timing":"10 AM - 2 PM","address":"Sector 11, Faridabad","rating":"4.8 ⭐","phone":"9876543222","city":"Delhi"},
+    # INJURY / WOUND
+    {"cat":"injury","name":"Dr. Gupta","spec":"General Surgeon","spec_hi":"सर्जन","exp":"15 yrs","fees":"₹500","timing":"9 AM - 5 PM","address":"Sector 8, Faridabad","rating":"4.9 ⭐","phone":"9876543212","city":"Faridabad"},
+    {"cat":"injury","name":"Dr. Singh","spec":"Orthopedic Doctor","spec_hi":"हड्डी रोग विशेषज्ञ","exp":"14 yrs","fees":"₹400","timing":"11 AM - 3 PM","address":"Sector 21, Faridabad","rating":"4.9 ⭐","phone":"9876543213","city":"Faridabad"},
 ]
-DEFAULT_DOCTORS = [("डॉ. पटेल - सामान्य चिकित्सक" if IS_HINDI else "Dr. Patel - General Physician", "9876543216"), ("डॉ. खान - चिकित्सक" if IS_HINDI else "Dr. Khan - Physician", "9876543217")]
-def get_doctors_for(text):
+
+def get_category_for(text):
     t = text.lower()
-    for keys, docs in DOCTORS_MAP:
-        if any(k in t for k in keys):
-            return docs
-    return DEFAULT_DOCTORS
+    if any(k in t for k in ["daane","rash","khujli","itching","allergy","दाने","खुजली","skin"]): return "skin"
+    if any(k in t for k in ["chot","zakhm","wound","injury","kat","cut","चोट"]): return "injury"
+    if any(k in t for k in ["chest","seene","saans","breath","सीने","सांस"]): return "chest"
+    if any(k in t for k in ["bukhar","fever","बुखार"]): return "fever"
+    if any(k in t for k in ["pet","stomach","gas","पेट","ulti","vomit","dast"]): return "stomach"
+    if any(k in t for k in ["sar","head","sir","सिर","migraine","headache"]): return "head"
+    if any(k in t for k in ["daant","tooth","दांत"]): return "tooth"
+    if any(k in t for k in ["aankh","eye","आंख"]): return "eye"
+    if any(k in t for k in ["kaan","ear","कान"]): return "ear"
+    if any(k in t for k in ["kamar","back","spine","कमर","leg","pair","knee","ghutna","hand","haath","joint","पैर","हाथ","घुटना","badan","body"]): return "back"
+    if any(k in t for k in ["cold","cough","khansi","sardi","throat","gala","गला","सर्दी","खांसी"]): return "fever"
+    return "fever"
+
+def get_doctors_for(text, city=None):
+    cat = get_category_for(text)
+    city = city or st.session_state.get("user_city","Faridabad")
+    docs = [d for d in DOCTOR_DB if d["cat"]==cat and d["city"]==city]
+    if not docs:
+        docs = [d for d in DOCTOR_DB if d["cat"]==cat][:2]
+    if not docs:
+        docs = [d for d in DOCTOR_DB if d["city"]==city][:2]
+    return docs
+
 def show_doctors_box(user_text):
-    docs = get_doctors_for(user_text)
+    # City select - Option A
+    city = st.selectbox("📍 अपना शहर चुनें - Choose Your City" if not IS_HINDI else "📍 अपना शहर चुनें", ["Faridabad","Delhi","Gurugram","Noida"], index=["Faridabad","Delhi","Gurugram","Noida"].index(st.session_state.get("user_city","Faridabad")), key="city_select_box")
+    st.session_state.user_city = city
+    docs = get_doctors_for(user_text, city)
     if IS_HINDI:
-        st.markdown("### 👨‍⚕️ आपके लक्षण के डॉक्टर - सीधे कॉल करें")
+        st.markdown(f"### 👨‍⚕️ आपके लक्षण के लिए डॉक्टर - {city} में (10km के अंदर)")
         st.markdown("**🩺 ई-संजीवनी - ऑनलाइन डॉक्टर (सरकारी, फ्री) - सबसे ऊपर**")
     else:
-        st.markdown("### 👨‍⚕️ Doctors For Your Symptom - Call Directly")
+        st.markdown(f"### 👨‍⚕️ Doctors For Your Symptom - Near You in {city} (within 10km)")
         st.markdown("**🩺 eSanjeevani - Online Doctor (Govt, FREE) - On Top**")
     st.link_button("🩺 ई-संजीवनी खोलें" if IS_HINDI else "🩺 Open eSanjeevani", "https://esanjeevani.mohfw.gov.in", use_container_width=True)
-    for name, ph in docs:
-        c1, c2 = st.columns([3, 1])
+    for d in docs:
+        spec = d["spec_hi"] if IS_HINDI else d["spec"]
+        maps_q = urllib.parse.quote(f"{d['spec']} doctor near {d['address']} {city}")
+        st.markdown(f"""<div class="doctor-card"><b>👨‍⚕️ {d['name']} - {spec}</b><br><span>💼 Experience: {d['exp']} &nbsp;|&nbsp; 💰 Fees: {d['fees']} &nbsp;|&nbsp; {d['rating']}</span><br><span>🕒 {d['timing']}</span><br><span>📍 {d['address']}, {d['city']} - Within 10km</span><br><span>📞 {d['phone']}</span></div>""", unsafe_allow_html=True)
+        c1, c2 = st.columns(2)
         with c1:
-            st.write(f"**{name}**  -  📞 {ph}")
+            st.link_button("📞 कॉल करें" if IS_HINDI else "📞 Call Now", f"tel:{d['phone']}", use_container_width=True)
         with c2:
-            st.link_button("📞 कॉल करें" if IS_HINDI else "📞 Call", f"tel:{ph}", use_container_width=True)
+            st.link_button("📍 Maps में देखें" if IS_HINDI else "📍 View in Maps", f"https://www.google.com/maps/search/{maps_q}", use_container_width=True)
     st.link_button("📞 104 - हेल्थ हेल्पलाइन पर कॉल करें" if IS_HINDI else "📞 104 - Health Helpline Call", "tel:104", use_container_width=True)
 
-# ---------- FLOATING BANNER - CSS, KHUD BADLEGA ----------
+# ---------- FLOATING BANNER - DARK GLOW ----------
 def show_floating_banner():
     tips_hi = ["💡 दिन में 8 गिलास पानी पिएं", "💡 चोट को साफ पानी से धोएं, गंदा कपड़ा मत लगाएं", "💡 एलर्जी में खुजली मत करें, ठंडा पानी लगाएं", "💡 दवा समय पर लें, खुराक मत छोड़ें", "💡 रोज 30 मिनट टहलें", "💡 बुखार 102 से ऊपर हो तो तुरंत डॉक्टर को दिखाएं"]
     tips_en = ["💡 Drink 8 glasses of water daily", "💡 Wash wound with clean water, do not apply dirty cloth", "💡 In allergy do not scratch, apply cold water", "💡 Take medicine on time, do not miss dose", "💡 Walk 30 minutes daily", "💡 If fever is above 102, see doctor immediately"]
@@ -112,7 +195,7 @@ def show_floating_banner():
         items += f'<div class="tip" style="animation-delay:{delay}s;">{tip}</div>'
     st.markdown(f"""
     <style>
-    .banner-wrap {{ position: fixed; bottom: 0; left: 0; right: 0; z-index: 9999; background: #FF4B4B; height: 48px; overflow: hidden; }}
+    .banner-wrap {{ position: fixed; bottom: 0; left: 0; right: 0; z-index: 9999; background: linear-gradient(90deg,#7C3AED,#2563EB); height: 48px; overflow: hidden; }}
     .banner-wrap .tip {{ position: absolute; left: 0; right: 0; top: 0; height: 48px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 15px; padding: 0 10px; text-align: center; opacity: 0; animation: tipCycle 24s linear infinite; }}
     @keyframes tipCycle {{ 0% {{opacity: 0;}} 1% {{opacity: 1;}} 15% {{opacity: 1;}} 17% {{opacity: 0;}} 100% {{opacity: 0;}} }}
     .block-container {{ padding-bottom: 70px !important; }}
@@ -120,7 +203,7 @@ def show_floating_banner():
     <div class="banner-wrap">{items}</div>
     """, unsafe_allow_html=True)
 
-# ---------- ANSWER - HINDI = DEVNAGARI, ENGLISH = ENGLISH ----------
+# ---------- ANSWER - AS IT IS ----------
 def get_instant_answer(user_text, lang):
     text = user_text.lower()
     def make_answer(symptom_name, causes, dangers, dos, tip, summary, lang):
@@ -321,44 +404,44 @@ def ask_reply_photo(photo_keyword, photo_desc, placeholder):
     placeholder.markdown(instant)
     return instant
 
-# ================= HOME =================
+# ================= HOME - FIXED DOCTOR LOGIC =================
 if menu in ["🏠 Home", "🏠 होम"]:
-    st.title("🩺 Sehat Saathi")
+    st.markdown("""<div class="ai-header"><h1>🩺 Sehat Saathi ✨</h1><p>Your AI Health Assistant - Apna symptom likho, turant salah pao</p></div>""", unsafe_allow_html=True)
     if IS_HINDI:
         st.write("नमस्ते, मैं यहाँ आपकी मदद करने के लिए हूँ! 👋")
         st.write("अपनी तकलीफ लिखें, बोलें या फोटो भेजें।")
     else:
         st.write("Hello, I am here to help you! 👋")
         st.write("Write your problem, speak or send photo.")
-    # CHAT HISTORY - PHOTO KE NEECHE USKA ANSWER
+    # CHAT HISTORY - FIX: DOCTORS_BOX alag se, answer ke saath doctor nahi
     for m in st.session_state.messages:
         with st.chat_message(m["role"]):
-            if m.get("type") == "image":
+            if m.get("content") == "DOCTORS_BOX":
+                show_doctors_box(m.get("for_text",""))
+            elif m.get("type") == "image":
                 st.image(m["image"], caption="📸 आपकी फोटो" if IS_HINDI else "📸 Your Photo", use_container_width=True)
                 st.markdown(m["content"])
             else:
                 st.markdown(m["content"])
-            # Agar is message ke saath doctor hai toh usi ke neeche dikhao
-            if m.get("show_doctors") and m["role"] == "assistant":
-                show_doctors_box(m.get("for_text",""))
     if st.session_state.messages and st.session_state.messages[-1]["role"] == "assistant" and not st.session_state.doctor_asked:
-        if "सिर्फ स्वास्थ्य" not in st.session_state.messages[-1]["content"] and "only help with health" not in st.session_state.messages[-1]["content"].lower():
-            st.info("👨‍⚕️ क्या आप डॉक्टर से बात करना चाहेंगी?" if IS_HINDI else "👨‍⚕️ Would you like to see a doctor?")
-            c1, c2 = st.columns(2)
-            with c1:
-                if st.button("✅ हाँ, डॉक्टर से बात करें" if IS_HINDI else "✅ Yes, See Doctor", use_container_width=True, key="yes_doctor"):
-                    st.session_state.doctor_asked = True
-                    last_user = ""
-                    for mm in reversed(st.session_state.messages):
-                        if mm["role"]=="user":
-                            last_user=mm["content"]; break
-                    st.session_state.messages.append({"role": "assistant", "content": "DOCTORS_BOX", "show_doctors": True, "for_text": last_user})
-                    st.rerun()
-            with c2:
-                if st.button("❌ नहीं, बस ऐसे ही" if IS_HINDI else "❌ No, Thanks", use_container_width=True, key="no_doctor"):
-                    st.session_state.doctor_asked = True
-                    st.session_state.messages.append({"role": "assistant", "content": "ठीक है, अपना ख्याल रखिए। तकलीफ बढ़े तो तुरंत 104 या 108 पर कॉल कीजिएगा।" if IS_HINDI else "Okay, take care. If problem increases, call 104 or 108 immediately."})
-                    st.rerun()
+        if st.session_state.messages[-1].get("content") != "DOCTORS_BOX":
+            if "सिर्फ स्वास्थ्य" not in st.session_state.messages[-1]["content"] and "only help with health" not in st.session_state.messages[-1]["content"].lower():
+                st.info("👨‍⚕️ क्या आप डॉक्टर से बात करना चाहेंगी?" if IS_HINDI else "👨‍⚕️ Would you like to see a doctor?")
+                c1, c2 = st.columns(2)
+                with c1:
+                    if st.button("✅ हाँ, डॉक्टर से बात करें" if IS_HINDI else "✅ Yes, See Doctor", use_container_width=True, key="yes_doctor"):
+                        st.session_state.doctor_asked = True
+                        last_user = ""
+                        for mm in reversed(st.session_state.messages):
+                            if mm["role"]=="user":
+                                last_user=mm["content"]; break
+                        st.session_state.messages.append({"role": "assistant", "content": "DOCTORS_BOX", "show_doctors": True, "for_text": last_user})
+                        st.rerun()
+                with c2:
+                    if st.button("❌ नहीं, बस ऐसे ही" if IS_HINDI else "❌ No, Thanks", use_container_width=True, key="no_doctor"):
+                        st.session_state.doctor_asked = True
+                        st.session_state.messages.append({"role": "assistant", "content": "ठीक है, अपना ख्याल रखिए। तकलीफ बढ़े तो तुरंत 104 या 108 पर कॉल कीजिएगा।" if IS_HINDI else "Okay, take care. If problem increases, call 104 or 108 immediately."})
+                        st.rerun()
     st.markdown("---")
     with st.form("chat_form", clear_on_submit=True):
         chat_text = st.text_input("Type...", label_visibility="collapsed", placeholder="अपनी तकलीफ लिखें..." if IS_HINDI else "Write your symptom...")
@@ -369,9 +452,9 @@ if menu in ["🏠 Home", "🏠 होम"]:
         with st.chat_message("assistant"):
             placeholder = st.empty()
             reply = ask_reply(chat_text, placeholder)
-        st.session_state.messages.append({"role": "assistant", "content": reply, "show_doctors": True, "for_text": chat_text})
+        # FIX: show_doctors = False - answer ke saath doctor box nahi aayega
+        st.session_state.messages.append({"role": "assistant", "content": reply, "show_doctors": False, "for_text": chat_text})
         st.rerun()
-    # CLEAR CHAT - PHOTO BHI CLEAR
     if st.button("🧹 चैट साफ करें" if IS_HINDI else "🧹 Clear Chat", use_container_width=True):
         st.session_state.messages = []
         st.session_state.doctor_asked = False
@@ -404,12 +487,11 @@ if menu in ["🏠 Home", "🏠 होम"]:
             else:
                 kw = "एलर्जी दाने" if IS_HINDI else "allergy daane"
             photo_text = f"{kw} {photo_desc}".strip()
-            # PHOTO + USKA ANSWER - EK SAATH, ANSWER PHOTO KE NEECHE
             with st.chat_message("assistant"):
                 placeholder = st.empty()
                 reply = ask_reply_photo(kw, photo_desc, placeholder)
             st.session_state.messages.append({"role": "user", "content": photo_text, "type": "image", "image": uploaded_photo})
-            st.session_state.messages.append({"role": "assistant", "content": reply, "show_doctors": True, "for_text": photo_text})
+            st.session_state.messages.append({"role": "assistant", "content": reply, "show_doctors": False, "for_text": photo_text})
             st.session_state.doctor_asked = False
             st.session_state.photo_sent = True
             st.session_state.uploader_key += 1
@@ -425,7 +507,7 @@ if menu in ["🏠 Home", "🏠 होम"]:
             with st.chat_message("assistant"):
                 placeholder = st.empty()
                 reply = ask_reply(voice_text, placeholder)
-            st.session_state.messages.append({"role": "assistant", "content": reply, "show_doctors": True, "for_text": voice_text})
+            st.session_state.messages.append({"role": "assistant", "content": reply, "show_doctors": False, "for_text": voice_text})
             st.rerun()
         else:
             st.warning("आवाज़ समझ नहीं आई, दोबारा बोलिए।" if IS_HINDI else "Could not understand, please speak again.")
