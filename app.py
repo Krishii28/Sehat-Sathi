@@ -4,7 +4,7 @@ import re
 import urllib.parse
 st.set_page_config(page_title="Sehat Saathi - India", page_icon="🩺", layout="centered")
 
-# ---------- PREMIUM OMBRE - NOT BASIC - WARM CREAM TO PEACH TO MINT ----------
+# ---------- PREMIUM OMBRE - WARM CREAM TO PEACH TO MINT ----------
 st.markdown("""
 <style>
 .stApp { background: linear-gradient(180deg, #FFFBF2 0%, #FFF7ED 25%, #FEF3F2 50%, #EEF2FF 75%, #F0FDF4 100%) !important; }
@@ -28,6 +28,8 @@ div[data-testid="stChatMessage"] * { color: #1E293B !important; }
 .doctor-card { background: #FFFFFF; border: 1.5px solid #FDE68A; border-radius: 18px; padding: 18px; margin: 12px 0; box-shadow: 0 4px 16px rgba(245,158,11,0.10); }
 .online-card { background: #FFFFFF; border: 1.5px solid #BBF7D0; border-radius: 18px; padding: 16px; margin: 12px 0; box-shadow: 0 4px 16px rgba(0,0,0,0.04); }
 .info-box { background: linear-gradient(90deg, #FFFBEB, #FEF3C7); border-radius: 14px; padding: 14px; border: 1px solid #FDE68A; }
+.scheme-card { background: #FFFFFF; border: 1.5px solid #FDE68A; border-radius: 18px; padding: 16px; margin: 14px 0; box-shadow: 0 4px 16px rgba(0,0,0,0.04); }
+.scheme-card b, .scheme-card span { color: #1E293B !important; }
 @media (min-width: 1024px) { .block-container { max-width: 1100px !important; } }
 @media (max-width: 768px) { .block-container { max-width: 100% !important; padding: 10px 12px 100px 12px !important; } .ai-header h1 { font-size: 25px !important; } }
 </style>
@@ -146,12 +148,9 @@ def show_doctor_detail_card(user_text, loc):
     practo_direct = f"https://www.practo.com/{city_slug}/{practo_slug}"
     apollo_direct = f"https://www.apollo247.com/specialties/{apollo_slug}"
     google_direct = f"https://www.google.com/maps/search/{urllib.parse.quote(spec_en + ' doctor near ' + city + ' ' + pincode + ' India')}"
-    # 1. DOCTOR CARD
     st.markdown(f"""<div class="doctor-card"><b>👨‍⚕️ {T('आपको इस डॉक्टर की जरूरत है:','You need this doctor:')} {spec}</b><br><br><span><b>{T('ये डॉक्टर क्या करते हैं?','What does this doctor do?')}</b><br>{work}</span><br><br><span><b>{T('कब दिखाना चाहिए?','When to see?')}</b><br>{when}</span><br><br><span><b>{T('अंदाज़न फीस:','Approx Fees:')}</b> {fees}</span><br><br><span><b>{T('आपका इलाका:','Your Area:')}</b> {city}, {pincode}, India</span></div>""", unsafe_allow_html=True)
-    # 2. MAPS - BILKUL ISKE NEECHE HI
     st.markdown(f"""<div class="info-box"><b>{T('📍 आपके पास के डॉक्टर - Maps पर असली डॉक्टर देखें','📍 Doctors Near You - See Real Doctors On Maps')}</b><br>{T('नीचे क्लिक करते ही गूगल मैप्स आपके शहर और पिनकोड के उसी बीमारी के असली डॉक्टर दिखा देगा - नाम, नंबर, रेटिंग सब।','On clicking below, Google Maps will show real doctors of your city and pincode for same disease - name, number, rating.')}</div>""", unsafe_allow_html=True)
     st.link_button(f"📍 {T('मेरे पास के डॉक्टर देखें - Maps','See Doctors Near Me - Maps')}", google_direct, use_container_width=True)
-    # 3. ONLINE - SYMPTOM BASED DIRECT
     st.markdown(f"### {T('🌐 ऑनलाइन डॉक्टर - उसी बीमारी के डॉक्टर से डायरेक्ट बात करें','🌐 Online Doctors - Talk Directly To Same Disease Doctor')}")
     st.write(T(f"आपकी तकलीफ: {spec} | शहर: {city}. नीचे क्लिक करते ही सीधा उसी बीमारी के डॉक्टरों की लिस्ट खुलेगी, साइट का होमपेज नहीं खुलेगा।","Your problem: " + spec + f" | City: {city}. On clicking below, direct list of doctors for same disease will open, not homepage."))
     st.markdown(f"""<div class="online-card"><b>💻 {T('प्रैक्टो - डायरेक्ट डॉक्टर','Practo - Direct Doctors')}</b><br><span>{T('डायरेक्ट लिंक:','Direct Link:')}</span> <span>practo.com/{city_slug}/{practo_slug}</span><br><span>{T('इस लिंक पर क्लिक करते ही आपके शहर के उसी बीमारी के असली डॉक्टर खुलेंगे - नाम, फोटो, फीस, रेटिंग। किसी भी डॉक्टर के प्रोफाइल में Call / Chat बटन से डायरेक्ट संपर्क करें।','On clicking this link, real doctors of your city for same disease will open - name, photo, fees, rating. Use Call / Chat in any doctor profile to contact directly.')}</span></div>""", unsafe_allow_html=True)
@@ -159,7 +158,7 @@ def show_doctor_detail_card(user_text, loc):
     st.markdown(f"""<div class="online-card"><b>🏥 {T('अपोलो - डायरेक्ट डॉक्टर','Apollo - Direct Doctors')}</b><br><span>{T('डायरेक्ट लिंक:','Direct Link:')}</span> <span>apollo247.com/specialties/{apollo_slug}</span><br><span>{T('इस लिंक पर क्लिक करते ही उसी बीमारी के अपोलो डॉक्टर खुलेंगे।','On clicking this link, Apollo doctors for same disease will open.')}</span><br><span><b>{T('डायरेक्ट नंबर:','Direct Number:')}</b> 1860-500-1066</span></div>""", unsafe_allow_html=True)
     st.link_button(T(f"🏥 {spec} - डायरेक्ट देखें - अपोलो","🏥 Direct Doctors - Apollo"), apollo_direct, use_container_width=True)
     st.link_button(T("📞 1860-500-1066 पर डायरेक्ट कॉल करें - अपोलो","📞 Call 1860-500-1066 Directly - Apollo"), "tel:18605001066", use_container_width=True)
-    st.markdown(f"""<div class="online-card"><b>🩺 {T('ई-संजीवनी - सरकारी, फ्री - डायरेक्ट लॉगिन','eSanjeevani - Govt, FREE - Direct Login')}</b><br><span>{T('eSanjeevani में बिना लॉगिन के डॉक्टर नहीं मिलता, इसलिए अब ये लिंक सीधा Patient Login पेज खोलेगा, होमपेज नहीं। लॉगिन करते ही सरकारी डॉक्टर से सीधी वीडियो कॉल हो जाएगी।','In eSanjeevani, doctor is not available without login, so now this link will open Patient Login page directly, not homepage. After login, direct video call with Govt doctor.')}</span><br><span><b>{T('समय:','Timing:')}</b> {T('सुबह 10 - शाम 4','10 AM - 4 PM')} | <b>{T('फीस:','Fees:')}</b> {T('बिल्कुल फ्री','Totally FREE')}</span></div>""", unsafe_allow_html=True)
+    st.markdown(f"""<div class="online-card"><b>🩺 {T('ई-संजीवनी - सरकारी, फ्री - डायरेक्ट लॉगिन','eSanjeevani - Govt, FREE - Direct Login')}</b><br><span>{T('eSanjeevani में बिना लॉगिन के डॉक्टर नहीं मिलता, इसलिए अब ये लिंक सीधा Patient Login पेज खोलेगा, होमपेज नहीं।','In eSanjeevani, doctor is not available without login, so now this link will open Patient Login page directly, not homepage.')}</span><br><span><b>{T('समय:','Timing:')}</b> {T('सुबह 10 - शाम 4','10 AM - 4 PM')} | <b>{T('फीस:','Fees:')}</b> {T('बिल्कुल फ्री','Totally FREE')}</span></div>""", unsafe_allow_html=True)
     st.link_button(T("🩺 डायरेक्ट लॉगिन करें - ई-संजीवनी","🩺 Direct Login - eSanjeevani"), "https://esanjeevani.mohfw.gov.in/patient/", use_container_width=True)
     st.link_button(T("📞 104 पर डायरेक्ट कॉल करें","📞 Call 104 Directly"), "tel:104", use_container_width=True)
     st.link_button(T("🚑 108 - एम्बुलेंस","🚑 108 - Ambulance"), "tel:108", use_container_width=True)
@@ -524,29 +523,43 @@ elif menu in ["⚖️ BMI Calculator", "⚖️ बीएमआई कैलक�
 elif menu in ["🏛️ Government Schemes", "🏛️ सरकारी योजनाएं"]:
     st.title(T("🏛️ सरकारी योजनाएं - फ्री का फायदा उठाएं","🏛️ Government Schemes - Take FREE Benefit"))
     st.success(T("ये सब सरकारी योजनाएं हैं, 100% असली और फ्री। किसी को पैसे मत दें।","All these are Government schemes, 100% Real and FREE. Do not pay money to anyone."))
-    st.markdown(f"### {T('1. 🩺 आयुष्मान भारत - पीएमजेएवाई','1. 🩺 Ayushman Bharat - PMJAY')}")
-    st.write(T("- **क्या मिलता है:** 5 लाख तक का फ्री इलाज, हर साल, पूरे परिवार के लिए","- **Benefit:** FREE treatment up to 5 Lakh, every year, for whole family"))
-    st.write(T("- **क्या चाहिए:** आधार कार्ड + राशन कार्ड","- **Need:** Aadhaar Card + Ration Card"))
-    st.link_button(T("आयुष्मान कार्ड चेक करें","Check Ayushman Card"), "https://pmjay.gov.in", use_container_width=True)
-    st.markdown("---")
-    st.markdown(f"### {T('2. 💊 जन औषधि - सस्ती दवाई','2. 💊 Jan Aushadhi - Cheap Medicines')}")
-    st.write(T("- **क्या मिलता है:** दवाई 50% से 90% तक सस्ती मिलती है","- **Benefit:** Medicines 50% to 90% cheaper"))
-    st.write(T("- **कौन ले सकता है:** कोई भी, सबके लिए है","- **Who Can Get:** Anyone, for everyone"))
-    st.link_button(T("नज़दीकी जन औषधि केंद्र ढूंढें","Find Nearest Jan Aushadhi Kendra"), "https://janaushadhi.gov.in", use_container_width=True)
-    st.markdown("---")
-    st.markdown(f"### {T('3. 🤰 पीएम सुरक्षित मातृत्व - गर्भवती महिला','3. 🤰 PM Surakshit Matritva - Pregnant Women')}")
-    st.write(T("- **क्या मिलता है:** गर्भवती महिला की फ्री जांच, फ्री दवाई, फ्री अल्ट्रासाउंड","- **Benefit:** FREE checkup, FREE medicine, FREE ultrasound for pregnant women"))
-    st.write(T("- **कब:** हर महीने की 9 तारीख को पीएचसी में फ्री जांच होती है","- **When:** On 9th of every month, FREE checkup in PHC"))
-    st.markdown("---")
-    st.markdown(f"### {T('4. 👶 मिशन इंद्रधनुष - बच्चों के टीके','4. 👶 Mission Indradhanush - Children Vaccines')}")
-    st.write(T("- **क्या मिलता है:** बच्चों के सारे टीके बिल्कुल फ्री","- **Benefit:** All vaccines of children totally FREE"))
-    st.write(T("- **कहां मिलेगा:** गांव के आंगनवाड़ी / पीएचसी में","- **Where:** Village Anganwadi / PHC"))
-    st.markdown("---")
-    st.markdown(f"### {T('5. 👵 पीएम वय वंदना - बुजुर्गों के लिए','5. 👵 PM Vaya Vandana - For Elderly')}")
-    st.write(T("- **क्या मिलता है:** 60 साल से ऊपर के बुजुर्गों को हर महीने पेंशन जैसा पैसा मिलता है","- **Benefit:** Elderly above 60 years get monthly pension-like money"))
-    st.markdown("---")
-    st.markdown(f"### {T('6. 🦟 राष्ट्रीय स्वास्थ्य मिशन - फ्री जांच','6. 🦟 National Health Mission - FREE Checkup')}")
-    st.write(T("- **क्या मिलता है:** पीएचसी में बीपी, शुगर, बुखार, मलेरिया की जांच बिल्कुल फ्री","- **Benefit:** BP, Sugar, Fever, Malaria checkup totally FREE in PHC"))
+    st.write(T("कुल 12 योजनाएं - हर एक का बटन असली सरकारी साइट पर जाएगा।","Total 12 Schemes - Every button will go to real Govt site."))
+    # 1 - AYUSHMAN - FIXED LINK - beneficiary.nha.gov.in
+    st.markdown(f"""<div class="scheme-card"><b>1. 🩺 {T('आयुष्मान भारत - पीएमजेएवाई','Ayushman Bharat - PMJAY')}</b><br><span>{T('क्या मिलता है:','Benefit:')} {T('5 लाख तक का फ्री इलाज, हर साल, पूरे परिवार के लिए','FREE treatment up to 5 Lakh, every year, for whole family')}</span><br><span>{T('क्या चाहिए:','Need:')} {T('आधार कार्ड + राशन कार्ड','Aadhaar Card + Ration Card')}</span><br><span>{T('नोट:','Note:')} {T('नीचे वाला बटन सीधा NHA Beneficiary Portal खोलेगा, वहीं से कार्ड बनेगा / चेक होगा।','Below button will open NHA Beneficiary Portal directly, card will be made / checked there.')}</span></div>""", unsafe_allow_html=True)
+    st.link_button(T("✅ आयुष्मान कार्ड बनाएं / चेक करें - Direct Link","✅ Make / Check Ayushman Card - Direct Link"), "https://beneficiary.nha.gov.in", use_container_width=True)
+    # 2 - JAN AUSHADHI
+    st.markdown(f"""<div class="scheme-card"><b>2. 💊 {T('जन औषधि - सस्ती दवाई','Jan Aushadhi - Cheap Medicines')}</b><br><span>{T('क्या मिलता है:','Benefit:')} {T('दवाई 50% से 90% तक सस्ती','Medicines 50% to 90% cheaper')}</span><br><span>{T('कौन ले सकता है:','Who Can Get:')} {T('कोई भी, सबके लिए है','Anyone, for everyone')}</span></div>""", unsafe_allow_html=True)
+    st.link_button(T("💊 नज़दीकी जन औषधि केंद्र ढूंढें","💊 Find Nearest Jan Aushadhi Kendra"), "https://janaushadhi.gov.in", use_container_width=True)
+    # 3 - eSANJEEVANI
+    st.markdown(f"""<div class="scheme-card"><b>3. 🩺 {T('ई-संजीवनी - फ्री ऑनलाइन डॉक्टर','eSanjeevani - FREE Online Doctor')}</b><br><span>{T('क्या मिलता है:','Benefit:')} {T('वीडियो कॉल पर सरकारी डॉक्टर से फ्री बात, सुबह 10 से शाम 4','FREE video call with Govt doctor, 10 AM to 4 PM')}</span><br><span>{T('क्या चाहिए:','Need:')} {T('मोबाइल नंबर','Mobile Number')}</span></div>""", unsafe_allow_html=True)
+    st.link_button(T("🩺 ई-संजीवनी पर फ्री डॉक्टर से बात करें","🩺 Talk To FREE Doctor On eSanjeevani"), "https://esanjeevani.mohfw.gov.in/patient/", use_container_width=True)
+    # 4 - PM SURAKSHIT MATRITVA
+    st.markdown(f"""<div class="scheme-card"><b>4. 🤰 {T('पीएम सुरक्षित मातृत्व - गर्भवती महिला','PM Surakshit Matritva - Pregnant Women')}</b><br><span>{T('क्या मिलता है:','Benefit:')} {T('गर्भवती महिला की फ्री जांच, फ्री दवाई, फ्री अल्ट्रासाउंड','FREE checkup, FREE medicine, FREE ultrasound for pregnant women')}</span><br><span>{T('कब:','When:')} {T('हर महीने की 9 तारीख को पीएचसी में फ्री जांच','On 9th of every month, FREE checkup in PHC')}</span></div>""", unsafe_allow_html=True)
+    st.link_button(T("🤰 पीएम सुरक्षित मातृत्व की जानकारी देखें","🤰 See PM Surakshit Matritva Details"), "https://nhm.gov.in", use_container_width=True)
+    # 5 - MISSION INDRADHANUSH
+    st.markdown(f"""<div class="scheme-card"><b>5. 👶 {T('मिशन इंद्रधनुष - बच्चों के टीके','Mission Indradhanush - Children Vaccines')}</b><br><span>{T('क्या मिलता है:','Benefit:')} {T('बच्चों के सारे टीके बिल्कुल फ्री','All vaccines of children totally FREE')}</span><br><span>{T('कहां:','Where:')} {T('गांव के आंगनवाड़ी / पीएचसी में','Village Anganwadi / PHC')}</span></div>""", unsafe_allow_html=True)
+    st.link_button(T("👶 टीकाकरण की जानकारी देखें","👶 See Vaccination Details"), "https://www.mohfw.gov.in", use_container_width=True)
+    # 6 - JANANI SURAKSHA
+    st.markdown(f"""<div class="scheme-card"><b>6. 🤱 {T('जननी सुरक्षा योजना - डिलीवरी के लिए पैसे','Janani Suraksha Yojana - Money For Delivery')}</b><br><span>{T('क्या मिलता है:','Benefit:')} {T('सरकारी अस्पताल में डिलीवरी पर माँ को ₹1400 तक की मदद + फ्री डिलीवरी','Up to Rs. 1400 help + FREE delivery in Govt hospital')}</span><br><span>{T('कौन:','Who:')} {T('गरीब परिवार की गर्भवती महिला','Pregnant women of poor families')}</span></div>""", unsafe_allow_html=True)
+    st.link_button(T("🤱 जननी सुरक्षा योजना देखें","🤱 See Janani Suraksha Yojana"), "https://nhm.gov.in", use_container_width=True)
+    # 7 - JANANI SHISHU SURAKSHA
+    st.markdown(f"""<div class="scheme-card"><b>7. 👩‍🍼 {T('जननी शिशु सुरक्षा - माँ + बच्चे का फ्री इलाज','Janani Shishu Suraksha - FREE Treatment For Mother + Child')}</b><br><span>{T('क्या मिलता है:','Benefit:')} {T('डिलीवरी, सी-सेक्शन, दवाई, खून की जांच, बच्चे का इलाज - सब फ्री','Delivery, C-section, medicine, blood test, child treatment - All FREE')}</span></div>""", unsafe_allow_html=True)
+    st.link_button(T("👩‍🍼 जननी शिशु सुरक्षा देखें","👩‍🍼 See Janani Shishu Suraksha"), "https://nhm.gov.in", use_container_width=True)
+    # 8 - PM VAYA VANDANA
+    st.markdown(f"""<div class="scheme-card"><b>8. 👵 {T('पीएम वय वंदना - बुजुर्गों के लिए','PM Vaya Vandana - For Elderly')}</b><br><span>{T('क्या मिलता है:','Benefit:')} {T('60 साल से ऊपर के बुजुर्गों को हर महीने पेंशन जैसा पैसा','Elderly above 60 years get monthly pension-like money')}</span></div>""", unsafe_allow_html=True)
+    st.link_button(T("👵 पीएम वय वंदना देखें","👵 See PM Vaya Vandana"), "https://www.licindia.in", use_container_width=True)
+    # 9 - NHM FREE CHECKUP
+    st.markdown(f"""<div class="scheme-card"><b>9. 🦟 {T('राष्ट्रीय स्वास्थ्य मिशन - फ्री जांच','National Health Mission - FREE Checkup')}</b><br><span>{T('क्या मिलता है:','Benefit:')} {T('पीएचसी में बीपी, शुगर, बुखार, मलेरिया की जांच बिल्कुल फ्री','BP, Sugar, Fever, Malaria checkup totally FREE in PHC')}</span></div>""", unsafe_allow_html=True)
+    st.link_button(T("🦟 राष्ट्रीय स्वास्थ्य मिशन देखें","🦟 See National Health Mission"), "https://nhm.gov.in", use_container_width=True)
+    # 10 - PM JAY - ABHA CARD
+    st.markdown(f"""<div class="scheme-card"><b>10. 🪪 {T('आभा कार्ड - डिजिटल हेल्थ आईडी','ABHA Card - Digital Health ID')}</b><br><span>{T('क्या मिलता है:','Benefit:')} {T('पूरे इंडिया में किसी भी अस्पताल में आपकी सारी रिपोर्ट एक ही कार्ड से दिख जाएगी','In any hospital in India, all your reports will show with one card')}</span><br><span>{T('क्या चाहिए:','Need:')} {T('आधार कार्ड + मोबाइल नंबर','Aadhaar Card + Mobile Number')}</span></div>""", unsafe_allow_html=True)
+    st.link_button(T("🪪 आभा कार्ड बनाएं - Direct Link","🪪 Make ABHA Card - Direct Link"), "https://abha.abdm.gov.in", use_container_width=True)
+    # 11 - NATIONAL TOBACCO / MENTAL HEALTH
+    st.markdown(f"""<div class="scheme-card"><b>11. 🧠 {T('टेली-मानस - फ्री मानसिक स्वास्थ्य हेल्पलाइन','Tele-MANAS - FREE Mental Health Helpline')}</b><br><span>{T('क्या मिलता है:','Benefit:')} {T('घबराहट, उदासी, स्ट्रेस हो तो फ्री में काउंसलर से बात करें','If anxiety, sadness, stress, talk to counsellor FREE')}</span><br><span><b>{T('नंबर:','Number:')}</b> 14416 - {T('24 घंटे फ्री','24 Hours FREE')}</span></div>""", unsafe_allow_html=True)
+    st.link_button(T("📞 14416 पर कॉल करें - टेली-मानस","📞 Call 14416 - Tele-MANAS"), "tel:14416", use_container_width=True)
+    # 12 - PM - TB MUKT BHARAT / NIKSHAY
+    st.markdown(f"""<div class="scheme-card"><b>12. 🫁 {T('टीबी मुक्त भारत / निक्षय - टीबी का फ्री इलाज + पैसे','TB Mukt Bharat / Nikshay - FREE TB Treatment + Money')}</b><br><span>{T('क्या मिलता है:','Benefit:')} {T('टीबी की जांच, दवाई बिल्कुल फ्री + हर महीने ₹500 पोषण के लिए','TB test, medicine totally FREE + Rs. 500 per month for nutrition')}</span></div>""", unsafe_allow_html=True)
+    st.link_button(T("🫁 निक्षय पोर्टल देखें","🫁 See Nikshay Portal"), "https://nikshay.in", use_container_width=True)
     show_floating_banner()
 
 elif menu in ["ℹ️ About App", "ℹ️ ऐप के बारे में"]:
@@ -566,7 +579,7 @@ elif menu in ["ℹ️ About App", "ℹ️ ऐप के बारे में"]
     st.write(T("- **🚨 आपातकाल:** इमरजेंसी में क्या करना है, किस नंबर पर कॉल करना है","- **🚨 Emergency:** What to do in emergency, which number to call"))
     st.write(T("- **💡 स्वास्थ्य टिप्स:** रोज़ का रूटीन, खाना-पीना, नींद, टहल","- **💡 Health Tips:** Daily routine, food, sleep, walk"))
     st.write(T("- **⚖️ बीएमआई कैलकुलेटर:** अपना वज़न सही है या नहीं","- **⚖️ BMI Calculator:** Check if your weight is correct"))
-    st.write(T("- **🏛️ सरकारी योजनाएं:** आयुष्मान, जन औषधि जैसी योजनाओं की जानकारी फ्री में","- **🏛️ Government Schemes:** Ayushman, Jan Aushadhi info FREE"))
+    st.write(T("- **🏛️ सरकारी योजनाएं:** आयुष्मान, जन औषधि जैसी 12 योजनाओं की जानकारी फ्री में","- **🏛️ Government Schemes:** 12 Schemes like Ayushman, Jan Aushadhi info FREE"))
     st.markdown("---")
     st.info(T("⚠️ **ज़रूरी बात:** यह ऐप सिर्फ जानकारी और पहली मदद के लिए है। यह डॉक्टर की जगह नहीं ले सकता। अगर तकलीफ ज़्यादा है, तो तुरंत डॉक्टर को दिखाएं या 108 पर कॉल करें।","⚠️ **Important:** This app is only for information and first help. It cannot replace a doctor. If problem is more, see doctor immediately or call 108."))
     show_floating_banner()
