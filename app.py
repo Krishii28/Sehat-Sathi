@@ -1,604 +1,319 @@
-import streamlit as st
-import datetime
-import re
-import urllib.parse
+import streamlit as st, datetime, re, urllib.parse
 st.set_page_config(page_title="Sehat Saathi - India", page_icon="🩺", layout="centered")
+st.markdown("""<style>.stApp{background:linear-gradient(180deg,#FFFBF2,#FFF7ED 25%,#FEF3F2 50%,#EEF2FF 75%,#F0FDF4)} .block-container{max-width:1100px!important;padding:1rem 2rem 100px!important} h1,h2,h3,p,label,span,div{color:#1E293B!important} section[data-testid="stSidebar"]{background:#FFFBEB!important} .stTextInput input,.stSelectbox div[data-baseweb="select"] div,.stNumberInput input,.stTextArea textarea{background:#FFF!important;border:1.5px solid #E2E8F0!important;border-radius:14px!important;min-height:52px!important;font-size:16px!important} .stButton button,.stLinkButton a{background:linear-gradient(90deg,#4F46E5,#7C3AED 45%,#EA580C)!important;color:#FFF!important;border:none!important;border-radius:14px!important;font-weight:700!important;min-height:52px!important} .stButton button *,.stLinkButton a *{color:#FFF!important} div[data-testid="stChatMessage"]{background:#FFF!important;border-radius:18px!important;border:1px solid #FDE68A!important} .ai-header{background:linear-gradient(90deg,#FFE4E6,#FEF3C7,#D1FAE5,#DBEAFE);padding:22px;border-radius:22px;text-align:center;margin-bottom:14px;border:1px solid #FDE68A} .doctor-card,.online-card,.scheme-card,.hospital-card,.medicine-card{background:#FFF;border:1.5px solid #FDE68A;border-radius:18px;padding:16px;margin:12px 0} .info-box{background:#FFFBEB;border-radius:14px;padding:14px;border:1px solid #FDE68A} @media(max-width:768px){.block-container{padding:10px 12px 100px!important}}</style>""", unsafe_allow_html=True)
 
-# ---------- PREMIUM OMBRE ----------
-st.markdown("""
-<style>
-.stApp { background: linear-gradient(180deg, #FFFBF2 0%, #FFF7ED 25%, #FEF3F2 50%, #EEF2FF 75%, #F0FDF4 100%) !important; }
-.block-container { background: transparent !important; max-width: 1100px !important; padding: 1rem 2rem 100px 2rem !important; }
-h1, h2, h3, p, label, .stMarkdown, .stWrite, span, div { color: #1E293B !important; }
-section[data-testid="stSidebar"] { background: linear-gradient(180deg, #FFFFFF 0%, #FFFBEB 100%) !important; border-right: 1px solid #FDE68A; }
-section[data-testid="stSidebar"] * { color: #1E293B !important; font-weight: 500 !important; }
-.stTextInput input, .stSelectbox div[data-baseweb="select"] div, .stNumberInput input, .stTextArea textarea { background: #FFFFFF !important; color: #1E293B !important; border: 1.5px solid #E2E8F0 !important; border-radius: 14px !important; min-height: 52px !important; font-size: 16px !important; box-shadow: 0 2px 8px rgba(0,0,0,0.03) !important; }
-.stTextInput input::placeholder { color: transparent !important; }
-.stButton button, .stLinkButton a { background: linear-gradient(90deg, #4F46E5 0%, #7C3AED 45%, #EA580C 100%) !important; color: #FFFFFF !important; border: none !important; border-radius: 14px !important; font-weight: 700 !important; min-height: 52px !important; font-size: 16px !important; box-shadow: 0 4px 14px rgba(79,70,229,0.25) !important; }
-.stButton button *, .stLinkButton a * { color: #FFFFFF !important; font-weight: 700 !important; }
-div[data-testid="stChatMessage"] { background: #FFFFFF !important; border-radius: 18px !important; border: 1px solid #FDE68A !important; box-shadow: 0 2px 12px rgba(0,0,0,0.04) !important; }
-div[data-testid="stChatMessage"] * { color: #1E293B !important; }
-.ai-header { background: linear-gradient(90deg, #FFE4E6 0%, #FEF3C7 35%, #D1FAE5 70%, #DBEAFE 100%); padding: 22px; border-radius: 22px; text-align: center; margin-bottom: 14px; border: 1px solid #FDE68A; box-shadow: 0 4px 18px rgba(0,0,0,0.05); }
-.ai-header h1 { font-size: 29px; margin: 0; color: #7C2D12 !important; }
-.ai-header p { margin: 6px 0 0 0; color: #475569 !important; font-size: 14px; font-weight: 500; }
-.doctor-card { background: #FFFFFF; border: 1.5px solid #FDE68A; border-radius: 18px; padding: 18px; margin: 12px 0; box-shadow: 0 4px 16px rgba(245,158,11,0.10); }
-.online-card { background: #FFFFFF; border: 1.5px solid #BBF7D0; border-radius: 18px; padding: 16px; margin: 12px 0; box-shadow: 0 4px 16px rgba(0,0,0,0.04); }
-.info-box { background: linear-gradient(90deg, #FFFBEB, #FEF3C7); border-radius: 14px; padding: 14px; border: 1px solid #FDE68A; }
-.scheme-card { background: #FFFFFF; border: 1.5px solid #FDE68A; border-radius: 18px; padding: 16px; margin: 14px 0; box-shadow: 0 4px 16px rgba(0,0,0,0.04); }
-.hosp-card { background: #FFFFFF; border: 1.5px solid #BFDBFE; border-radius: 18px; padding: 16px; margin: 12px 0; box-shadow: 0 4px 16px rgba(0,0,0,0.04); }
-.med-card { background: #FFFFFF; border: 1.5px solid #BBF7D0; border-radius: 18px; padding: 16px; margin: 12px 0; box-shadow: 0 4px 16px rgba(0,0,0,0.04); }
-@media (max-width: 768px) { .block-container { max-width: 100% !important; padding: 10px 12px 100px 12px !important; } .ai-header h1 { font-size: 25px !important; } }
-</style>
-""", unsafe_allow_html=True)
-
-if "messages" not in st.session_state: st.session_state.messages = []
-if "doctor_asked" not in st.session_state: st.session_state.doctor_asked = False
-if "doctor_step" not in st.session_state: st.session_state.doctor_step = "none"
-if "doctor_location" not in st.session_state: st.session_state.doctor_location = {}
-if "reminders" not in st.session_state: st.session_state.reminders = []
-if "last_audio_id" not in st.session_state: st.session_state["last_audio_id"] = ""
-if "uploader_key" not in st.session_state: st.session_state.uploader_key = 0
-if "photo_sent" not in st.session_state: st.session_state.photo_sent = False
-if "hosp_location" not in st.session_state: st.session_state.hosp_location = {}
-if "med_history" not in st.session_state: st.session_state.med_history = []
+# --- State ---
+for k,v in [("messages",[]),("doctor_asked",False),("doctor_step","none"),("doctor_location",{}),("reminders",[]),("last_audio_id",""),("uploader_key",0),("photo_sent",False)]:
+    if k not in st.session_state: st.session_state[k]=v
 
 st.sidebar.write("Language")
-lang = st.sidebar.radio("Choose Language", ["English", "Hindi"], label_visibility="collapsed")
-IS_HINDI = (lang == "Hindi")
-if IS_HINDI:
-    menu = st.sidebar.radio("मेनू", ["🏠 होम", "💊 दवाई रिमाइंडर", "👨‍⚕️ डॉक्टर से बात करें", "🚨 आपातकाल", "🏥 हॉस्पिटल खोजें", "💊 दवाई की जानकारी", "💡 स्वास्थ्य टिप्स", "⚖️ बीएमआई कैलकुलेटर", "🏛️ सरकारी योजनाएं", "ℹ️ ऐप के बारे में"])
-else:
-    menu = st.sidebar.radio("Menu", ["🏠 Home", "💊 Medicine Reminder", "👨‍⚕️ Talk To Doctor", "🚨 Emergency", "🏥 Hospital Finder", "💊 Medicine Info", "💡 Health Tips", "⚖️ BMI Calculator", "🏛️ Government Schemes", "ℹ️ About App"])
+lang=st.sidebar.radio("Choose Language",["English","Hindi"],label_visibility="collapsed")
+IS_HINDI=(lang=="Hindi")
+menu=st.sidebar.radio("मेनू" if IS_HINDI else "Menu",["🏠 होम","💊 दवाई की जानकारी","💊 दवाई रिमाइंडर","👨‍⚕️ डॉक्टर से बात करें","🚨 आपातकाल","🏥 अस्पताल खोजें","💡 स्वास्थ्य टिप्स","⚖️ बीएमआई कैलकुलेटर","🏛️ सरकारी योजनाएं","ℹ️ ऐप के बारे में"] if IS_HINDI else ["🏠 Home","💊 Medicine Info","💊 Medicine Reminder","👨‍⚕️ Talk To Doctor","🚨 Emergency","🏥 Hospital Finder","💡 Health Tips","⚖️ BMI Calculator","🏛️ Government Schemes","ℹ️ About App"])
+def T(hi,en): return hi if IS_HINDI else en
 
-def T(hi, en): return hi if IS_HINDI else en
-
-def speech_to_text(audio_bytes):
+def speech_to_text(b):
     try:
-        import speech_recognition as sr, io
-        r = sr.Recognizer()
-        wav_io = io.BytesIO(audio_bytes)
-        with sr.AudioFile(wav_io) as source:
-            audio_data = r.record(source)
-            try: return r.recognize_google(audio_data, language="hi-IN")
-            except: return r.recognize_google(audio_data, language="en-IN")
-    except Exception as e: return f"ERROR:{str(e)[:100]}"
+        import speech_recognition as sr,io
+        r=sr.Recognizer()
+        with sr.AudioFile(io.BytesIO(b)) as s: a=r.record(s)
+        try: return r.recognize_google(a,language="hi-IN")
+        except: return r.recognize_google(a,language="en-IN")
+    except Exception as e: return f"ERROR:{e}"
 
-HEALTH_WORDS = ["daane","rash","chot","zakhm","allergy","khujli","itching","bukhar","fever","dard","pain","dawa","medicine","wound","injury","skin","khaansi","cough","cold","sardi","pet","stomach","sir","head","haath","hand","pair","leg","blood","khoon","burn","jal","soojan","swelling","ulti","vomit","dast","kamzori","weak","neend","sleep","saans","breath","chest","seene","gala","throat","kaan","ear","daant","tooth","aankh","eye","ghutna","knee","kamar","back","badan","body","chakkar","dizzy","gas","acidity","kabz","photo","doctor","hospital","bimar","beemar","tabiyat","dawai","diabetes","sugar","bp","thyroid","asthma","dama","anxiety","depression","stress","period","mahwari","pregnancy","garbh","piles","bawasir","stone","pathri","jaundice","piliya","malaria","dengue","typhoid","tb","cancer","hiv","pneumonia","corona","sinus","tonsil","pimple","muhase","dandruff","baal","fungal","eczema","psoriasis","vitiligo","ulcer","appendix","keede","gathiya","arthritis","sciatica","moch","freeze","mirgi","daura","yaadash","ghabrahat","udaasi","peshaab","uti","liver","hepatitis","cholesterol","dil","dhadkan","naak","motiyabind","chashma","aids","tumor","kidney","paralysis","lakwa","vitamin","infection","bacteria","virus","haddi","nas","dimaag","brain","heart","lung","fefe","दाने","चोट","खुजली","बुखार","दर्द","सांस","सीने","पेट","सिर","कमर","गला","कान","दांत","आंख","पैर","हाथ","घुटना","चक्कर","उल्टी","कमजोरी","नींद","शुगर","मधुमेह","थायराइड","दमा","माहवारी","गर्भ","बवासीर","पथरी","पीलिया","मलेरिया","डेंगू","टाइफाइड","टीबी","कैंसर","निमोनिया","साइनस","मुहासे","बाल","गठिया","मिर्गी","घबराहट","उदासी","पेशाब","लीवर","कोलेस्ट्रॉल","दिल","नाक","मोतियाबिंद","लकवा","दिमाग","हड्डी","dolo","paracetamol","crocin","azithromycin","cetirizine","pantop","omeprazole","combiflam","brufen","calpol","vicks","betadine","ors","dawai","dava"]
-OUT_WORDS = ["movie","film","cricket","football","game","padhai","study","exam","joke","song","gaana","politics","news","weather","mausam","love","shaadi","job","naukri","paisa","money","shopping","birthday","hero","actress","song","nach","dance"]
-def is_health_related(text):
-    t = (text or "").lower()
-    if any(w in t for w in HEALTH_WORDS): return True
-    if any(w in t for w in OUT_WORDS): return False
-    if t.strip() in ["hi","hello","namaste","hey","hii","नमस्ते"]: return True
-    # Photo desc me agar sirf health bahar ka word hai toh False
-    if t.strip() != "" and not any(w in t for w in HEALTH_WORDS):
-        # Agar text me koi health word nahi aur out word hai toh False, warna agar bilkul naya health jaisa lag raha hai toh bhi check karo - photo ke liye strict
-        return False
-    return False
-def out_of_context_msg(real_lang):
-    return "मैं सिर्फ स्वास्थ्य, चोट, एलर्जी, दवाई और हॉस्पिटल से जुड़ी मदद कर सकती हूँ। अपनी स्वास्थ्य समस्या बताइए।" if real_lang=="Hindi" else "I can only help with health, injury, allergy, medicine and hospital related problems. Please tell your health problem."
-def detect_language(user_text):
-    if re.search(r'[\u0900-\u097F]', user_text or ""): return "Hindi"
-    hindi_words = ["mere","mera","mujhe","dard","hai","sar","sir","kamar","pet","badan","bukhar","sardi","khansi","khujli","daane","gala","kaan","daant","aankh","pair","haath","ghutna","chakkar","ulti","dast","kamzori","neend","chot","seene","saans"]
-    for w in hindi_words:
-        if w in (user_text or "").lower(): return "Hindi"
-    return "Hindi" if IS_HINDI else "English"
+HEALTH=["daane","rash","chot","zakhm","allergy","khujli","itching","bukhar","fever","dard","pain","dawa","medicine","wound","injury","skin","khaansi","cough","cold","sardi","pet","stomach","sir","head","haath","hand","pair","leg","blood","khoon","burn","jal","soojan","swelling","ulti","vomit","dast","kamzori","weak","neend","sleep","saans","breath","chest","seene","gala","throat","kaan","ear","daant","tooth","aankh","eye","ghutna","knee","kamar","back","badan","body","chakkar","dizzy","gas","acidity","kabz","photo","doctor","hospital","bimar","tabiyat","dawai","diabetes","sugar","bp","thyroid","asthma","dama","anxiety","depression","stress","period","mahwari","pregnancy","garbh","piles","bawasir","stone","pathri","jaundice","piliya","malaria","dengue","typhoid","tb","cancer","hiv","pneumonia","corona","sinus","tonsil","pimple","muhase","dandruff","baal","fungal","eczema","psoriasis","vitiligo","ulcer","appendix","keede","gathiya","arthritis","sciatica","moch","freeze","mirgi","daura","yaadash","ghabrahat","udaasi","peshaab","uti","liver","hepatitis","cholesterol","dil","dhadkan","naak","motiyabind","chashma","aids","tumor","kidney","paralysis","lakwa","vitamin","infection","bacteria","virus","haddi","nas","dimaag","brain","heart","lung","fefe","दाने","चोट","खुजली","बुखार","दर्द","सांस","सीने","पेट","सिर","कमर","गला","कान","दांत","आंख","पैर","हाथ","घुटना","चक्कर","उल्टी","कमजोरी","नींद","शुगर","मधुमेह","थायराइड","दमा","माहवारी","गर्भ","बवासीर","पथरी","पीलिया","मलेरिया","डेंगू","टाइफाइड","टीबी","कैंसर","निमोनिया","साइनस","मुहासे","बाल","गठिया","मिर्गी","घबराहट","उदासी","पेशाब","लीवर","कोलेस्ट्रॉल","दिल","नाक","मोतियाबिंद","लकवा","दिमाग","हड्डी"]
+OUT=["movie","film","cricket","football","game","padhai","study","exam","joke","song","gaana","politics","news","weather","mausam","love","shaadi","job","naukri","paisa","money","shopping","birthday","मूवी","फिल्म","क्रिकेट","गाना","जोक","पढ़ाई","परीक्षा","नौकरी","पैसा","शॉपिंग","मौसम","राजनीति"]
+def is_health(t):
+    t=(t or "").lower()
+    if any(w in t for w in HEALTH): return True
+    if any(w in t for w in OUT): return False
+    return t.strip() in ["hi","hello","namaste","hey","hii","नमस्ते"]
+def out_msg(l): return "मैं सिर्फ स्वास्थ्य, चोट और एलर्जी से जुड़ी मदद कर सकती हूँ। अपनी स्वास्थ्य समस्या बताइए।" if l=="Hindi" else "I can only help with health, injury and allergy related problems. Please tell your health problem."
+def detect(t):
+    if re.search(r'[\u0900-\u097F]',t): return "Hindi"
+    return "Hindi" if any(w in t.lower() for w in ["mere","mera","mujhe","dard","hai","sir","kamar","pet","badan","bukhar","sardi","khansi","khujli","daane"]) or IS_HINDI else "English"
 
-# ---------- MEDICINE DATABASE - DUNIYA KI COMMON DAWAIYAN ----------
-MEDICINES = {
-    "paracetamol": {"hi_name":"पैरासिटामोल","en_name":"Paracetamol","use_hi":"बुखार और हल्का दर्द कम करने के लिए।","use_en":"To reduce fever and mild pain.","how_hi":"खाना खाने के बाद 1 गोली, दिन में 3 बार से ज्यादा नहीं।","how_en":"1 tablet after food, not more than 3 times a day.","side_hi":"ज्यादा लेने से लीवर पर असर पड़ सकता है।","side_en":"Taking too much can affect liver.","not_hi":"लीवर की बीमारी हो तो डॉक्टर से पूछकर लें।","not_en":"If liver disease, ask doctor first.","price":"₹15 - ₹30"},
-    "dolo": {"hi_name":"डोलो 650","en_name":"Dolo 650","use_hi":"बुखार और बदन दर्द के लिए सबसे ज्यादा इस्तेमाल होने वाली दवाई।","use_en":"Most used medicine for fever and body pain.","how_hi":"बुखार में 1 गोली, 6 घंटे का गैप रखें।","how_en":"1 tablet in fever, keep 6 hours gap.","side_hi":"ज्यादा लेने से लीवर खराब हो सकता है।","side_en":"Too much can damage liver.","not_hi":"खाली पेट मत लें।","not_en":"Do not take on empty stomach.","price":"₹25 - ₹35"},
-    "crocin": {"hi_name":"क्रोसिन","en_name":"Crocin","use_hi":"बुखार और सिर दर्द के लिए।","use_en":"For fever and headache.","how_hi":"1 गोली खाने के बाद।","how_en":"1 tablet after food.","side_hi":"आमतौर पर सुरक्षित है।","side_en":"Usually safe.","not_hi":"लीवर की बीमारी में डॉक्टर से पूछें।","not_en":"In liver disease ask doctor.","price":"₹15 - ₹25"},
-    "azithromycin": {"hi_name":"एज़िथ्रोमाइसिन","en_name":"Azithromycin","use_hi":"गले, छाती और स्किन के बैक्टीरिया संक्रमण के लिए एंटीबायोटिक।","use_en":"Antibiotic for throat, chest and skin bacterial infection.","how_hi":"डॉक्टर के बताए अनुसार ही लें, कोर्स पूरा करें।","how_en":"Take only as doctor says, complete full course.","side_hi":"पेट दर्द, दस्त हो सकते हैं।","side_en":"Stomach pain, loose motion can happen.","not_hi":"बिना डॉक्टर के मत लें, वायरल में काम नहीं करती।","not_en":"Do not take without doctor, does not work in viral.","price":"₹60 - ₹120"},
-    "cetirizine": {"hi_name":"सेट्रीज़ीन","en_name":"Cetirizine","use_hi":"एलर्जी, खुजली, छींक, नाक बहने के लिए।","use_en":"For allergy, itching, sneezing, running nose.","how_hi":"रात को 1 गोली।","how_en":"1 tablet at night.","side_hi":"नींद आ सकती है।","side_en":"Sleepiness can happen.","not_hi":"गाड़ी चलाते समय सावधान रहें।","not_en":"Be careful while driving.","price":"₹10 - ₹20"},
-    "pantop": {"hi_name":"पैंटोप / पैंटोप्राज़ोल","en_name":"Pantop / Pantoprazole","use_hi":"गैस, एसिडिटी, सीने में जलन के लिए।","use_en":"For gas, acidity, burning in chest.","how_hi":"सुबह खाली पेट 1 गोली, खाने से 30 मिनट पहले।","how_en":"1 tablet in morning empty stomach, 30 min before food.","side_hi":"लंबे समय तक लेने से विटामिन की कमी हो सकती है।","side_en":"Long use can cause vitamin deficiency.","not_hi":"बिना जरूरत के रोज मत लें।","not_en":"Do not take daily without need.","price":"₹50 - ₹100"},
-    "omeprazole": {"hi_name":"ओमेप्राज़ोल","en_name":"Omeprazole","use_hi":"एसिडिटी और गैस के लिए।","use_en":"For acidity and gas.","how_hi":"सुबह खाली पेट 1 कैप्सूल।","how_en":"1 capsule in morning empty stomach.","side_hi":"सिर दर्द हो सकता है।","side_en":"Headache can happen.","not_hi":"लंबे समय तक डॉक्टर से पूछकर लें।","not_en":"For long use, ask doctor.","price":"₹30 - ₹70"},
-    "combiflam": {"hi_name":"कॉम्बिफ्लैम","en_name":"Combiflam","use_hi":"तेज दर्द, सिर दर्द, दांत दर्द, बदन दर्द के लिए।","use_en":"For severe pain, headache, tooth pain, body pain.","how_hi":"खाना खाने के बाद 1 गोली, दिन में 2 बार से ज्यादा नहीं।","how_en":"1 tablet after food, not more than 2 times a day.","side_hi":"खाली पेट लेने से पेट में जलन हो सकती है।","side_en":"Empty stomach can cause burning in stomach.","not_hi":"पेट में अल्सर हो तो मत लें।","not_en":"Do not take if stomach ulcer.","price":"₹30 - ₹50"},
-    "calpol": {"hi_name":"कैलपोल","en_name":"Calpol","use_hi":"बच्चों और बड़ों के बुखार के लिए।","use_en":"For fever in children and adults.","how_hi":"डॉक्टर / पैकेट पर लिखे हिसाब से लें।","how_en":"Take as per doctor / packet.","side_hi":"आमतौर पर सुरक्षित।","side_en":"Usually safe.","not_hi":"डोज से ज्यादा मत दें।","not_en":"Do not give more than dose.","price":"₹20 - ₹40"},
-    "ors": {"hi_name":"ओआरएस","en_name":"ORS","use_hi":"दस्त, उल्टी में पानी की कमी को पूरा करने के लिए।","use_en":"To complete water loss in loose motion, vomiting.","how_hi":"1 पैकेट 1 लीटर साफ पानी में घोलकर थोड़ा-थोड़ा पिलाएं।","how_en":"Dissolve 1 packet in 1 litre clean water, give in small sips.","side_hi":"कोई साइड इफेक्ट नहीं।","side_en":"No side effect.","not_hi":"गंदे पानी में मत घोलें।","not_en":"Do not mix in dirty water.","price":"₹10 - ₹20"},
-    "betadine": {"hi_name":"बेटाडीन","en_name":"Betadine","use_hi":"चोट, जख्म को साफ करने और संक्रमण से बचाने के लिए।","use_en":"To clean wound and prevent infection.","how_hi":"चोट को साफ पानी से धोकर हल्का बेटाडीन लगाएं।","how_en":"Wash wound with clean water, apply light Betadine.","side_hi":"जलन हो सकती है।","side_en":"Burning can happen.","not_hi":"हल्दी / मिट्टी मत लगाएं।","not_en":"Do not apply haldi / mud.","price":"₹60 - ₹120"},
-    "vicks": {"hi_name":"विक्स","en_name":"Vicks","use_hi":"सर्दी, नाक बंद, सिर दर्द में आराम के लिए।","use_en":"For cold, blocked nose, headache relief.","how_hi":"सीने, पीठ पर हल्का लगाएं या भाप में डालें।","how_en":"Apply lightly on chest, back or in steam.","side_hi":"आंख में जाने से जलन होती है।","side_en":"Burning if goes in eyes.","not_hi":"बच्चों की नाक के अंदर मत लगाएं।","not_en":"Do not apply inside child's nose.","price":"₹40 - ₹90"},
-    "vitamin c": {"hi_name":"विटामिन C","en_name":"Vitamin C","use_hi":"इम्युनिटी बढ़ाने और सर्दी से बचने के लिए।","use_en":"To increase immunity and prevent cold.","how_hi":"रोज 1 गोली खाने के बाद।","how_en":"1 tablet daily after food.","side_hi":"ज्यादा लेने से पेट खराब हो सकता है।","side_en":"Too much can upset stomach.","not_hi":"पथरी हो तो डॉक्टर से पूछें।","not_en":"If stone, ask doctor.","price":"₹30 - ₹80"},
-    "iron": {"hi_name":"आयरन / खून की गोली","en_name":"Iron Tablet","use_hi":"खून की कमी, कमजोरी, चक्कर के लिए।","use_en":"For low blood, weakness, dizziness.","how_hi":"रोज 1 गोली खाने के बाद, नींबू पानी के साथ।","how_en":"1 tablet daily after food, with lemon water.","side_hi":"कब्ज हो सकता है।","side_en":"Constipation can happen.","not_hi":"चाय के साथ मत लें।","not_en":"Do not take with tea.","price":"₹30 - ₹70"},
-    "dolo 650": {"hi_name":"डोलो 650","en_name":"Dolo 650","use_hi":"बुखार और बदन दर्द के लिए।","use_en":"For fever and body pain.","how_hi":"बुखार में 1 गोली, 6 घंटे का गैप।","how_en":"1 tablet in fever, 6 hours gap.","side_hi":"ज्यादा लेने से लीवर खराब हो सकता है।","side_en":"Too much can damage liver.","not_hi":"खाली पेट मत लें।","not_en":"Do not take on empty stomach.","price":"₹25 - ₹35"},
-}
+# --- Medicine DB: name -> (hi_title,en_title,hi_what,en_what,hi_how,en_how,hi_warn,en_warn) ---
+MED={"paracetamol":("पैरासिटामोल / क्रोसिन / डोलो 650","Paracetamol / Crocin / Dolo 650","Bukhar aur halka dard kam karti hai.","Reduces fever and mild pain.","Khana khane ke baad, din me 3-4 baar se zyada nahi.","After food, max 3-4 times a day.","Jyada dose se liver kharab ho sakta hai.","Too much dose can damage liver."),
+"crocin":("पैरासिटामोल / क्रोसिन / डोलो 650","Paracetamol / Crocin / Dolo 650","Bukhar aur halka dard kam karti hai.","Reduces fever and mild pain.","Khana khane ke baad, din me 3-4 baar se zyada nahi.","After food, max 3-4 times a day.","Jyada dose se liver kharab ho sakta hai.","Too much dose can damage liver."),
+"dolo":("पैरासिटामोल / क्रोसिन / डोलो 650","Paracetamol / Crocin / Dolo 650","Bukhar aur halka dard kam karti hai.","Reduces fever and mild pain.","Khana khane ke baad, din me 3-4 baar se zyada nahi.","After food, max 3-4 times a day.","Jyada dose se liver kharab ho sakta hai.","Too much dose can damage liver."),
+"azithromycin":("एज़िथ्रोमाइसिन 500","Azithromycin 500","Antibiotic hai, bacteria ko maar kar infection khatam karti hai.","Antibiotic, kills bacteria and ends infection.","Poora course lo, beech me mat chhodo. Khane se 1 ghante pehle ya 2 ghante baad.","Complete full course, do not stop in middle. 1 hr before or 2 hrs after food.","Pet kharab, ulti ho sakti hai. Bina doctor ke mat lo.","Can cause stomach upset, vomiting. Do not take without doctor."),
+"cetirizine":("सेटिरिज़िन","Cetirizine","Allergy ki dawai hai - khujli, chheenk, naak behna me aaram.","Allergy medicine - relief in itching, sneezing, running nose.","Raat ko sone se pehle 1 goli.","1 tablet at night before sleeping.","Neend aa sakti hai, gaadi mat chalao.","Can cause sleepiness, do not drive."),
+"omeprazole":("ओमेप्राज़ोल","Omeprazole","Gas, acidity, seene me jalan me di jati hai.","Given in gas, acidity, heartburn.","Subah khali pet, khane se 30 min pehle.","Morning empty stomach, 30 min before food.","Lambi dawa bina doctor ke mat lo.","Do not take long term without doctor."),
+"ibuprofen":("आइबुप्रोफेन","Ibuprofen","Dard aur soojan kam karti hai.","Reduces pain and swelling.","Khana khane ke baad, paani ke saath.","After food, with water.","Khali pet mat lo, gas ho sakti hai.","Do not take empty stomach, can cause gas."),
+"ors":("ओआरएस","ORS","Dast, ulti me paani ki kami poori karta hai.","Completes water deficiency in loose motion, vomiting.","1 packet ko 1 litre saaf paani me milao, thoda-thoda pilao.","Mix 1 packet in 1 litre clean water, give in small sips.","Gande paani me mat milao.","Do not mix in dirty water."),
+"vitamin c":("विटामिन सी","Vitamin C","Immunity badhata hai, thakan kam karta hai.","Increases immunity, reduces tiredness.","Khana khane ke baad 1 goli.","1 tablet after food.","Jyada lene se pet kharab ho sakta hai.","Too much can upset stomach."),
+"iron":("आयरन","Iron","Khoon ki kami me di jati hai.","Given in low blood (anemia).","Khana khane ke baad, doodh ke saath mat lo.","After food, not with milk.","Kabz ho sakta hai.","Can cause constipation."),
+"metformin":("मेटफॉर्मिन","Metformin","Sugar (diabetes) ki dawai hai.","Diabetes medicine.","Doctor ke hisaab se, khana khane ke baad, roz same time.","As told by doctor, after food, same time daily.","Bina khaye mat lo, sugar bahut kam ho sakti hai.","Do not take without eating, sugar can go very low."),
+"amlodipine":("एम्लोडिपिन","Amlodipine","BP ki dawai hai.","BP medicine.","Roz same time 1 goli, beech me mat chhodo.","1 tablet daily same time, do not stop.","Pair me soojan aa sakti hai.","Feet swelling can happen."),
+"betadine":("बेटाडीन","Betadine","Chot ko saaf karne aur infection se bachane ke liye.","To clean wound and protect from infection.","Paani se dho kar halka lagao, patti bandho.","Wash with water, apply light, tie bandage.","Haldi / mitti mat lagao.","Do not apply haldi / mud.")}
+def med_info(name,lang):
+    k=name.lower().strip()
+    for key,v in MED.items():
+        if key in k or k in key:
+            return f"**💊 {v[0] if lang=='Hindi' else v[1]}**\n\n**{T('Ye dawai kya hai?','What is this medicine?')}**\n{v[2] if lang=='Hindi' else v[3]}\n\n**{T('Kaise leni hai?','How to take?')}**\n{v[4] if lang=='Hindi' else v[5]}\n\n**{T('Side Effects / Savdhani:','Side Effects / Precaution:')}**\n{v[6] if lang=='Hindi' else v[7]}\n\n⚠️ {T('Ye jaankari sirf samajhne ke liye hai. Dawai lene se pehle doctor se poochh lo. Allergy, saans me takleef ya chehra sooj jaye toh turant 108 par call karo.','This info is only for understanding. Ask doctor before taking any medicine. If allergy, breathing problem or face swelling, call 108 immediately.')}"
+    return f"**💊 {name}**\n\n**{T('Ye dawai kya hai?','What is this medicine?')}**\n{T(f'{name} aam taur par dard, bukhar, infection, allergy, gas ya BP-sugar me doctor dwara di jane wali dawai hai.','It is commonly prescribed for pain, fever, infection, allergy, gas or BP-sugar.')}\n\n**{T('Kaise leni hai?','How to take?')}**\n{T('Hamesha doctor ke bataye dose aur din tak hi lo. Beech me mat chhodo, ek saath 2 dose mat lo.','Always take only in dose and days told by doctor. Do not stop in middle, do not take 2 doses together.')}\n\n**{T('Side Effects / Savdhani:','Side Effects / Precaution:')}**\n{T('Ulti, pet dard, chakkar, khujli ho sakti hai. Aisa ho toh dawa band karke doctor ko batao. Antibiotic bina doctor ke mat lo. Packet par naam, dose aur expiry check karo.','Can cause vomiting, stomach pain, dizziness, itching. If happens, stop and tell doctor. Do not take antibiotic without doctor. Check name, dose and expiry on packet.')}"
 
-def get_medicine_info(med_name):
-    key = med_name.strip().lower()
-    # Direct match
-    if key in MEDICINES: return MEDICINES[key], key
-    for k in MEDICINES:
-        if k in key or key in k: return MEDICINES[k], k
-    return None, key
+def hospitals(city,pin):
+    c=city.strip().title()
+    return [(f"District Govt Hospital - {c}",T("सरकारी - फ्री इलाज","Govt - FREE Treatment"),f"{c} - {pin}","108"),(f"Civil Hospital - {c}",T("सरकारी - OPD 9 AM - 1 PM","Govt - OPD 9 AM - 1 PM"),f"Main Road, {c} - {pin}","104"),(f"PHC - {c}",T("सरकारी - PHC - फ्री जांच","Govt - PHC - FREE Checkup"),f"Near Bus Stand, {c} - {pin}","104"),(f"Private Hospital - {c}",T("प्राइवेट - 24x7 इमरजेंसी","Private - 24x7 Emergency"),f"City Centre, {c} - {pin}","1860-500-1066"),(f"Jan Aushadhi Kendra - {c}",T("सस्ती दवाई - 50% to 90% सस्ती","Cheap Medicine - 50% to 90% Cheaper"),f"Market Road, {c} - {pin}","1800-180-8080")]
 
-PRACTO_SLUG = {"fever":"general-physician","back":"orthopedist","skin":"dermatologist","stomach":"gastroenterologist","head":"neurologist","chest":"cardiologist","tooth":"dentist","eye":"ophthalmologist","ear":"ent-specialist","injury":"orthopedist","diabetes":"diabetologist","heart":"cardiologist","mental":"psychiatrist","kidney":"nephrologist","liver":"hepatologist","piles":"general-surgeon","ladies":"gynecologist","child":"pediatrician","serious":"general-physician","general":"general-physician"}
-APOLLO_SLUG = {"fever":"general-physician","back":"orthopedics","skin":"dermatology","stomach":"gastroenterology","head":"neurology","chest":"cardiology","tooth":"dentistry","eye":"ophthalmology","ear":"ent","injury":"orthopedics","diabetes":"endocrinology","heart":"cardiology","mental":"psychiatry","kidney":"nephrology","liver":"hepatology","piles":"general-surgery","ladies":"obstetrics-and-gynecology","child":"pediatrics","serious":"general-physician","general":"general-physician"}
-def get_category_for(text):
-    t = (text or "").lower()
-    if any(k in t for k in ["daane","rash","khujli","itching","allergy","दाने","खुजली","skin","pimple","muhase","मुहासे","dandruff","baal","बाल","fungal","eczema","psoriasis","vitiligo","daag","dhabbe"]): return "skin"
-    if any(k in t for k in ["chot","zakhm","wound","injury","kat","cut","चोट","moch","toot","fracture","jalna","burn","जल","paralysis","lakwa","लकवा"]): return "injury"
-    if any(k in t for k in ["chest","seene","saans","breath","सीने","सांस","asthma","dama","दमा","pneumonia","nimoniya","निमोनिया","corona","lung","fefe"]): return "chest"
-    if any(k in t for k in ["diabetes","sugar","शुगर","madhumeh","thyroid","थायराइड"]): return "diabetes"
-    if any(k in t for k in ["bp","blood pressure","cholesterol","कोलेस्ट्रॉल","dil","dhadkan","heart","हृदय"]): return "heart"
-    if any(k in t for k in ["anxiety","depression","stress","ghabrahat","घबराहट","udaasi","उदासी","neend","sleep","नींद","yaadash","mirgi","daura","मिर्गी","brain","dimaag","दिमाग"]): return "mental"
-    if any(k in t for k in ["stone","pathri","पथरी","kidney","uti","peshaab","पेशाब","urine"]): return "kidney"
-    if any(k in t for k in ["jaundice","piliya","पीलिया","liver","लीवर","hepatitis"]): return "liver"
-    if any(k in t for k in ["piles","bawasir","बवासीर","fissure","appendix","ulcer","keede","कीड़े"]): return "piles"
-    if any(k in t for k in ["period","mahwari","माहवारी","pregnancy","garbh","गर्भ","pregnant","delivery","white discharge"]): return "ladies"
-    if any(k in t for k in ["bachche","bachcha","baby","child","बच्च"]): return "child"
-    if any(k in t for k in ["malaria","मलेरिया","dengue","डेंगू","typhoid","टाइफाइड","tb","tuberculosis","टीबी","cancer","कैंसर","hiv","tumor","aids"]): return "serious"
-    if any(k in t for k in ["bukhar","fever","बुखार","viral"]): return "fever"
-    if any(k in t for k in ["pet","stomach","gas","पेट","ulti","vomit","dast","kabz","acidity"]): return "stomach"
-    if any(k in t for k in ["sar","head","sir","सिर","migraine","headache"]): return "head"
-    if any(k in t for k in ["daant","tooth","दांत"]): return "tooth"
-    if any(k in t for k in ["aankh","eye","आंख","motiyabind","मोतियाबिंद","chashma","चश्मा"]): return "eye"
-    if any(k in t for k in ["kaan","ear","कान","naak","नाक","sinus","tonsil","awaaz"]): return "ear"
-    if any(k in t for k in ["kamar","back","spine","कमर","leg","pair","knee","ghutna","hand","haath","joint","पैर","हाथ","घुटना","badan","body","arthritis","gathiya","गठिया","sciatica","freeze","shoulder","haddi","nas"]): return "back"
-    if any(k in t for k in ["cold","cough","khansi","sardi","throat","gala","गला","सर्दी","खांसी"]): return "fever"
+# --- Doctor ---
+PR={"fever":"general-physician","back":"orthopedist","skin":"dermatologist","stomach":"gastroenterologist","head":"neurologist","chest":"cardiologist","tooth":"dentist","eye":"ophthalmologist","ear":"ent-specialist","injury":"orthopedist","diabetes":"diabetologist","heart":"cardiologist","mental":"psychiatrist","kidney":"nephrologist","liver":"hepatologist","piles":"general-surgeon","ladies":"gynecologist","child":"pediatrician","serious":"general-physician","general":"general-physician"}
+AP={"fever":"general-physician","back":"orthopedics","skin":"dermatology","stomach":"gastroenterology","head":"neurology","chest":"cardiology","tooth":"dentistry","eye":"ophthalmology","ear":"ent","injury":"orthopedics","diabetes":"endocrinology","heart":"cardiology","mental":"psychiatry","kidney":"nephrology","liver":"hepatology","piles":"general-surgery","ladies":"obstetrics-and-gynecology","child":"pediatrics","serious":"general-physician","general":"general-physician"}
+def cat(t):
+    t=(t or "").lower()
+    m=[("skin",["daane","rash","khujli","itching","allergy","दाने","खुजली","skin","pimple","muhase","मुहासे","dandruff","baal","बाल","fungal","eczema","psoriasis","vitiligo"]),("injury",["chot","zakhm","wound","injury","kat","cut","चोट","moch","fracture","burn","जल","paralysis","lakwa","लकवा"]),("chest",["chest","seene","saans","breath","सीने","सांस","asthma","dama","दमा","pneumonia","corona","lung"]),("diabetes",["diabetes","sugar","शुगर","thyroid","थायराइड"]),("heart",["bp","cholesterol","कोलेस्ट्रॉल","dil","dhadkan","heart"]),("mental",["anxiety","depression","stress","ghabrahat","घबराहट","udaasi","उदासी","neend","sleep","नींद","mirgi","मिर्गी","brain","dimaag","दिमाग"]),("kidney",["stone","pathri","पथरी","kidney","uti","peshaab","पेशाब"]),("liver",["jaundice","piliya","पीलिया","liver","लीवर","hepatitis"]),("piles",["piles","bawasir","बवासीर","fissure","appendix","ulcer","keede"]),("ladies",["period","mahwari","माहवारी","pregnancy","garbh","गर्भ","delivery"]),("child",["bachche","bachcha","baby","child","बच्च"]),("serious",["malaria","मलेरिया","dengue","डेंगू","typhoid","टाइफाइड","tb","cancer","कैंसर","hiv","tumor"]),("fever",["bukhar","fever","बुखार","viral","cold","cough","khansi","sardi","throat","gala","गला"]),("stomach",["pet","stomach","gas","पेट","ulti","vomit","dast","kabz","acidity"]),("head",["sar","head","sir","सिर","migraine","headache"]),("tooth",["daant","tooth","दांत"]),("eye",["aankh","eye","आंख","motiyabind","मोतियाबिंद","chashma"]),("ear",["kaan","ear","कान","naak","नाक","sinus","tonsil"]),("back",["kamar","back","कमर","leg","pair","knee","ghutna","hand","haath","joint","पैर","हाथ","घुटना","badan","body","arthritis","gathiya","गठिया","sciatica","haddi","nas"])]
+    for k,words in m:
+        if any(w in t for w in words): return k
     return "general"
-
-DOCTOR_INFO = {
-    "fever": {"spec_hi":"सामान्य चिकित्सक","spec_en":"General Physician","work_hi":"बुखार, सर्दी, बदन दर्द जैसी आम बीमारियों का इलाज करते हैं।","work_en":"Treats fever, cold and body pain.","when_hi":"बुखार 102 से ऊपर हो, 3 दिन से ज्यादा रहे, तो तुरंत दिखाएं।","when_en":"If fever above 102 or more than 3 days, see immediately.","fees_hi":"₹200 - ₹500","fees_en":"Rs. 200 - Rs. 500"},
-    "back": {"spec_hi":"हड्डी रोग विशेषज्ञ","spec_en":"Orthopedic Doctor","work_hi":"कमर, घुटना, हाथ-पैर और हड्डी के दर्द का इलाज करते हैं।","work_en":"Treats back, knee, joint and bone pain.","when_hi":"दर्द पैर तक जा रहा हो, तो तुरंत दिखाएं।","when_en":"If pain goes to leg, see immediately.","fees_hi":"₹300 - ₹600","fees_en":"Rs. 300 - Rs. 600"},
-    "skin": {"spec_hi":"त्वचा रोग विशेषज्ञ","spec_en":"Dermatologist","work_hi":"दाने, खुजली, एलर्जी, पिंपल, फंगल का इलाज करते हैं।","work_en":"Treats rash, itching, allergy, pimple, fungal.","when_hi":"दानों से मवाद आए, तो तुरंत दिखाएं।","when_en":"If pus comes, see immediately.","fees_hi":"₹300 - ₹600","fees_en":"Rs. 300 - Rs. 600"},
-    "stomach": {"spec_hi":"पेट रोग विशेषज्ञ","spec_en":"Gastroenterologist","work_hi":"पेट दर्द, गैस, एसिडिटी, उल्टी-दस्त का इलाज करते हैं।","work_en":"Treats stomach pain, gas, acidity, vomiting.","when_hi":"पेट में बहुत तेज दर्द हो, तो तुरंत दिखाएं।","when_en":"If severe stomach pain, see immediately.","fees_hi":"₹400 - ₹700","fees_en":"Rs. 400 - Rs. 700"},
-    "head": {"spec_hi":"न्यूरोलॉजिस्ट","spec_en":"Neurologist","work_hi":"सिर दर्द, माइग्रेन, चक्कर का इलाज करते हैं।","work_en":"Treats headache, migraine, dizziness.","when_hi":"अचानक बहुत तेज सिर दर्द हो, तो तुरंत दिखाएं।","when_en":"If sudden severe headache, see immediately.","fees_hi":"₹500 - ₹800","fees_en":"Rs. 500 - Rs. 800"},
-    "chest": {"spec_hi":"हृदय / फेफड़े रोग विशेषज्ञ","spec_en":"Cardiologist / Pulmonologist","work_hi":"सीने में दर्द, सांस, अस्थमा का इलाज करते हैं।","work_en":"Treats chest pain, breathing, asthma.","when_hi":"सीने में तेज दर्द + पसीना आए, तो 108 पर कॉल करें।","when_en":"If chest pain + sweating, call 108.","fees_hi":"₹500 - ₹800","fees_en":"Rs. 500 - Rs. 800"},
-    "tooth": {"spec_hi":"दांत के डॉक्टर","spec_en":"Dentist","work_hi":"दांत दर्द, कीड़ा, मसूड़े की सूजन का इलाज करते हैं।","work_en":"Treats tooth pain, cavity, gum swelling.","when_hi":"गाल सूज जाए, तो दिखाएं।","when_en":"If cheek swells, see dentist.","fees_hi":"₹200 - ₹500","fees_en":"Rs. 200 - Rs. 500"},
-    "eye": {"spec_hi":"आंख के डॉक्टर","spec_en":"Eye Doctor","work_hi":"आंख में जलन, लालपन, मोतियाबिंद का इलाज करते हैं।","work_en":"Treats eye burning, redness, cataract.","when_hi":"दिखाई कम हो, तो तुरंत दिखाएं।","when_en":"If vision less, see immediately.","fees_hi":"₹300 - ₹500","fees_en":"Rs. 300 - Rs. 500"},
-    "ear": {"spec_hi":"कान-नाक-गला विशेषज्ञ","spec_en":"ENT Doctor","work_hi":"कान दर्द, नाक बंद, साइनस, टॉन्सिल का इलाज करते हैं।","work_en":"Treats ear pain, blocked nose, sinus, tonsil.","when_hi":"सुनाई कम दे, तो दिखाएं।","when_en":"If hearing less, see doctor.","fees_hi":"₹300 - ₹600","fees_en":"Rs. 300 - Rs. 600"},
-    "injury": {"spec_hi":"सर्जन / हड्डी रोग विशेषज्ञ","spec_en":"Surgeon / Orthopedic Doctor","work_hi":"चोट, जख्म, कटने, मोच, जलने का इलाज करते हैं।","work_en":"Treats injury, wound, cuts, sprain, burn.","when_hi":"खून न रुके, तो तुरंत अस्पताल जाएं।","when_en":"If bleeding not stopping, go to hospital.","fees_hi":"₹300 - ₹700","fees_en":"Rs. 300 - Rs. 700"},
-    "diabetes": {"spec_hi":"डायबिटीज / एंडोक्रिनोलॉजिस्ट","spec_en":"Diabetologist / Endocrinologist","work_hi":"शुगर, थायराइड, हार्मोन का इलाज करते हैं।","work_en":"Treats diabetes, thyroid, hormone.","when_hi":"शुगर बहुत ज्यादा हो, तो तुरंत दिखाएं।","when_en":"If sugar very high, see immediately.","fees_hi":"₹400 - ₹700","fees_en":"Rs. 400 - Rs. 700"},
-    "heart": {"spec_hi":"हृदय रोग विशेषज्ञ","spec_en":"Cardiologist","work_hi":"बीपी, कोलेस्ट्रॉल, दिल की धड़कन का इलाज करते हैं।","work_en":"Treats BP, cholesterol, heart beat.","when_hi":"सीने में दर्द + पसीना आए, तो 108 पर कॉल करें।","when_en":"If chest pain + sweating, call 108.","fees_hi":"₹500 - ₹800","fees_en":"Rs. 500 - Rs. 800"},
-    "mental": {"spec_hi":"मानसिक रोग विशेषज्ञ","spec_en":"Psychiatrist / Psychologist","work_hi":"घबराहट, उदासी, स्ट्रेस, नींद, मिर्गी का इलाज करते हैं।","work_en":"Treats anxiety, depression, stress, sleep, epilepsy.","when_hi":"खुद को नुकसान का मन करे, तो 14416 पर कॉल करें।","when_en":"If self-harm thoughts, call 14416.","fees_hi":"₹500 - ₹1000","fees_en":"Rs. 500 - Rs. 1000"},
-    "kidney": {"spec_hi":"किडनी रोग विशेषज्ञ","spec_en":"Nephrologist / Urologist","work_hi":"पथरी, पेशाब में जलन, किडनी का इलाज करते हैं।","work_en":"Treats kidney stone, UTI, kidney.","when_hi":"पेशाब में खून आए, तो तुरंत दिखाएं।","when_en":"If blood in urine, see immediately.","fees_hi":"₹500 - ₹800","fees_en":"Rs. 500 - Rs. 800"},
-    "liver": {"spec_hi":"लीवर रोग विशेषज्ञ","spec_en":"Hepatologist","work_hi":"पीलिया, हेपेटाइटिस, लीवर का इलाज करते हैं।","work_en":"Treats jaundice, hepatitis, liver.","when_hi":"आंखें पीली हो जाएं, तो तुरंत दिखाएं।","when_en":"If eyes yellow, see immediately.","fees_hi":"₹500 - ₹800","fees_en":"Rs. 500 - Rs. 800"},
-    "piles": {"spec_hi":"सर्जन / पेट रोग विशेषज्ञ","spec_en":"Surgeon / Gastroenterologist","work_hi":"बवासीर, फिशर, अपेंडिक्स, अल्सर का इलाज करते हैं।","work_en":"Treats piles, fissure, appendix, ulcer.","when_hi":"खून ज्यादा आए, तो तुरंत दिखाएं।","when_en":"If too much bleeding, see immediately.","fees_hi":"₹400 - ₹800","fees_en":"Rs. 400 - Rs. 800"},
-    "ladies": {"spec_hi":"स्त्री रोग विशेषज्ञ","spec_en":"Gynecologist","work_hi":"माहवारी, गर्भावस्था, सफेद पानी का इलाज करते हैं।","work_en":"Treats periods, pregnancy, white discharge.","when_hi":"बहुत ज्यादा खून आए, तो तुरंत दिखाएं।","when_en":"If too much bleeding, see immediately.","fees_hi":"₹400 - ₹700","fees_en":"Rs. 400 - Rs. 700"},
-    "child": {"spec_hi":"बच्चों के डॉक्टर","spec_en":"Pediatrician","work_hi":"बच्चों के बुखार, खांसी, दस्त, दानों का इलाज करते हैं।","work_en":"Treats children fever, cough, loose motion, rash.","when_hi":"बच्चे को तेज बुखार हो, तो तुरंत दिखाएं।","when_en":"If child high fever, see immediately.","fees_hi":"₹300 - ₹600","fees_en":"Rs. 300 - Rs. 600"},
-    "serious": {"spec_hi":"सामान्य चिकित्सक / स्पेशलिस्ट","spec_en":"General Physician / Specialist","work_hi":"टीबी, मलेरिया, डेंगू, टाइफाइड, कैंसर का इलाज करते हैं।","work_en":"Treats TB, malaria, dengue, typhoid, cancer.","when_hi":"ये बीमारी घर पर ठीक नहीं होती, तुरंत दिखाएं।","when_en":"Cannot be cured at home, see immediately.","fees_hi":"सरकारी अस्पताल में फ्री","fees_en":"FREE in Govt Hospital"},
-    "general": {"spec_hi":"सामान्य चिकित्सक","spec_en":"General Physician","work_hi":"आम बीमारियों का इलाज करते हैं।","work_en":"Treats common diseases.","when_hi":"तकलीफ 2-3 दिन से ज्यादा रहे, तो दिखाएं।","when_en":"If problem more than 2-3 days, see doctor.","fees_hi":"₹200 - ₹500","fees_en":"Rs. 200 - Rs. 500"},
-}
-
-def show_doctor_detail_card(user_text, loc):
-    cat = get_category_for(user_text)
-    info = DOCTOR_INFO[cat]
-    city = loc.get("city",""); pincode = loc.get("pincode","")
-    city_slug = city.strip().lower().replace(" ", "-")
-    spec = info["spec_hi"] if IS_HINDI else info["spec_en"]; spec_en = info["spec_en"]
-    work = info["work_hi"] if IS_HINDI else info["work_en"]; when = info["when_hi"] if IS_HINDI else info["when_en"]; fees = info["fees_hi"] if IS_HINDI else info["fees_en"]
-    practo_slug = PRACTO_SLUG.get(cat, "general-physician"); apollo_slug = APOLLO_SLUG.get(cat, "general-physician")
-    practo_direct = f"https://www.practo.com/{city_slug}/{practo_slug}"; apollo_direct = f"https://www.apollo247.com/specialties/{apollo_slug}"
-    google_direct = f"https://www.google.com/maps/search/{urllib.parse.quote(spec_en + ' doctor near ' + city + ' ' + pincode + ' India')}"
-    st.markdown(f"""<div class="doctor-card"><b>👨‍⚕️ {T('आपको इस डॉक्टर की जरूरत है:','You need this doctor:')} {spec}</b><br><br><span><b>{T('ये डॉक्टर क्या करते हैं?','What does this doctor do?')}</b><br>{work}</span><br><br><span><b>{T('कब दिखाना चाहिए?','When to see?')}</b><br>{when}</span><br><br><span><b>{T('अंदाज़न फीस:','Approx Fees:')}</b> {fees}</span><br><br><span><b>{T('आपका इलाका:','Your Area:')}</b> {city}, {pincode}, India</span></div>""", unsafe_allow_html=True)
-    st.markdown(f"""<div class="info-box"><b>{T('📍 आपके पास के डॉक्टर - Maps पर असली डॉक्टर देखें','📍 Doctors Near You - See Real Doctors On Maps')}</b><br>{T('नीचे क्लिक करते ही गूगल मैप्स आपके शहर और पिनकोड के उसी बीमारी के असली डॉक्टर दिखा देगा।','On clicking below, Google Maps will show real doctors of your city and pincode for same disease.')}</div>""", unsafe_allow_html=True)
-    st.link_button(f"📍 {T('मेरे पास के डॉक्टर देखें - Maps','See Doctors Near Me - Maps')}", google_direct, use_container_width=True)
-    st.markdown(f"### {T('🌐 ऑनलाइन डॉक्टर - उसी बीमारी के डॉक्टर से डायरेक्ट बात करें','🌐 Online Doctors - Talk Directly To Same Disease Doctor')}")
-    st.write(T(f"आपकी तकलीफ: {spec} | शहर: {city}. नीचे क्लिक करते ही सीधा उसी बीमारी के डॉक्टरों की लिस्ट खुलेगी, साइट का होमपेज नहीं खुलेगा।","Your problem: " + spec + f" | City: {city}. On clicking below, direct list of doctors for same disease will open, not homepage."))
-    st.markdown(f"""<div class="online-card"><b>💻 {T('प्रैक्टो - डायरेक्ट डॉक्टर','Practo - Direct Doctors')}</b><br><span>{T('डायरेक्ट लिंक:','Direct Link:')}</span> <span>practo.com/{city_slug}/{practo_slug}</span><br><span>{T('इस लिंक पर क्लिक करते ही आपके शहर के उसी बीमारी के असली डॉक्टर खुलेंगे।','On clicking this link, real doctors of your city for same disease will open.')}</span></div>""", unsafe_allow_html=True)
-    st.link_button(T(f"💻 {city} के {spec} - डायरेक्ट देखें - प्रैक्टो","💻 Direct Doctors - Practo"), practo_direct, use_container_width=True)
-    st.markdown(f"""<div class="online-card"><b>🏥 {T('अपोलो - डायरेक्ट डॉक्टर','Apollo - Direct Doctors')}</b><br><span>{T('डायरेक्ट लिंक:','Direct Link:')}</span> <span>apollo247.com/specialties/{apollo_slug}</span><br><span><b>{T('डायरेक्ट नंबर:','Direct Number:')}</b> 1860-500-1066</span></div>""", unsafe_allow_html=True)
-    st.link_button(T(f"🏥 {spec} - डायरेक्ट देखें - अपोलो","🏥 Direct Doctors - Apollo"), apollo_direct, use_container_width=True)
-    st.link_button(T("📞 1860-500-1066 पर डायरेक्ट कॉल करें - अपोलो","📞 Call 1860-500-1066 Directly - Apollo"), "tel:18605001066", use_container_width=True)
-    st.markdown(f"""<div class="online-card"><b>🩺 {T('ई-संजीवनी - सरकारी, फ्री - डायरेक्ट लॉगिन','eSanjeevani - Govt, FREE - Direct Login')}</b><br><span>{T('ये लिंक सीधा Patient Login पेज खोलेगा, होमपेज नहीं।','This link will open Patient Login page directly, not homepage.')}</span><br><span><b>{T('समय:','Timing:')}</b> {T('सुबह 10 - शाम 4','10 AM - 4 PM')} | <b>{T('फीस:','Fees:')}</b> {T('बिल्कुल फ्री','Totally FREE')}</span></div>""", unsafe_allow_html=True)
-    st.link_button(T("🩺 डायरेक्ट लॉगिन करें - ई-संजीवनी","🩺 Direct Login - eSanjeevani"), "https://esanjeevani.mohfw.gov.in/patient/", use_container_width=True)
-    st.link_button(T("📞 104 पर डायरेक्ट कॉल करें","📞 Call 104 Directly"), "tel:104", use_container_width=True)
-    st.link_button(T("🚑 108 - एम्बुलेंस","🚑 108 - Ambulance"), "tel:108", use_container_width=True)
-
-def show_location_form(for_text):
+DOC={"fever":("सामान्य चिकित्सक","General Physician","बुखार, सर्दी, बदन दर्द का इलाज करते हैं।","Treats fever, cold, body pain.","बुखार 102 से ऊपर हो, 3 दिन से ज्यादा रहे, तो तुरंत दिखाएं।","If fever above 102 or more than 3 days, see immediately.","₹200 - ₹500","Rs. 200 - Rs. 500"),"back":("हड्डी रोग विशेषज्ञ","Orthopedic Doctor","कमर, घुटना, हड्डी के दर्द का इलाज करते हैं।","Treats back, knee, joint and bone pain.","दर्द पैर तक जा रहा हो, तो तुरंत दिखाएं।","If pain goes to leg, see immediately.","₹300 - ₹600","Rs. 300 - Rs. 600"),"skin":("त्वचा रोग विशेषज्ञ","Dermatologist","दाने, खुजली, एलर्जी, पिंपल का इलाज करते हैं।","Treats rash, itching, allergy, pimple.","दानों से मवाद आए, तो तुरंत दिखाएं।","If pus comes, see immediately.","₹300 - ₹600","Rs. 300 - Rs. 600"),"stomach":("पेट रोग विशेषज्ञ","Gastroenterologist","पेट दर्द, गैस, एसिडिटी, उल्टी-दस्त का इलाज करते हैं।","Treats stomach pain, gas, acidity, vomiting.","पेट में बहुत तेज दर्द हो, तो तुरंत दिखाएं।","If severe stomach pain, see immediately.","₹400 - ₹700","Rs. 400 - Rs. 700"),"head":("न्यूरोलॉजिस्ट","Neurologist","सिर दर्द, माइग्रेन, चक्कर का इलाज करते हैं।","Treats headache, migraine, dizziness.","अचानक बहुत तेज सिर दर्द हो, तो तुरंत दिखाएं।","If sudden severe headache, see immediately.","₹500 - ₹800","Rs. 500 - Rs. 800"),"chest":("हृदय / फेफड़े विशेषज्ञ","Cardiologist / Pulmonologist","सीने में दर्द, सांस, अस्थमा का इलाज करते हैं।","Treats chest pain, breathing, asthma.","सीने में तेज दर्द + पसीना आए, तो 108 पर कॉल करें।","If chest pain + sweating, call 108.","₹500 - ₹800","Rs. 500 - Rs. 800"),"tooth":("दांत के डॉक्टर","Dentist","दांत दर्द, कीड़ा, मसूड़े की सूजन का इलाज करते हैं।","Treats tooth pain, cavity, gum swelling.","गाल सूज जाए, तो दिखाएं।","If cheek swells, see dentist.","₹200 - ₹500","Rs. 200 - Rs. 500"),"eye":("आंख के डॉक्टर","Eye Doctor","आंख में जलन, लालपन, मोतियाबिंद का इलाज करते हैं।","Treats eye burning, redness, cataract.","दिखाई कम हो, तो तुरंत दिखाएं।","If vision less, see immediately.","₹300 - ₹500","Rs. 300 - Rs. 500"),"ear":("कान-नाक-गला विशेषज्ञ","ENT Doctor","कान दर्द, नाक बंद, साइनस, टॉन्सिल का इलाज करते हैं।","Treats ear pain, blocked nose, sinus, tonsil.","सुनाई कम दे, तो दिखाएं।","If hearing less, see doctor.","₹300 - ₹600","Rs. 300 - Rs. 600"),"injury":("सर्जन / हड्डी रोग विशेषज्ञ","Surgeon / Orthopedic Doctor","चोट, जख्म, कटने, मोच, जलने का इलाज करते हैं।","Treats injury, wound, cuts, sprain, burn.","खून न रुके, तो तुरंत अस्पताल जाएं।","If bleeding not stopping, go to hospital.","₹300 - ₹700","Rs. 300 - Rs. 700"),"diabetes":("डायबिटीज विशेषज्ञ","Diabetologist","शुगर, थायराइड, हार्मोन का इलाज करते हैं।","Treats diabetes, thyroid, hormone.","शुगर बहुत ज्यादा हो, तो तुरंत दिखाएं।","If sugar very high, see immediately.","₹400 - ₹700","Rs. 400 - Rs. 700"),"heart":("हृदय रोग विशेषज्ञ","Cardiologist","बीपी, कोलेस्ट्रॉल, दिल की धड़कन का इलाज करते हैं।","Treats BP, cholesterol, heart beat.","सीने में दर्द + पसीना आए, तो 108 पर कॉल करें।","If chest pain + sweating, call 108.","₹500 - ₹800","Rs. 500 - Rs. 800"),"mental":("मानसिक रोग विशेषज्ञ","Psychiatrist","घबराहट, उदासी, स्ट्रेस, नींद, मिर्गी का इलाज करते हैं।","Treats anxiety, depression, stress, sleep, epilepsy.","खुद को नुकसान का मन करे, तो 14416 पर कॉल करें।","If self-harm thoughts, call 14416.","₹500 - ₹1000","Rs. 500 - Rs. 1000"),"kidney":("किडनी रोग विशेषज्ञ","Nephrologist","पथरी, पेशाब में जलन, किडनी का इलाज करते हैं।","Treats kidney stone, UTI, kidney.","पेशाब में खून आए, तो तुरंत दिखाएं।","If blood in urine, see immediately.","₹500 - ₹800","Rs. 500 - Rs. 800"),"liver":("लीवर रोग विशेषज्ञ","Hepatologist","पीलिया, हेपेटाइटिस, लीवर का इलाज करते हैं।","Treats jaundice, hepatitis, liver.","आंखें पीली हो जाएं, तो तुरंत दिखाएं।","If eyes yellow, see immediately.","₹500 - ₹800","Rs. 500 - Rs. 800"),"piles":("सर्जन / पेट रोग विशेषज्ञ","Surgeon / Gastroenterologist","बवासीर, फिशर, अपेंडिक्स का इलाज करते हैं।","Treats piles, fissure, appendix, ulcer.","खून ज्यादा आए, तो तुरंत दिखाएं।","If too much bleeding, see immediately.","₹400 - ₹800","Rs. 400 - Rs. 800"),"ladies":("स्त्री रोग विशेषज्ञ","Gynecologist","माहवारी, गर्भावस्था का इलाज करते हैं।","Treats periods, pregnancy.","बहुत ज्यादा खून आए, तो तुरंत दिखाएं।","If too much bleeding, see immediately.","₹400 - ₹700","Rs. 400 - Rs. 700"),"child":("बच्चों के डॉक्टर","Pediatrician","बच्चों के बुखार, खांसी, दस्त, दानों का इलाज करते हैं।","Treats children fever, cough, loose motion, rash.","बच्चे को तेज बुखार हो, तो तुरंत दिखाएं।","If child high fever, see immediately.","₹300 - ₹600","Rs. 300 - Rs. 600"),"serious":("सामान्य चिकित्सक / स्पेशलिस्ट","General Physician / Specialist","टीबी, मलेरिया, डेंगू, टाइफाइड, कैंसर का इलाज करते हैं।","Treats TB, malaria, dengue, typhoid, cancer.","ये बीमारी घर पर ठीक नहीं होती, तुरंत दिखाएं।","Cannot be cured at home, see immediately.","सरकारी अस्पताल में फ्री","FREE in Govt Hospital"),"general":("सामान्य चिकित्सक","General Physician","आम बीमारियों का इलाज करते हैं।","Treats common diseases.","तकलीफ 2-3 दिन से ज्यादा रहे, तो दिखाएं।","If problem more than 2-3 days, see doctor.","₹200 - ₹500","Rs. 200 - Rs. 500")}
+def show_doctor(txt,loc):
+    c=cat(txt); info=DOC[c]; city=loc.get("city",""); pin=loc.get("pincode",""); slug=city.strip().lower().replace(" ","-")
+    spec=info[0] if IS_HINDI else info[1]; work=info[2] if IS_HINDI else info[3]; when=info[4] if IS_HINDI else info[5]; fees=info[6] if IS_HINDI else info[7]
+    st.markdown(f"""<div class="doctor-card"><b>👨‍⚕️ {T('आपको इस डॉक्टर की जरूरत है:','You need this doctor:')} {spec}</b><br><br><b>{T('ये डॉक्टर क्या करते हैं?','What does this doctor do?')}</b><br>{work}<br><br><b>{T('कब दिखाना चाहिए?','When to see?')}</b><br>{when}<br><br><b>{T('अंदाज़न फीस:','Approx Fees:')}</b> {fees}<br><br><b>{T('आपका इलाका:','Your Area:')}</b> {city}, {pin}, India</div>""",unsafe_allow_html=True)
+    g=f"https://www.google.com/maps/search/{urllib.parse.quote(info[1]+' doctor near '+city+' '+pin+' India')}"
+    st.link_button(f"📍 {T('मेरे पास के डॉक्टर देखें - Maps','See Doctors Near Me - Maps')}",g,use_container_width=True)
+    st.write(T(f"आपकी तकलीफ: {spec} | शहर: {city}.","Your problem: "+spec+f" | City: {city}."))
+    st.link_button(T(f"💻 {city} के {spec} - प्रैक्टो","💻 Direct Doctors - Practo"),f"https://www.practo.com/{slug}/{PR[c]}",use_container_width=True)
+    st.link_button(T(f"🏥 {spec} - अपोलो","🏥 Direct Doctors - Apollo"),f"https://www.apollo247.com/specialties/{AP[c]}",use_container_width=True)
+    st.link_button(T("🩺 डायरेक्ट लॉगिन - ई-संजीवनी","🩺 Direct Login - eSanjeevani"),"https://esanjeevani.mohfw.gov.in/patient/",use_container_width=True)
+    st.link_button(T("📞 104 पर कॉल करें","📞 Call 104"),"tel:104",use_container_width=True)
+    st.link_button(T("🚑 108 - एम्बुलेंस","🚑 108 - Ambulance"),"tel:108",use_container_width=True)
+def loc_form(txt):
     st.markdown(f"### {T('📍 डॉक्टर खोजने के लिए अपनी लोकेशन बताइए','📍 Tell Your Location To Find Doctor')}")
-    st.write(T("ये ऐप सिर्फ इंडिया के लिए है।","This app is only for India."))
-    city = st.text_input(T("शहर का नाम","City Name"), value="", placeholder="", key="loc_city")
-    pincode = st.text_input(T("पिनकोड","Pincode"), value="", placeholder="", key="loc_pincode")
-    if st.button(T("✅ डॉक्टर खोजें","✅ Find Doctor"), use_container_width=True, key="find_doctor_btn"):
-        if city.strip() == "" or pincode.strip() == "":
-            st.warning(T("पहले शहर और पिनकोड लिखिए।","First write city and pincode."))
+    city=st.text_input(T("शहर का नाम","City Name"),key="loc_city"); pin=st.text_input(T("पिनकोड","Pincode"),key="loc_pincode")
+    if st.button(T("✅ डॉक्टर खोजें","✅ Find Doctor"),use_container_width=True):
+        if not city.strip() or not pin.strip(): st.warning(T("पहले शहर और पिनकोड लिखिए।","First write city and pincode."))
         else:
-            st.session_state.doctor_location = {"country": "India", "city": city.strip(), "pincode": pincode.strip()}
-            st.session_state.doctor_step = "done"
-            st.session_state.messages.append({"role":"assistant","content":"DOCTORS_BOX","for_text": for_text, "loc": dict(st.session_state.doctor_location)})
-            st.rerun()
+            st.session_state.doctor_location={"city":city.strip(),"pincode":pin.strip()}; st.session_state.doctor_step="done"
+            st.session_state.messages.append({"role":"assistant","content":"DOCTORS_BOX","for_text":txt,"loc":dict(st.session_state.doctor_location)}); st.rerun()
+def banner():
+    tips=["💡 दिन में 8 गिलास पानी पिएं","💡 चोट को साफ पानी से धोएं","💡 एलर्जी में खुजली मत करें","💡 दवा समय पर लें","💡 रोज 30 मिनट टहलें"] if IS_HINDI else ["💡 Drink 8 glasses of water daily","💡 Wash wound with clean water","💡 In allergy do not scratch","💡 Take medicine on time","💡 Walk 30 minutes daily"]
+    items="".join([f'<div class="tip" style="animation-delay:{i*4}s;">{t}</div>' for i,t in enumerate(tips)])
+    st.markdown(f"""<style>.banner-wrap{{position:fixed;bottom:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,#FFE4E6,#FEF3C7,#D1FAE5);height:48px;overflow:hidden;border-top:1px solid #FDE68A}} .banner-wrap .tip{{position:absolute;left:0;right:0;top:0;height:48px;display:flex;align-items:center;justify-content:center;color:#7C2D12!important;font-weight:600;font-size:14px;opacity:0;animation:tipCycle 20s linear infinite}} @keyframes tipCycle{{0%{{opacity:0}}1%{{opacity:1}}15%{{opacity:1}}17%{{opacity:0}}100%{{opacity:0}}}}</style><div class="banner-wrap">{items}</div>""",unsafe_allow_html=True)
 
-def show_floating_banner():
-    tips_hi = ["💡 दिन में 8 गिलास पानी पिएं", "💡 चोट को साफ पानी से धोएं", "💡 एलर्जी में खुजली मत करें", "💡 दवा समय पर लें", "💡 रोज 30 मिनट टहलें"]
-    tips_en = ["💡 Drink 8 glasses of water daily", "💡 Wash wound with clean water", "💡 In allergy do not scratch", "💡 Take medicine on time", "💡 Walk 30 minutes daily"]
-    tips = tips_hi if IS_HINDI else tips_en
-    items = ""
-    for i, tip in enumerate(tips):
-        items += f'<div class="tip" style="animation-delay:{i*4}s;">{tip}</div>'
-    st.markdown(f"""<style>.banner-wrap {{ position: fixed; bottom: 0; left: 0; right: 0; z-index: 9999; background: linear-gradient(90deg,#FFE4E6,#FEF3C7,#D1FAE5); height: 48px; overflow: hidden; border-top: 1px solid #FDE68A; }} .banner-wrap .tip {{ position: absolute; left: 0; right: 0; top: 0; height: 48px; display: flex; align-items: center; justify-content: center; color: #7C2D12 !important; font-weight: 600; font-size: 14px; padding: 0 10px; text-align: center; opacity: 0; animation: tipCycle 20s linear infinite; }} @keyframes tipCycle {{ 0% {{opacity: 0;}} 1% {{opacity: 1;}} 15% {{opacity: 1;}} 17% {{opacity: 0;}} 100% {{opacity: 0;}} }}</style><div class="banner-wrap">{items}</div>""", unsafe_allow_html=True)
-
-def D(hi, en, causes_hi, causes_en, dangers_hi, dangers_en, dos_hi, dos_en, tip_hi, tip_en, sum_hi, sum_en, serious=False):
-    return {"hi":hi,"en":en,"causes_hi":causes_hi,"causes_en":causes_en,"dangers_hi":dangers_hi,"dangers_en":dangers_en,"dos_hi":dos_hi,"dos_en":dos_en,"tip_hi":tip_hi,"tip_en":tip_en,"sum_hi":sum_hi,"sum_en":sum_en,"serious":serious}
-DISEASES = [
-    (["head","sar","sir","सिर","headache","migraine"], D("सिर दर्द / माइग्रेन","Headache / Migraine", [("नींद की कमी","रात को नींद पूरी न होने से सिर भारी लगता है।"),("ज्यादा फोन","दिन भर फोन देखने से आंखों पर जोर पड़ता है।"),("गैस / भूख","भूखे रहने से या गैस से भी सिर में दर्द होता है।")], [("Less Sleep","Less sleep causes heavy head."),("Too Much Phone","Too much phone puts pressure on eyes."),("Gas / Hunger","Hunger or gas causes headache.")], [("बहुत तेज दर्द","अचानक बहुत तेज दर्द हो, तो तुरंत दिखाएं।"),("उल्टी / चक्कर","उल्टी या चक्कर आए, तो देर मत करें।")], [("Severe Pain","If sudden severe headache, see immediately."),("Vomiting / Dizziness","If vomiting or dizziness, do not wait.")], [("अंधेरे में आराम","अंधेरे कमरे में लेट जाएं, फोन मत देखें।"),("ठंडी पट्टी","सिर पर ठंडे पानी की पट्टी रखें।"),("गुनगुना पानी","थोड़ा-थोड़ा गुनगुना पानी पिएं।")], [("Rest in Dark","Lie in dark room, no phone."),("Cold Cloth","Cold wet cloth on head."),("Warm Water","Warm water in small sips.")], ("फोन कम","सोने से 30 मिनट पहले फोन बंद कर दें।"), ("Less Phone","Switch off phone 30 min before sleep."), "आपका सिर दर्द नींद की कमी और फोन की वजह से लग रहा है।", "Your headache seems due to less sleep and phone.")),
-    (["back","kamar","spine","कमर"], D("कमर दर्द","Back Pain", [("गलत बैठना","झुककर बैठने से कमर पर जोर पड़ता है।"),("भारी चीज","भारी बाल्टी उठाने से नस खिंच जाती है।"),("कमजोरी","कैल्शियम की कमी से हड्डी कमजोर होती है।")], [("Wrong Sitting","Bent sitting puts pressure on back."),("Heavy Lift","Lifting heavy pulls nerve."),("Weakness","Lack of Calcium weakens bones.")], [("पैर में दर्द","दर्द कमर से पैर तक जाए, तो तुरंत दिखाएं।"),("चलने में दिक्कत","चलने में दिक्कत हो, तो देर मत करें।")], [("Leg Pain","If pain goes to leg, see immediately."),("Walking Problem","If difficulty walking, do not wait.")], [("सीधा लेटें","सख्त बिस्तर पर सीधा लेट जाएं।"),("गरम सेंक","दिन में 2 बार 10 मिनट गरम सेंक करें।"),("भारी काम बंद","2 दिन भारी चीज मत उठाएं।")], [("Lie Straight","Lie straight on hard bed."),("Hot Compress","Hot compress 10 min, 2 times."),("Stop Heavy Work","No heavy lifting for 2 days.")], ("रोज टहलें","रोज 20 मिनट सीधा चलिए।"), ("Daily Walk","Walk straight 20 min daily."), "आपका कमर दर्द गलत बैठने और भारी काम से लग रहा है।", "Your back pain seems due to wrong sitting and heavy work.")),
-    (["fever","bukhar","बुखार","viral"], D("बुखार","Fever", [("वायरल","मौसम बदलने से वायरस से बुखार आ जाता है।"),("सर्दी","गले की खराश और सर्दी से भी बुखार आ सकता है।"),("पानी की कमी","पानी कम पीने से शरीर गरम हो जाता है।")], [("Viral","Weather change causes viral fever."),("Cold","Throat infection causes mild fever."),("Less Water","Less water makes body hot.")], [("तेज बुखार","बुखार 102 से ऊपर हो, तो तुरंत दिखाएं।"),("उल्टी / चक्कर","उल्टी या चक्कर आए, तो देर मत करें।")], [("High Fever","If fever above 102, see immediately."),("Vomiting / Dizziness","If vomiting or dizziness, do not wait.")], [("आराम करें","पूरा आराम करें।"),("ठंडी पट्टी","सिर पर ठंडे पानी की पट्टी रखें।"),("गुनगुना पानी","थोड़ा-थोड़ा गुनगुना पानी पिएं।")], [("Rest","Full rest."),("Cold Sponge","Cold cloth on forehead."),("Warm Water","Warm water in small sips.")], ("तुलसी काढ़ा","तुलसी और अदरक का काढ़ा पिएं।"), ("Tulsi Kadha","Tulsi and ginger kadha."), "आपका बुखार अभी शुरू हुआ लग रहा है।", "Your fever seems in starting stage.")),
-    (["cold","cough","khansi","sardi","throat","gala","गला","सर्दी","खांसी","sinus","tonsil","naak","नाक"], D("सर्दी-खांसी / साइनस / टॉन्सिल","Cold-Cough / Sinus / Tonsil", [("वायरल","मौसम बदलने से गले में वायरस लग जाता है।"),("ठंडा पानी","ठंडा पानी या आइसक्रीम से गला खराब हो जाता है।"),("धूल","धूल से एलर्जी हो जाती है।")], [("Viral","Weather change causes virus in throat."),("Cold Water","Cold water makes throat bad."),("Dust","Dust causes allergy.")], [("सांस में दिक्कत","सांस में तकलीफ हो, तो तुरंत दिखाएं।"),("खून वाली खांसी","खांसी में खून आए, तो देर मत करें।")], [("Breathing Problem","If breathing problem, see immediately."),("Blood in Cough","If blood in cough, do not wait.")], [("गरम पानी","दिन भर गुनगुना पानी पिएं।"),("हल्दी दूध","रात को हल्दी वाला गरम दूध पिएं।"),("भाप","गरम पानी की भाप लें।")], [("Warm Water","Warm water through day."),("Turmeric Milk","Warm turmeric milk at night."),("Steam","Steam from hot water.")], ("तुलसी-अदरक","तुलसी और अदरक की चाय पिएं।"), ("Tulsi-Ginger","Tulsi and ginger tea."), "आपकी सर्दी-खांसी अभी शुरू हुई लग रही है।", "Your cold-cough seems in starting stage.")),
-    (["stomach","pet","gas","ulti","vomit","dast","loose","diarrhea","पेट","उल्टी","kabz","acidity","bhook","keede","कीड़े","ulcer"], D("पेट दर्द / गैस / कब्ज / दस्त","Stomach / Gas / Constipation", [("गैस","बाहर का खाना या जल्दी खाने से गैस बन जाती है।"),("एसिडिटी","मसालेदार खाना या खाली पेट से एसिडिटी होती है।"),("कब्ज","पानी कम पीने से कब्ज होता है।")], [("Gas","Outside food causes gas."),("Acidity","Spicy food or empty stomach causes acidity."),("Constipation","Less water causes constipation.")], [("तेज दर्द","पेट में बहुत तेज दर्द हो, तो तुरंत दिखाएं।"),("खून","पॉटी में खून आए, तो देर मत करें।")], [("Severe Pain","If severe stomach pain, see immediately."),("Blood","If blood in stool, do not wait.")], [("हल्का खाना","खिचड़ी, दही जैसा हल्का खाना खाएं।"),("ओआरएस","थोड़ा-थोड़ा ओआरएस पिएं।"),("टहलें","खाने के बाद 10 मिनट टहलें।")], [("Light Food","Khichdi, curd."),("ORS","ORS in small sips."),("Walk","Walk 10 min after food.")], ("अजवाइन पानी","अजवाइन का पानी गैस में आराम देता है।"), ("Ajwain Water","Ajwain water for gas."), "आपका पेट दर्द गैस और एसिडिटी से लग रहा है।", "Your stomach pain seems due to gas and acidity.")),
-    (["chest","seene","saans","breath","सीने","सांस","asthma","dama","दमा"], D("सीने में दर्द / अस्थमा","Chest / Asthma", [("गैस","पेट की गैस ऊपर चढ़ने से सीने में भारीपन लगता है।"),("सर्दी","सर्दी और धूल से सीने में जकड़न होती है।"),("थकान","ज्यादा काम से सांस फूलती है।")], [("Gas","Gas goes up, heaviness in chest."),("Cold","Cold and dust causes tightness."),("Tiredness","Too much work causes breathlessness.")], [("बहुत तेज दर्द","सीने में बहुत तेज दर्द हो, तो 108 पर कॉल करें।"),("पसीना","दर्द के साथ पसीना आए, तो तुरंत अस्पताल जाएं।")], [("Severe Pain","If severe chest pain, call 108."),("Sweating","If sweating with pain, go to hospital.")], [("सीधा बैठें","सीधा बैठ जाएं, कपड़े ढीले करें।"),("हवा","खिड़की खोल दें।"),("गुनगुना पानी","थोड़ा-थोड़ा गुनगुना पानी पिएं।")], [("Sit Straight","Sit straight, loosen clothes."),("Air","Open windows."),("Warm Water","Warm water in small sips.")], ("धूल से बचें","धूल और धुएं से दूर रहें।"), ("Avoid Dust","Stay away from dust and smoke."), "आपके सीने का दर्द गैस और सर्दी से लग रहा है।", "Your chest pain seems due to gas and cold.")),
-    (["leg","pair","knee","ghutna","hand","haath","joint","shoulder","kandha","पैर","हाथ","घुटना","arthritis","gathiya","गठिया","sciatica","freeze"], D("हाथ-पैर / घुटना / गठिया","Leg / Joint / Arthritis", [("थकान","ज्यादा चलने से दर्द हो जाता है।"),("कैल्शियम की कमी","कैल्शियम की कमी से घुटनों में दर्द होता है।"),("गलत बैठना","गलत बैठने से घुटने पर जोर पड़ता है।")], [("Tiredness","Walking too much causes pain."),("Calcium","Lack of Calcium causes knee pain."),("Wrong Posture","Wrong sitting puts pressure on knee.")], [("सूजन","बहुत सूजन आ जाए, तो दिखाएं।"),("तेज दर्द","दर्द 2 दिन से ज्यादा रहे, तो देर मत करें।")], [("Swelling","If too much swelling, see doctor."),("Severe Pain","If pain more than 2 days, do not wait.")], [("आराम","उस पैर को आराम दें।"),("गरम सेंक","10 मिनट गरम सेंक करें।"),("पैर ऊपर रखें","पैर को तकिए पर ऊपर रखकर लेटें।")], [("Rest","Rest that leg."),("Hot Compress","Hot compress 10 min."),("Raise Leg","Keep leg raised on pillow.")], ("दूध पिएं","रोज 1 गिलास दूध पिएं।"), ("Drink Milk","Drink 1 glass milk daily."), "आपका हाथ-पैर का दर्द थकान और कैल्शियम की कमी से लग रहा है।", "Your leg pain seems due to tiredness and calcium deficiency.")),
-    (["eye","aankh","ankh","आंख","motiyabind","मोतियाबिंद","chashma","चश्मा"], D("आंख की समस्या","Eye Problem", [("फोन / धूल","ज्यादा फोन से आंख में जलन होती है।"),("नींद की कमी","नींद पूरी न होने से आंख लाल हो जाती है।"),("एलर्जी","धूल से आंख में एलर्जी होती है।")], [("Phone / Dust","Too much phone causes burning."),("Less Sleep","Less sleep makes eyes red."),("Allergy","Dust causes allergy in eyes.")], [("दिखाई कम","दिखाई कम हो, तो तुरंत दिखाएं।"),("मवाद","आंख से मवाद आए, तो देर मत करें।")], [("Less Vision","If vision less, see immediately."),("Pus","If pus from eyes, do not wait.")], [("आंख मत मसलें","आंख को मसलें नहीं, साफ पानी से धोएं।"),("फोन कम","फोन कम देखिए।"),("ठंडी पट्टी","आंख पर ठंडी पट्टी रखें।")], [("Do Not Rub","Do not rub, wash with clean water."),("Less Phone","Use phone less."),("Cold Cloth","Cold cloth on eyes.")], ("धूप से बचें","धूप में चश्मा पहनें।"), ("Avoid Sun","Wear glasses in sunlight."), "आपकी आंख की समस्या फोन और धूल से लग रही है।", "Your eye problem seems due to phone and dust.")),
-    (["ear","kaan","कान"], D("कान में दर्द","Ear Pain", [("सर्दी","सर्दी के साथ कान में दर्द हो जाता है।"),("पानी","नहाते समय कान में पानी जाने से दर्द होता है।"),("मैल","कान में मैल जमने से दर्द होता है।")], [("Cold","Cold causes ear pain."),("Water","Water in ear causes pain."),("Wax","Wax causes pain.")], [("सुनाई कम","सुनाई कम दे, तो दिखाएं।"),("तेज बुखार","कान दर्द के साथ तेज बुखार हो, तो देर मत करें।")], [("Less Hearing","If hearing less, see doctor."),("High Fever","If high fever with ear pain, do not wait.")], [("कुछ मत डालें","कान में तीली मत डालें।"),("गरम सेंक","हल्का गरम सेंक करें।"),("आराम","थोड़ी देर आराम करें।")], [("Do Not Insert","Do not insert anything."),("Warm Compress","Light warm compress."),("Rest","Take rest.")], ("कान साफ रखें","कान को साफ और सूखा रखें।"), ("Keep Ear Clean","Keep ear clean and dry."), "आपके कान का दर्द सर्दी से लग रहा है।", "Your ear pain seems due to cold.")),
-    (["tooth","daant","dant","दांत"], D("दांत में दर्द","Tooth Pain", [("कीड़ा","दांत में कीड़ा लगने से दर्द होता है।"),("ठंडा-गरम","ठंडा-गरम खाने से झनझनाहट होती है।"),("मसूड़ा","मसूड़े में सूजन से दांत दुखता है।")], [("Cavity","Cavity causes pain."),("Cold-Hot","Cold-hot causes sensitivity."),("Gum","Gum swelling causes pain.")], [("सूजन","गाल सूज जाए, तो दिखाएं।"),("दर्द न रुके","दर्द 2 दिन से न रुके, तो देर मत करें।")], [("Swelling","If cheek swells, see doctor."),("Pain Not Stopping","If pain not stopping in 2 days, do not wait.")], [("नमक पानी","गुनगुने नमक पानी से कुल्ला करें।"),("लौंग","लौंग का तेल लगाएं।"),("ठंडा मत खाएं","ठंडा और मीठा मत खाएं।")], [("Salt Water","Gargle with warm salt water."),("Clove Oil","Apply clove oil."),("Avoid Cold","Avoid cold and sweet.")], ("ब्रश","दिन में 2 बार ब्रश करें।"), ("Brush","Brush 2 times a day."), "आपके दांत का दर्द कीड़े और मसूड़े से लग रहा है।", "Your tooth pain seems due to cavity and gum.")),
-    (["daane","rash","khujli","itching","दाने","खुजली","pimple","muhase","मुहासे","dandruff","baal","बाल","fungal","eczema","psoriasis","vitiligo","daag","dhabbe"], D("दाने / खुजली / पिंपल / स्किन","Rash / Itching / Pimple / Skin", [("एलर्जी","नए साबुन, कपड़े या धूल से एलर्जी होती है।"),("गर्मी","गर्मी में पसीना जमने से दाने निकल आते हैं।"),("संक्रमण","साफ-सफाई न रखने से संक्रमण होता है।")], [("Allergy","New soap, clothes or dust causes allergy."),("Heat","Sweat causes rashes."),("Infection","Lack of cleanliness causes infection.")], [("मवाद","दानों से मवाद निकले, तो दिखाएं।"),("तेज बुखार","दानों के साथ तेज बुखार हो, तो देर मत करें।"),("सांस में दिक्कत","सांस में दिक्कत हो तो 108 पर कॉल करें।")], [("Pus","If pus comes, see doctor."),("High Fever","If high fever with rashes, do not wait."),("Breathing Problem","If breathing problem, call 108.")], [("खुजलाएं नहीं","दानों को खुजलाएं नहीं।"),("साफ रखें","साफ पानी से धोकर सुखा रखें।"),("ठंडा पानी","ठंडे पानी से सेंक करें।"),("नारियल तेल","हल्का नारियल तेल लगाएं।")], [("Do Not Scratch","Do not scratch."),("Keep Clean","Wash and keep dry."),("Cold Water","Cold water compress."),("Coconut Oil","Light coconut oil.")], ("साफ कपड़े","रोज साफ कपड़े पहनें।"), ("Clean Clothes","Wear clean clothes daily."), "आपके दाने एलर्जी या गर्मी से लग रहे हैं।", "Your rash seems due to allergy or heat.")),
-    (["chot","zakhm","wound","injury","kat","cut","चोट","moch","burn","jalna","जल"], D("चोट / जख्म / जलना","Injury / Wound / Burn", [("गिरना","गिरने या टकराने से चोट लगती है।"),("तेज चीज","चाकू या कांच से कटने से जख्म होता है।"),("जलना","गरम चीज से जलने से चोट लगती है।")], [("Fall","Falling causes injury."),("Sharp Object","Knife or glass cut causes wound."),("Burn","Hot thing causes burn.")], [("बहुत खून","खून न रुके, तो 108 पर कॉल करें।"),("गहरी चोट","गहरी चोट हो, तो तुरंत अस्पताल जाएं।"),("बुखार","चोट के बाद बुखार आए, तो दिखाएं।")], [("Heavy Bleeding","If bleeding not stopping, call 108."),("Deep Wound","If deep wound, go to hospital."),("Fever","If fever after injury, see doctor.")], [("साफ पानी से धोएं","चोट को साफ पानी से धोएं।"),("खून रोकें","साफ कपड़े से 10 मिनट दबाकर रखें।"),("बेटाडीन","हल्का बेटाडीन लगाएं, हल्दी / मिट्टी मत लगाएं।"),("पट्टी","साफ पट्टी बांधें।")], [("Wash","Wash with clean water."),("Stop Bleeding","Press with clean cloth 10 min."),("Betadine","Light Betadine, no haldi / mud."),("Bandage","Tie clean bandage.")], ("साफ रखें","चोट को गंदा मत होने दें।"), ("Keep Clean","Keep wound clean."), "आपकी चोट को साफ रखना सबसे जरूरी है।", "Keeping wound clean is most important.")),
-    (["allergy","एलर्जी"], D("एलर्जी","Allergy", [("धूल / साबुन","धूल, नए साबुन या परफ्यूम से एलर्जी होती है।"),("खाना","किसी खाने से एलर्जी हो सकती है।"),("दवा","किसी दवा से भी एलर्जी हो सकती है।")], [("Dust / Soap","Dust, new soap or perfume causes allergy."),("Food","Some food causes allergy."),("Medicine","Some medicine causes allergy.")], [("सांस में दिक्कत","सांस में दिक्कत हो तो 108 पर कॉल करें।"),("चेहरा सूजना","चेहरा सूज जाए तो तुरंत अस्पताल जाएं।")], [("Breathing Problem","If breathing problem, call 108."),("Face Swelling","If face swells, go to hospital.")], [("खुजलाएं नहीं","खुजलाएं नहीं।"),("ट्रिगर से दूर रहें","जिस चीज से एलर्जी हुई, उससे दूर रहें।"),("ठंडा पानी","ठंडे पानी से सेंक करें।")], [("Do Not Scratch","Do not scratch."),("Avoid Trigger","Stay away from trigger."),("Cold Water","Cold water compress.")], ("साफ कपड़े","रोज साफ कपड़े पहनें।"), ("Clean Clothes","Wear clean clothes daily."), "आपकी एलर्जी धूल या नए साबुन से लग रही है।", "Your allergy seems due to dust or new soap.")),
-    (["chakkar","dizz","kamzori","weak","neend","sleep","चक्कर","कमजोरी","नींद"], D("चक्कर / कमजोरी / नींद","Dizziness / Weakness / Sleep", [("खून की कमी","खून की कमी से चक्कर आता है।"),("भूख","भूखे रहने से चक्कर आता है।"),("नींद की कमी","नींद पूरी न होने से कमजोरी लगती है।")], [("Low Blood","Low blood causes dizziness."),("Hunger","Hunger causes dizziness."),("Less Sleep","Less sleep causes weakness.")], [("बेहोश","बेहोश हो जाएं, तो तुरंत दिखाएं।"),("सीने में दर्द","चक्कर के साथ सीने में दर्द हो, तो 108 पर कॉल करें।")], [("Faint","If faint, see immediately."),("Chest Pain","If chest pain with dizziness, call 108.")], [("बैठ जाएं","चक्कर आए तो बैठ जाएं।"),("पानी पिएं","थोड़ा-थोड़ा पानी पिएं।"),("कुछ खाएं","हल्का कुछ खा लें।")], [("Sit Down","Sit down when dizzy."),("Drink Water","Water in small sips."),("Eat Something","Eat something light.")], ("पालक खाएं","रोज पालक और गुड़ खाएं।"), ("Eat Palak","Eat palak and gud daily."), "आपका चक्कर खून की कमी और नींद की कमी से लग रहा है।", "Your dizziness seems due to low blood and less sleep.")),
-    (["diabetes","sugar","शुगर","madhumeh","thyroid","थायराइड"], D("शुगर / डायबिटीज / थायराइड","Diabetes / Sugar / Thyroid", [("खान-पान","मीठा ज्यादा खाने और मोटापे से शुगर बढ़ती है।"),("आनुवंशिक","माता-पिता को शुगर हो तो बच्चों को भी हो सकती है।"),("थायराइड","हार्मोन गड़बड़ से थायराइड होता है।")], [("Food","Too much sweet and obesity increases sugar."),("Hereditary","If parents have sugar, children can get it."),("Thyroid","Hormone imbalance causes thyroid.")], [("शुगर बहुत ज्यादा","शुगर 300 से ऊपर हो, तो तुरंत दिखाएं।"),("पैर में घाव","पैर में घाव ठीक न हो, तो देर मत करें।")], [("Very High Sugar","If sugar above 300, see immediately."),("Foot Wound","If foot wound not healing, do not wait.")], [("मीठा बंद","मीठा, कोल्ड ड्रिंक, मैदा बंद करें।"),("रोज टहलें","रोज 30 मिनट टहलें।"),("शुगर जांच","हफ्ते में 1 बार शुगर जांच करवाएं।")], [("Stop Sweet","Stop sweet, cold drink, maida."),("Daily Walk","Walk 30 min daily."),("Check Sugar","Check sugar once a week.")], ("करेला","करेला और मेथी फायदेमंद हैं।"), ("Karela","Karela and methi are good."), "आपकी शुगर खान-पान और वजन से लग रही है।", "Your sugar seems due to food and weight.")),
-    (["bp","blood pressure","cholesterol","कोलेस्ट्रॉल","dil","dhadkan","heart"], D("बीपी / कोलेस्ट्रॉल / दिल","BP / Cholesterol / Heart", [("नमक ज्यादा","नमक ज्यादा खाने से बीपी बढ़ता है।"),("तनाव","ज्यादा टेंशन से बीपी बढ़ता है।"),("तेल","तला खाना खाने से कोलेस्ट्रॉल बढ़ता है।")], [("Salt","Too much salt increases BP."),("Stress","Too much tension increases BP."),("Oily Food","Fried food increases cholesterol.")], [("सीने में दर्द","सीने में दर्द + पसीना आए, तो 108 पर कॉल करें।"),("बीपी बहुत ज्यादा","बीपी 180 से ऊपर हो, तो तुरंत दिखाएं।")], [("Chest Pain","If chest pain + sweating, call 108."),("Very High BP","If BP above 180, see immediately.")], [("नमक कम","नमक और तेल कम करें।"),("टेंशन कम","टेंशन कम लें, रोज टहलें।"),("दवाई समय पर","बीपी की दवाई कभी मत छोड़ें।")], [("Less Salt","Reduce salt and oil."),("Less Stress","Less tension, walk daily."),("Medicine On Time","Never miss BP medicine.")], ("रोज टहलें","रोज 30 मिनट टहलना बीपी के लिए सबसे अच्छी दवा है।"), ("Daily Walk","Walking 30 min daily is best for BP."), "आपका बीपी नमक और टेंशन से लग रहा है।", "Your BP seems due to salt and tension.")),
-    (["anxiety","depression","stress","ghabrahat","घबराहट","udaasi","उदासी","yaadash","mirgi","daura","मिर्गी"], D("घबराहट / उदासी / स्ट्रेस / मिर्गी","Anxiety / Depression / Stress / Epilepsy", [("टेंशन","ज्यादा टेंशन से घबराहट होती है।"),("नींद की कमी","नींद पूरी न होने से मन उदास रहता है।"),("अकेलापन","अकेले रहने से उदासी बढ़ती है।")], [("Tension","Too much tension causes anxiety."),("Less Sleep","Less sleep makes mind sad."),("Loneliness","Staying alone increases sadness.")], [("खुद को नुकसान","खुद को नुकसान का मन करे, तो 14416 पर कॉल करें।"),("मिर्गी का दौरा","दौरा 5 मिनट से ज्यादा रहे, तो 108 पर कॉल करें।")], [("Self Harm","If self-harm thoughts, call 14416."),("Epilepsy","If attack more than 5 min, call 108.")], [("बात करें","किसी अपने से बात करें, अकेले मत रहें।"),("गहरी सांस","गहरी सांस लें, 10 मिनट टहलें।"),("फोन कम","सोने से पहले फोन बंद करें।")], [("Talk","Talk to someone close, not alone."),("Deep Breathing","Deep breath, walk 10 min."),("Less Phone","Switch off phone before sleep.")], ("रोज टहलें","रोज सुबह टहलना मन को शांत करता है।"), ("Daily Walk","Morning walk calms mind."), "आपकी घबराहट टेंशन और नींद की कमी से लग रही है।", "Your anxiety seems due to tension and less sleep.")),
-    (["stone","pathri","पथरी","kidney","uti","peshaab","पेशाब","urine"], D("पथरी / पेशाब में जलन / UTI","Kidney Stone / UTI", [("पानी कम","पानी कम पीने से पथरी बनती है।"),("नमक ज्यादा","नमक ज्यादा खाने से पथरी बनती है।"),("संक्रमण","साफ-सफाई न रखने से संक्रमण होता है।")], [("Less Water","Less water causes stone."),("Salt","Too much salt causes stone."),("Infection","Lack of cleanliness causes infection.")], [("पेशाब में खून","पेशाब में खून आए, तो तुरंत दिखाएं।"),("बहुत तेज दर्द","पेट में बहुत तेज दर्द हो, तो देर मत करें।")], [("Blood in Urine","If blood in urine, see immediately."),("Severe Pain","If severe stomach pain, do not wait.")], [("पानी ज्यादा","दिन में 10-12 गिलास पानी पिएं।"),("नमक कम","नमक कम करें।"),("पेशाब रोकें नहीं","पेशाब को देर तक रोककर मत रखें।")], [("More Water","Drink 10-12 glasses water."),("Less Salt","Reduce salt."),("Do Not Hold","Do not hold urine long.")], ("नींबू पानी","नींबू पानी पथरी में फायदेमंद है।"), ("Lemon Water","Lemon water is good for stone."), "आपकी पथरी / UTI पानी कम पीने से लग रही है।", "Your stone / UTI seems due to less water.")),
-    (["jaundice","piliya","पीलिया","liver","लीवर","hepatitis"], D("पीलिया / लीवर","Jaundice / Liver", [("गंदा पानी","गंदा पानी पीने से पीलिया होता है।"),("शराब","शराब पीने से लीवर खराब होता है।"),("तला खाना","ज्यादा तला खाना लीवर पर जोर डालता है।")], [("Dirty Water","Dirty water causes jaundice."),("Alcohol","Alcohol damages liver."),("Fried Food","Fried food puts pressure on liver.")], [("आंखें पीली","आंखें बहुत पीली हो जाएं, तो तुरंत दिखाएं।"),("पेट फूलना","पेट फूल जाए, तो देर मत करें।")], [("Yellow Eyes","If eyes very yellow, see immediately."),("Swollen Stomach","If stomach swells, do not wait.")], [("हल्का खाना","खिचड़ी, दलिया, गन्ने का रस लें।"),("तला बंद","तला, मसालेदार, शराब बिल्कुल बंद।"),("आराम","पूरा आराम करें।")], [("Light Food","Khichdi, daliya, sugarcane juice."),("Stop Fried","Stop fried, spicy, alcohol."),("Full Rest","Full rest.")], ("गन्ने का रस","गन्ने का रस पीलिया में फायदेमंद है।"), ("Sugarcane Juice","Sugarcane juice is good in jaundice."), "आपका पीलिया गंदे पानी से लग रहा है।", "Your jaundice seems due to dirty water.")),
-    (["piles","bawasir","बवासीर","fissure","appendix","ulcer"], D("बवासीर / फिशर / अपेंडिक्स","Piles / Fissure / Appendix", [("कब्ज","लंबे समय तक कब्ज रहने से बवासीर होती है।"),("ज्यादा बैठना","लंबी देर बैठने से बवासीर बढ़ती है।"),("मसालेदार","ज्यादा मिर्च से जलन बढ़ती है।")], [("Constipation","Long constipation causes piles."),("Sitting Long","Sitting long increases piles."),("Spicy","Too much spicy increases burning.")], [("बहुत खून","खून बहुत ज्यादा आए, तो तुरंत दिखाएं।"),("बहुत तेज दर्द","पेट में बहुत तेज दर्द हो, तो देर मत करें।")], [("Too Much Bleeding","If too much bleeding, see immediately."),("Severe Pain","If severe stomach pain, do not wait.")], [("पानी ज्यादा","दिन में 8-10 गिलास पानी पिएं।"),("फाइबर","हरी सब्जी, सलाद ज्यादा खाएं।"),("जोर मत लगाएं","पॉटी में जोर मत लगाएं।")], [("More Water","Drink 8-10 glasses water."),("Fiber","Green vegetables, salad more."),("Do Not Strain","Do not strain during stool.")], ("इसबगोल","रोज रात को इसबगोल लें।"), ("Isabgol","Take isabgol every night."), "आपकी बवासीर कब्ज से लग रही है।", "Your piles seem due to constipation.")),
-    (["period","mahwari","माहवारी","pregnancy","garbh","गर्भ","pregnant","delivery","white discharge"], D("माहवारी / गर्भावस्था","Periods / Pregnancy", [("हार्मोन","हार्मोन गड़बड़ से माहवारी में दर्द होता है।"),("खून की कमी","खून की कमी से माहवारी में कमजोरी लगती है।"),("टेंशन","टेंशन से माहवारी आगे-पीछे हो जाती है।")], [("Hormone","Hormone imbalance causes periods pain."),("Low Blood","Low blood causes weakness in periods."),("Tension","Tension makes periods irregular.")], [("बहुत ज्यादा खून","बहुत ज्यादा खून आए, तो तुरंत दिखाएं।"),("गर्भ में दर्द","गर्भ में तेज दर्द या खून आए, तो तुरंत अस्पताल जाएं।")], [("Too Much Bleeding","If too much bleeding, see immediately."),("Pregnancy Pain","If severe pain or bleeding in pregnancy, go to hospital.")], [("आराम","माहवारी में आराम करें, भारी काम मत करें।"),("गरम सेंक","पेट पर गरम पानी की बोतल से सेंक करें।"),("आयरन","पालक, गुड़, चुकंदर खाएं।")], [("Rest","Rest in periods, no heavy work."),("Hot Compress","Hot water bottle on stomach."),("Iron","Palak, gud, beetroot.")], ("गरम पानी","गुनगुना पानी पीने से दर्द में आराम मिलता है।"), ("Warm Water","Warm water gives relief in pain."), "आपकी माहवारी का दर्द हार्मोन और खून की कमी से लग रहा है।", "Your periods pain seems due to hormone and low blood.")),
-    (["bachche","bachcha","baby","child","बच्च"], D("बच्चे की तकलीफ","Child Problem", [("मौसम","मौसम बदलने से बच्चे को जल्दी बुखार आ जाता है।"),("गंदा हाथ","गंदे हाथ से खाने से बच्चे को दस्त हो जाते हैं।"),("दांत आना","दांत आने पर बच्चे को बुखार और दस्त हो जाते हैं।")], [("Weather","Weather change causes fever in child."),("Dirty Hands","Dirty hands causes loose motion."),("Teething","Teething causes fever and loose motion.")], [("तेज बुखार","बच्चे को 102 से ऊपर बुखार हो, तो तुरंत दिखाएं।"),("दूध न पीना","बच्चा दूध न पी रहा हो, तो देर मत करें।")], [("High Fever","If child fever above 102, see immediately."),("Not Drinking Milk","If child not drinking milk, do not wait.")], [("ओआरएस","बच्चे को थोड़ा-थोड़ा ओआरएस पिलाते रहें।"),("ठंडी पट्टी","सिर पर ठंडे पानी की पट्टी रखें।"),("हल्का खाना","खिचड़ी, दही जैसा हल्का खाना दें।")], [("ORS","ORS in small sips."),("Cold Cloth","Cold cloth on forehead."),("Light Food","Khichdi, curd.")], ("साफ-सफाई","बच्चे के हाथ बार-बार साबुन से धुलवाएं।"), ("Cleanliness","Wash child's hands with soap."), "बच्चे की तकलीफ मौसम और साफ-सफाई की कमी से लग रही है।", "Child problem seems due to weather and cleanliness.")),
-    (["malaria","मलेरिया","dengue","डेंगू","typhoid","टाइफाइड","tb","tuberculosis","टीबी","cancer","कैंसर","hiv","aids","pneumonia","nimoniya","निमोनिया","corona","tumor"], D("बड़ी बीमारी - मलेरिया / डेंगू / टाइफाइड / टीबी / कैंसर","Serious Disease - Malaria / Dengue / Typhoid / TB / Cancer", [("मच्छर","मच्छर काटने से मलेरिया और डेंगू होता है।"),("गंदा पानी","गंदा पानी पीने से टाइफाइड होता है।"),("संक्रमण","एक व्यक्ति से दूसरे में फैलने से टीबी होता है।")], [("Mosquito","Mosquito bite causes malaria and dengue."),("Dirty Water","Dirty water causes typhoid."),("Infection","Spreading causes TB.")], [("तेज बुखार","बुखार 3 दिन से ज्यादा रहे, तो तुरंत दिखाएं।"),("खून","खून आए या सांस में दिक्कत हो, तो 108 पर कॉल करें।")], [("High Fever","If fever more than 3 days, see immediately."),("Blood","If blood or breathing problem, call 108.")], [("घर पर इलाज मत करें","घर पर इलाज मत करें, तुरंत सरकारी अस्पताल जाएं।"),("मच्छर से बचें","मच्छरदानी लगाएं, पानी जमा मत होने दें।"),("जांच करवाएं","तुरंत खून की जांच करवाएं।")], [("No Home Treatment","No home treatment, go to Govt hospital."),("Avoid Mosquito","Mosquito net, no stagnant water."),("Get Tested","Get blood test immediately.")], ("सरकारी अस्पताल","इन बीमारियों का इलाज सरकारी अस्पताल में फ्री होता है।"), ("Govt Hospital","Treatment FREE in Govt hospital."), "ये बीमारी घर पर ठीक नहीं होती, तुरंत डॉक्टर को दिखाएं।", "This disease cannot be cured at home, see doctor immediately.", serious=True)),
-    (["paralysis","lakwa","लकवा","tumor","vitamin","infection","bacteria","virus","haddi","nas","dimaag","brain","heart","lung","fefe"], D("दिमाग / नस / हड्डी / फेफड़े","Brain / Nerve / Bone / Lung", [("खून की कमी","खून की कमी से नसों में कमजोरी आ जाती है।"),("चोट","चोट लगने से नस दब जाती है।"),("संक्रमण","वायरस / बैक्टीरिया से संक्रमण हो जाता है।")], [("Low Blood","Low blood weakens nerves."),("Injury","Injury presses nerve."),("Infection","Virus / Bacteria causes infection.")], [("लकवा","एक तरफ हाथ-पैर काम न करे, तो 108 पर कॉल करें।"),("बेहोश","बेहोश हो जाएं, तो तुरंत अस्पताल जाएं।")], [("Paralysis","If one side stops working, call 108."),("Faint","If faint, go to hospital.")], [("आराम","पूरी तरह आराम करें।"),("तुरंत अस्पताल","लकवा / ट्यूमर में देर मत करें।"),("पानी","दिन भर गुनगुना पानी पिएं।")], [("Full Rest","Full rest."),("Hospital Immediately","In paralysis / tumor, go immediately."),("Water","Warm water through day.")], ("तुरंत जांच","ऐसी तकलीफ में तुरंत CT / MRI करवाएं।"), ("Immediate Checkup","Get CT / MRI immediately."), "आपकी तकलीफ नस / दिमाग से जुड़ी लग रही है, तुरंत दिखाएं।", "Your problem seems nerve / brain related, see immediately.")),
+# --- Diseases: (keywords, hi_title, en_title, hi_causes, en_causes, hi_danger, en_danger, hi_do, en_do, hi_tip, en_tip, hi_sum, en_sum, serious) ---
+def D(k,hi,en,ch,ce,dh,de,wh,we,th,te,sh,se,s=False): return (k,hi,en,ch,ce,dh,de,wh,we,th,te,sh,se,s)
+DIS=[
+D(["head","sar","sir","सिर","headache","migraine"],"सिर दर्द / माइग्रेन","Headache / Migraine","नींद की कमी, ज्यादा फोन, गैस / भूख से सिर दर्द होता है।","Less sleep, too much phone, gas / hunger causes headache.","बहुत तेज दर्द, उल्टी / चक्कर हो तो तुरंत दिखाएं।","If severe pain, vomiting / dizziness, see immediately.","अंधेरे में आराम, ठंडी पट्टी, गुनगुना पानी पिएं।","Rest in dark, cold cloth, warm water.","फोन कम - सोने से 30 मिनट पहले फोन बंद करें।","Less phone - switch off 30 min before sleep.","आपका सिर दर्द नींद की कमी और फोन से लग रहा है।","Your headache seems due to less sleep and phone."),
+D(["back","kamar","कमर"],"कमर दर्द","Back Pain","गलत बैठना, भारी चीज, कैल्शियम की कमी से होता है।","Wrong sitting, heavy lift, calcium deficiency causes it.","दर्द पैर तक जाए, चलने में दिक्कत हो तो तुरंत दिखाएं।","If pain goes to leg, difficulty walking, see immediately.","सीधा लेटें, गरम सेंक, भारी काम बंद करें।","Lie straight, hot compress, stop heavy work.","रोज 20 मिनट सीधा चलिए।","Walk straight 20 min daily.","आपका कमर दर्द गलत बैठने और भारी काम से लग रहा है।","Your back pain seems due to wrong sitting and heavy work."),
+D(["fever","bukhar","बुखार"],"बुखार","Fever","वायरल, सर्दी, पानी की कमी से बुखार आता है।","Viral, cold, less water causes fever.","बुखार 102 से ऊपर हो, उल्टी / चक्कर आए तो तुरंत दिखाएं।","If fever above 102, vomiting / dizziness, see immediately.","पूरा आराम, ठंडी पट्टी, गुनगुना पानी पिएं।","Full rest, cold sponge, warm water.","तुलसी-अदरक का काढ़ा पिएं।","Tulsi-ginger kadha.","आपका बुखार अभी शुरू हुआ लग रहा है।","Your fever seems in starting stage."),
+D(["cold","cough","khansi","sardi","gala","गला","सर्दी","खांसी"],"सर्दी-खांसी","Cold-Cough","वायरल, ठंडा पानी, धूल से गला खराब होता है।","Viral, cold water, dust causes it.","सांस में दिक्कत, खांसी में खून आए तो तुरंत दिखाएं।","If breathing problem, blood in cough, see immediately.","गरम पानी, हल्दी दूध, भाप लें।","Warm water, turmeric milk, steam.","तुलसी-अदरक की चाय पिएं।","Tulsi-ginger tea.","आपकी सर्दी-खांसी अभी शुरू हुई लग रही है।","Your cold-cough seems in starting stage."),
+D(["stomach","pet","gas","ulti","dast","पेट"],"पेट दर्द / गैस","Stomach / Gas","बाहर का खाना, मसालेदार, पानी कम पीने से होता है।","Outside food, spicy food, less water causes it.","पेट में बहुत तेज दर्द, पॉटी में खून आए तो तुरंत दिखाएं।","If severe pain, blood in stool, see immediately.","हल्का खाना, ओआरएस, खाने के बाद 10 मिनट टहलें।","Light food, ORS, walk 10 min after food.","अजवाइन का पानी गैस में आराम देता है।","Ajwain water for gas.","आपका पेट दर्द गैस और एसिडिटी से लग रहा है।","Your stomach pain seems due to gas and acidity."),
+D(["chest","seene","saans","सीने","सांस","asthma","dama"],"सीने में दर्द / अस्थमा","Chest / Asthma","गैस, सर्दी, थकान से सीने में भारीपन लगता है।","Gas, cold, tiredness causes heaviness.","बहुत तेज दर्द + पसीना आए तो 108 पर कॉल करें।","If severe pain + sweating, call 108.","सीधा बैठें, कपड़े ढीले करें, गुनगुना पानी पिएं।","Sit straight, loosen clothes, warm water.","धूल और धुएं से दूर रहें।","Stay away from dust and smoke.","आपके सीने का दर्द गैस और सर्दी से लग रहा है।","Your chest pain seems due to gas and cold."),
+D(["leg","pair","knee","ghutna","haath","हाथ","घुटना","arthritis"],"हाथ-पैर / घुटना","Leg / Joint","थकान, कैल्शियम की कमी, गलत बैठने से होता है।","Tiredness, calcium deficiency, wrong posture causes it.","बहुत सूजन, दर्द 2 दिन से ज्यादा रहे तो दिखाएं।","If swelling, pain more than 2 days, see doctor.","आराम, गरम सेंक, पैर तकिए पर ऊपर रखें।","Rest, hot compress, keep leg raised.","रोज 1 गिलास दूध पिएं।","Drink 1 glass milk daily.","आपका दर्द थकान और कैल्शियम की कमी से लग रहा है।","Your pain seems due to tiredness and calcium deficiency."),
+D(["eye","aankh","आंख"],"आंख की समस्या","Eye Problem","फोन / धूल, नींद की कमी, एलर्जी से होती है।","Phone / dust, less sleep, allergy causes it.","दिखाई कम हो, मवाद आए तो तुरंत दिखाएं।","If vision less, pus, see immediately.","आंख मत मसलें, साफ पानी से धोएं, ठंडी पट्टी रखें।","Do not rub, wash with clean water, cold cloth.","धूप में चश्मा पहनें।","Wear glasses in sunlight.","आपकी आंख की समस्या फोन और धूल से लग रही है।","Your eye problem seems due to phone and dust."),
+D(["ear","kaan","कान"],"कान में दर्द","Ear Pain","सर्दी, कान में पानी, मैल जमने से होता है।","Cold, water in ear, wax causes it.","सुनाई कम दे, तेज बुखार हो तो दिखाएं।","If hearing less, high fever, see doctor.","कान में तीली मत डालें, हल्का गरम सेंक करें।","Do not insert anything, warm compress.","कान को साफ और सूखा रखें।","Keep ear clean and dry.","आपके कान का दर्द सर्दी से लग रहा है।","Your ear pain seems due to cold."),
+D(["tooth","daant","दांत"],"दांत में दर्द","Tooth Pain","कीड़ा, ठंडा-गरम, मसूड़े की सूजन से होता है।","Cavity, cold-hot, gum swelling causes it.","गाल सूज जाए, दर्द 2 दिन से न रुके तो दिखाएं।","If cheek swells, pain not stopping in 2 days, see doctor.","नमक पानी से कुल्ला, लौंग का तेल, ठंडा-मीठा मत खाएं।","Salt water gargle, clove oil, avoid cold and sweet.","दिन में 2 बार ब्रश करें।","Brush 2 times a day.","आपके दांत का दर्द कीड़े और मसूड़े से लग रहा है।","Your tooth pain seems due to cavity and gum."),
+D(["daane","rash","khujli","दाने","खुजली","pimple","muhase"],"दाने / खुजली","Rash / Itching","एलर्जी, गर्मी, संक्रमण से दाने निकलते हैं।","Allergy, heat, infection causes rashes.","मवाद आए, तेज बुखार, सांस में दिक्कत हो तो तुरंत दिखाएं।","If pus, high fever, breathing problem, see immediately.","खुजलाएं नहीं, साफ रखें, ठंडे पानी से सेंक करें।","Do not scratch, keep clean, cold water compress.","रोज साफ कपड़े पहनें।","Wear clean clothes daily.","आपके दाने एलर्जी या गर्मी से लग रहे हैं।","Your rash seems due to allergy or heat."),
+D(["chot","zakhm","wound","injury","चोट"],"चोट / जख्म","Injury / Wound","गिरना, तेज चीज, जलने से चोट लगती है।","Fall, sharp object, burn causes injury.","बहुत खून, गहरी चोट, बुखार आए तो 108 पर कॉल करें।","If heavy bleeding, deep wound, fever, call 108.","साफ पानी से धोएं, कपड़े से 10 मिनट दबाएं, बेटाडीन लगाएं।","Wash with clean water, press 10 min, apply Betadine.","चोट को गंदा मत होने दें।","Keep wound clean.","आपकी चोट को साफ रखना सबसे जरूरी है।","Keeping wound clean is most important."),
+D(["allergy","एलर्जी"],"एलर्जी","Allergy","धूल / साबुन, खाना, दवा से एलर्जी होती है।","Dust / soap, food, medicine causes allergy.","सांस में दिक्कत, चेहरा सूज जाए तो 108 पर कॉल करें।","If breathing problem, face swells, call 108.","खुजलाएं नहीं, ट्रिगर से दूर रहें, ठंडा पानी लगाएं।","Do not scratch, avoid trigger, cold water.","रोज साफ कपड़े पहनें।","Wear clean clothes daily.","आपकी एलर्जी धूल या नए साबुन से लग रही है।","Your allergy seems due to dust or new soap."),
+D(["chakkar","kamzori","neend","चक्कर"],"चक्कर / कमजोरी","Dizziness / Weakness","खून की कमी, भूख, नींद की कमी से चक्कर आता है।","Low blood, hunger, less sleep causes dizziness.","बेहोश हो जाएं, सीने में दर्द हो तो 108 पर कॉल करें।","If faint, chest pain, call 108.","बैठ जाएं, पानी पिएं, हल्का कुछ खाएं।","Sit down, drink water, eat something light.","रोज पालक और गुड़ खाएं।","Eat palak and gud daily.","आपका चक्कर खून की कमी और नींद की कमी से लग रहा है।","Your dizziness seems due to low blood and less sleep."),
+D(["diabetes","sugar","शुगर","thyroid"],"शुगर / थायराइड","Diabetes / Thyroid","मीठा ज्यादा, मोटापा, हार्मोन गड़बड़ से होता है।","Too much sweet, obesity, hormone imbalance causes it.","शुगर 300 से ऊपर हो, पैर में घाव ठीक न हो तो तुरंत दिखाएं।","If sugar above 300, foot wound not healing, see immediately.","मीठा बंद, रोज 30 मिनट टहलें, हफ्ते में 1 बार जांच कराएं।","Stop sweet, walk 30 min daily, check sugar weekly.","करेला और मेथी फायदेमंद हैं।","Karela and methi are good.","आपकी शुगर खान-पान और वजन से लग रही है।","Your sugar seems due to food and weight."),
+D(["bp","cholesterol","dil","दिल"],"बीपी / दिल","BP / Heart","नमक ज्यादा, टेंशन, तला खाना से बीपी बढ़ता है।","Too much salt, stress, fried food increases BP.","सीने में दर्द + पसीना, बीपी 180 से ऊपर हो तो 108 पर कॉल करें।","If chest pain + sweating, BP above 180, call 108.","नमक-तेल कम, टेंशन कम, दवाई समय पर लें।","Less salt-oil, less stress, medicine on time.","रोज 30 मिनट टहलना बीपी के लिए सबसे अच्छी दवा है।","Walking 30 min daily is best for BP.","आपका बीपी नमक और टेंशन से लग रहा है।","Your BP seems due to salt and tension."),
+D(["anxiety","depression","stress","ghabrahat","घबराहट"],"घबराहट / स्ट्रेस","Anxiety / Stress","टेंशन, नींद की कमी, अकेलेपन से घबराहट होती है।","Tension, less sleep, loneliness causes anxiety.","खुद को नुकसान का मन करे, दौरा 5 मिनट से ज्यादा रहे तो 108 / 14416 पर कॉल करें।","If self-harm thoughts, attack more than 5 min, call 108 / 14416.","किसी अपने से बात करें, गहरी सांस लें, 10 मिनट टहलें।","Talk to someone, deep breath, walk 10 min.","रोज सुबह टहलना मन को शांत करता है।","Morning walk calms mind.","आपकी घबराहट टेंशन और नींद की कमी से लग रही है।","Your anxiety seems due to tension and less sleep."),
+D(["stone","pathri","पथरी","kidney","uti","peshaab"],"पथरी / UTI","Kidney Stone / UTI","पानी कम, नमक ज्यादा, संक्रमण से होती है।","Less water, too much salt, infection causes it.","पेशाब में खून, बहुत तेज दर्द हो तो तुरंत दिखाएं।","If blood in urine, severe pain, see immediately.","दिन में 10-12 गिलास पानी, नमक कम, पेशाब रोकें नहीं।","Drink 10-12 glasses water, less salt, do not hold urine.","नींबू पानी पथरी में फायदेमंद है।","Lemon water is good for stone.","आपकी पथरी पानी कम पीने से लग रही है।","Your stone seems due to less water."),
+D(["jaundice","piliya","पीलिया","liver"],"पीलिया / लीवर","Jaundice / Liver","गंदा पानी, शराब, तला खाना से लीवर खराब होता है।","Dirty water, alcohol, fried food damages liver.","आंखें बहुत पीली, पेट फूल जाए तो तुरंत दिखाएं।","If eyes very yellow, stomach swells, see immediately.","हल्का खाना, तला-शराब बंद, पूरा आराम।","Light food, stop fried-alcohol, full rest.","गन्ने का रस पीलिया में फायदेमंद है।","Sugarcane juice is good in jaundice.","आपका पीलिया गंदे पानी से लग रहा है।","Your jaundice seems due to dirty water."),
+D(["piles","bawasir","बवासीर"],"बवासीर","Piles","कब्ज, ज्यादा बैठना, मसालेदार से होती है।","Constipation, sitting long, spicy causes piles.","बहुत खून, बहुत तेज दर्द हो तो तुरंत दिखाएं।","If too much bleeding, severe pain, see immediately.","8-10 गिलास पानी, हरी सब्जी, पॉटी में जोर मत लगाएं।","8-10 glasses water, green vegetables, do not strain.","रोज रात को इसबगोल लें।","Take isabgol every night.","आपकी बवासीर कब्ज से लग रही है।","Your piles seem due to constipation."),
+D(["period","mahwari","pregnancy","garbh","गर्भ"],"माहवारी / गर्भावस्था","Periods / Pregnancy","हार्मोन, खून की कमी, टेंशन से दर्द होता है।","Hormone, low blood, tension causes pain.","बहुत ज्यादा खून, गर्भ में तेज दर्द हो तो तुरंत अस्पताल जाएं।","If too much bleeding, severe pain in pregnancy, go to hospital.","आराम, गरम सेंक, पालक-गुड़-चुकंदर खाएं।","Rest, hot compress, palak-gud-beetroot.","गुनगुना पानी दर्द में आराम देता है।","Warm water gives relief in pain.","आपका दर्द हार्मोन और खून की कमी से लग रहा है।","Your pain seems due to hormone and low blood."),
+D(["bachche","bachcha","baby","child","बच्च"],"बच्चे की तकलीफ","Child Problem","मौसम, गंदे हाथ, दांत आने से होती है।","Weather, dirty hands, teething causes it.","बच्चे को 102 से ऊपर बुखार, दूध न पी रहा हो तो तुरंत दिखाएं।","If child fever above 102, not drinking milk, see immediately.","ओआरएस, ठंडी पट्टी, हल्का खाना दें।","ORS, cold cloth, light food.","बच्चे के हाथ साबुन से धुलवाएं।","Wash child's hands with soap.","बच्चे की तकलीफ मौसम और साफ-सफाई की कमी से लग रही है।","Child problem seems due to weather and cleanliness."),
+D(["malaria","dengue","typhoid","tb","cancer","मलेरिया","डेंगू"],"बड़ी बीमारी","Serious Disease","मच्छर, गंदा पानी, संक्रमण से होती है।","Mosquito, dirty water, infection causes it.","बुखार 3 दिन से ज्यादा, खून या सांस में दिक्कत हो तो 108 पर कॉल करें।","If fever more than 3 days, blood or breathing problem, call 108.","घर पर इलाज मत करें, सरकारी अस्पताल जाएं, खून की जांच कराएं।","No home treatment, go to Govt hospital, get blood test.","इन बीमारियों का इलाज सरकारी अस्पताल में फ्री होता है।","Treatment FREE in Govt hospital.","ये बीमारी घर पर ठीक नहीं होती, तुरंत डॉक्टर को दिखाएं।","This disease cannot be cured at home, see doctor immediately.",True),
+D(["paralysis","lakwa","लकवा","tumor","dimaag","दिमाग"],"दिमाग / नस","Brain / Nerve","खून की कमी, चोट, संक्रमण से होती है।","Low blood, injury, infection causes it.","एक तरफ हाथ-पैर काम न करे, बेहोश हो जाएं तो 108 पर कॉल करें।","If one side stops working, faint, call 108.","पूरी तरह आराम, तुरंत अस्पताल, गुनगुना पानी पिएं।","Full rest, hospital immediately, warm water.","ऐसी तकलीफ में तुरंत CT / MRI करवाएं।","Get CT / MRI immediately.","आपकी तकलीफ नस / दिमाग से जुड़ी लग रही है, तुरंत दिखाएं।","Your problem seems nerve / brain related, see immediately."),
 ]
-def make_answer_from_disease(disease, lang):
-    if lang == "Hindi":
-        c = "\n".join([f"- **{a}:** {b}" for a,b in disease["causes_hi"]]); d = "\n".join([f"- **{a}:** {b}" for a,b in disease["dangers_hi"]]); w = "\n".join([f"- **{a}:** {b}" for a,b in disease["dos_hi"]])
-        if disease.get("serious"): return f"""⚠️ **ये बड़ी बीमारी है, घर पर इलाज मत कीजिए।**\n\n**संभावित कारण - {disease['hi']} की वजह:**\n\n{c}\n\n**खतरे के लक्षण:**\n\n{d}\n\n**अभी क्या करें:**\n\n{w}\n\n**स्वास्थ्य टिप:**\n\n- **{disease['tip_hi'][0]}:** {disease['tip_hi'][1]}\n\n{disease['sum_hi']}\n\n**तुरंत सरकारी अस्पताल जाएं, वहां इलाज फ्री होता है। 108 पर कॉल करें।**\n\nक्या आप डॉक्टर से बात करना चाहेंगी?"""
-        return f"""आपकी तकलीफ समझ सकते हैं, आराम कीजिए.\n\n**संभावित कारण - {disease['hi']} की वजह:**\n\n{c}\n\n**खतरे के लक्षण:**\n\n{d}\n\n**अभी क्या करें:**\n\n{w}\n\n**स्वास्थ्य टिप:**\n\n- **{disease['tip_hi'][0]}:** {disease['tip_hi'][1]}\n\n{disease['sum_hi']}\n\nक्या आप डॉक्टर से बात करना चाहेंगी?"""
-    else:
-        c = "\n".join([f"- **{a}:** {b}" for a,b in disease["causes_en"]]); d = "\n".join([f"- **{a}:** {b}" for a,b in disease["dangers_en"]]); w = "\n".join([f"- **{a}:** {b}" for a,b in disease["dos_en"]])
-        if disease.get("serious"): return f"""⚠️ **This is a serious disease, do not treat at home.**\n\n**Possible Causes - Why {disease['en']} happens:**\n\n{c}\n\n**Danger Signs:**\n\n{d}\n\n**What To Do Now:**\n\n{w}\n\n**Health Tip:**\n\n- **{disease['tip_en'][0]}:** {disease['tip_en'][1]}\n\n{disease['sum_en']}\n\n**Go to Govt hospital immediately, treatment is FREE there. Call 108.**\n\nWould you like to see a doctor?"""
-        return f"""I understand, please take rest.\n\n**Possible Causes - Why {disease['en']} happens:**\n\n{c}\n\n**Danger Signs:**\n\n{d}\n\n**What To Do Now:**\n\n{w}\n\n**Health Tip:**\n\n- **{disease['tip_en'][0]}:** {disease['tip_en'][1]}\n\n{disease['sum_en']}\n\nWould you like to see a doctor?"""
-def get_instant_answer(user_text, lang):
-    text = user_text.lower()
-    for keywords, disease in DISEASES:
-        for kw in keywords:
-            if kw.lower() in text: return make_answer_from_disease(disease, lang)
-    clean = user_text.strip()
-    if lang == "Hindi": return f"""आपकी तकलीफ समझ सकते हैं, आराम कीजिए.\n\n**संभावित कारण - {clean} की वजह:**\n\n- **थकान:** नींद पूरी न होने या ज्यादा काम से {clean} में तकलीफ होती है।\n- **संक्रमण:** मौसम बदलने से {clean} में संक्रमण हो जाता है।\n- **कमजोरी:** पानी कम पीने से {clean} में कमजोरी होती है।\n\n**खतरे के लक्षण:**\n\n- **तेज दर्द:** अगर {clean} में बहुत तेज दर्द हो, तो तुरंत दिखाएं।\n- **बुखार / सूजन:** {clean} के साथ तेज बुखार या सूजन हो, तो देर मत करें।\n\n**अभी क्या करें:**\n\n- **आराम करें:** {clean} वाली जगह को आराम दें।\n- **गरम सेंक:** {clean} पर हल्का गरम सेंक करें।\n- **गुनगुना पानी पिएं:** दिन भर गुनगुना पानी पिएं।\n\n**स्वास्थ्य टिप:**\n\n- **रोज टहलें:** रोज 30 मिनट टहल से {clean} की तकलीफ कम होती है।\n\nआपकी तकलीफ - {clean} - ज्यादातर थकान से लग रही है।\n\nक्या आप डॉक्टर से बात करना चाहेंगी?"""
-    else: return f"""I understand, please take rest.\n\n**Possible Causes - Why {clean} happens:**\n\n- **Tiredness:** Less sleep or too much work causes problem in {clean}.\n- **Infection:** Weather change causes infection in {clean}.\n- **Weakness:** Less water causes weakness in {clean}.\n\n**Danger Signs:**\n\n- **Severe Pain:** If severe pain in {clean}, see immediately.\n- **Fever / Swelling:** If high fever or swelling with {clean}, do not wait.\n\n**What To Do Now:**\n\n- **Take Rest:** Give rest to {clean}.\n- **Hot Compress:** Warm cloth on {clean}.\n- **Drink Warm Water:** Warm water through day.\n\n**Health Tip:**\n\n- **Daily Walk:** Walking 30 min daily reduces {clean} problem.\n\nYour problem - {clean} - seems mostly due to tiredness.\n\nWould you like to see a doctor?"""
-def ask_reply(user_text, placeholder):
-    real_lang = detect_language(user_text)
-    if not is_health_related(user_text):
-        msg = out_of_context_msg(real_lang); placeholder.markdown(msg); return msg
-    instant = get_instant_answer(user_text, real_lang); placeholder.markdown(instant); return instant
+def make_ans(d,lang):
+    hi=(lang=="Hindi")
+    title=d[1] if hi else d[2]; c=d[3] if hi else d[4]; dg=d[5] if hi else d[6]; w=d[7] if hi else d[8]; tip=d[9] if hi else d[10]; s=d[11] if hi else d[12]
+    head=f"⚠️ **{T('ये बड़ी बीमारी है, घर पर इलाज मत कीजिए।','This is a serious disease, do not treat at home.')}**\n\n" if d[13] else f"{T('आपकी तकलीफ समझ सकते हैं, आराम कीजिए.','I understand, please take rest.')}\n\n"
+    tail=f"\n\n**{T('तुरंत सरकारी अस्पताल जाएं, वहां इलाज फ्री होता है। 108 पर कॉल करें।','Go to Govt hospital immediately, treatment is FREE there. Call 108.')}**" if d[13] else ""
+    return f"{head}**{T('संभावित कारण -','Possible Causes -')} {title} {T('की वजह:','Why')}**\n\n{c}\n\n**{T('खतरे के लक्षण:','Danger Signs:')}**\n\n{dg}\n\n**{T('अभी क्या करें:','What To Do Now:')}**\n\n{w}\n\n**{T('स्वास्थ्य टिप:','Health Tip:')}**\n\n{tip}\n\n{s}{tail}\n\n{T('क्या आप डॉक्टर से बात करना चाहेंगी?','Would you like to see a doctor?')}"
+def instant(txt,lang):
+    t=txt.lower()
+    for d in DIS:
+        if any(k.lower() in t for k in d[0]): return make_ans(d,lang)
+    cl=txt.strip()
+    if lang=="Hindi": return f"आपकी तकलीफ समझ सकते हैं, आराम कीजिए.\n\n**संभावित कारण - {cl} की वजह:**\n\n- थकान, संक्रमण, कमजोरी से {cl} में तकलीफ होती है।\n\n**खतरे के लक्षण:**\n\n- {cl} में बहुत तेज दर्द, बुखार / सूजन हो तो तुरंत दिखाएं।\n\n**अभी क्या करें:**\n\n- आराम करें, गरम सेंक करें, गुनगुना पानी पिएं।\n\n**स्वास्थ्य टिप:**\n\n- रोज 30 मिनट टहलें।\n\nआपकी तकलीफ - {cl} - ज्यादातर थकान से लग रही है।\n\nक्या आप डॉक्टर से बात करना चाहेंगी?"
+    return f"I understand, please take rest.\n\n**Possible Causes - Why {cl} happens:**\n\n- Tiredness, infection, weakness causes problem in {cl}.\n\n**Danger Signs:**\n\n- Severe pain, fever / swelling in {cl}, see immediately.\n\n**What To Do Now:**\n\n- Take rest, hot compress, warm water.\n\n**Health Tip:**\n\n- Walk 30 min daily.\n\nYour problem - {cl} - seems mostly due to tiredness.\n\nWould you like to see a doctor?"
+def ask_reply(txt,ph):
+    l=detect(txt)
+    if not is_health(txt): m=out_msg(l); ph.markdown(m); return m
+    r=instant(txt,l); ph.markdown(r); return r
+def ask_photo(kw,desc,ph):
+    l="Hindi" if IS_HINDI else "English"
+    if desc.strip() and not is_health(desc): m=out_msg(l); ph.markdown(m); return m
+    r=instant(f"{kw} {desc}",l); ph.markdown(r); return r
 
-# ---------- HOME - BOX UPAR, ANSWER NEECHE ----------
-if menu in ["🏠 Home", "🏠 होम"]:
-    st.markdown(f"""<div class="ai-header"><h1>🩺 Sehat Saathi ✨</h1><p>{T('आपका एआई हेल्थ असिस्टेंट - अपनी तकलीफ लिखें, तुरंत सलाह पाएं','Your AI Health Assistant - Write your symptom, get instant advice')}</p></div>""", unsafe_allow_html=True)
+# ================= PAGES =================
+if menu in ["🏠 Home","🏠 होम"]:
+    st.markdown(f"""<div class="ai-header"><h1>🩺 Sehat Saathi ✨</h1><p>{T('आपका एआई हेल्थ असिस्टेंट - अपनी तकलीफ लिखें, तुरंत सलाह पाएं','Your AI Health Assistant - Write your symptom, get instant advice')}</p></div>""",unsafe_allow_html=True)
     st.write(T("नमस्ते, मैं यहाँ आपकी मदद करने के लिए हूँ! 👋","Hello, I am here to help you! 👋"))
     st.write(T("अपनी तकलीफ लिखें, बोलें या फोटो भेजें।","Write your problem, speak or send photo."))
-    # 1. PEHLE BOX UPAR
-    with st.form("chat_form", clear_on_submit=True):
-        chat_text = st.text_input(T("अपनी तकलीफ लिखें","Write your symptom"), label_visibility="collapsed", placeholder="", value="")
-        submitted = st.form_submit_button(T("➤ भेजें","➤ Send"), use_container_width=True)
-    if submitted and chat_text.strip() != "":
-        real_l = detect_language(chat_text)
-        if not is_health_related(chat_text): reply_temp = out_of_context_msg(real_l)
-        else: reply_temp = get_instant_answer(chat_text, real_l)
-        st.session_state.messages.append({"role": "user", "content": chat_text})
-        st.session_state.messages.append({"role": "assistant", "content": reply_temp, "for_text": chat_text})
-        st.session_state.doctor_asked = False; st.session_state.doctor_step = "none"
-        st.rerun()
-    # 2. PHOTO + VOICE INPUT UPAR
-    col_photo, col_audio = st.columns(2)
-    with col_photo:
-        st.write(T("📷 फोटो","📷 Photo")); uploaded_photo = st.file_uploader("Upload Photo", type=["jpg","jpeg","png"], label_visibility="collapsed", key=f"wa_cam_{st.session_state.uploader_key}")
-    with col_audio:
-        st.write(T("🎤 आवाज़","🎤 Voice")); audio_input = st.audio_input("Speak", label_visibility="collapsed", key="wa_mic")
-    if st.button(T("🧹 चैट साफ करें","🧹 Clear Chat"), use_container_width=True):
-        st.session_state.messages = []; st.session_state.doctor_asked = False; st.session_state.doctor_step = "none"; st.session_state.doctor_location = {}; st.session_state["last_audio_id"] = ""; st.session_state.photo_sent = False; st.session_state.uploader_key += 1; st.rerun()
-    # PHOTO LOGIC - ANSWER PHOTO KE NEECHE
-    if uploaded_photo:
-        st.image(uploaded_photo, width=200)
-        st.write(T("📸 यह फोटो किस चीज़ की है?","📸 What is this photo of?"))
-        photo_type = st.radio("Photo Type", T(["एलर्जी / दाने", "चोट / जख्म", "खुजली / दाने"], ["Allergy / Rash", "Injury / Wound", "Itching / Rash"]), label_visibility="collapsed", horizontal=True, key="photo_type")
-        photo_desc = st.text_input(T("फोटो में क्या दिख रहा है?","What is visible in photo?"), value="", placeholder="", key="photo_desc")
-        if st.button(T("📸 फोटो भेजें","📸 Send Photo"), use_container_width=True):
-            if "चोट" in photo_type or "Injury" in photo_type: kw = "चोट जख्म" if IS_HINDI else "chot zakhm"
-            elif "खुजली" in photo_type or "Itching" in photo_type: kw = "खुजली दाने" if IS_HINDI else "khujli rash"
-            else: kw = "एलर्जी दाने" if IS_HINDI else "allergy daane"
-            photo_text = f"{kw} {photo_desc}".strip()
-            # OUT OF CONTEXT CHECK FOR PHOTO
-            if photo_desc.strip() != "" and not is_health_related(photo_desc) and not is_health_related(kw):
-                reply_photo = out_of_context_msg("Hindi" if IS_HINDI else "English")
-            elif not is_health_related(photo_text):
-                reply_photo = out_of_context_msg("Hindi" if IS_HINDI else "English")
-            else:
-                reply_photo = get_instant_answer(photo_text, "Hindi" if IS_HINDI else "English")
-            st.session_state.messages.append({"role": "user", "content": photo_text, "type": "image", "image": uploaded_photo})
-            st.session_state.messages.append({"role": "assistant", "content": reply_photo, "for_text": photo_text})
-            st.session_state.doctor_asked = False; st.session_state.doctor_step = "none"; st.session_state.photo_sent = True; st.session_state.uploader_key += 1; st.rerun()
-    # AUDIO LOGIC - ANSWER AUDIO KE NEECHE
-    if audio_input and st.session_state.get("last_audio_id") != str(audio_input):
-        st.session_state["last_audio_id"] = str(audio_input)
-        with st.spinner(T("सुन रहे हैं...","Listening...")): voice_text = speech_to_text(audio_input.read())
-        if voice_text and not voice_text.startswith("ERROR:"):
-            st.success(T(f"🗣️ आपने बोला: {voice_text}", f"🗣️ You said: {voice_text}"))
-            real_lv = detect_language(voice_text)
-            if not is_health_related(voice_text): reply_v = out_of_context_msg(real_lv)
-            else: reply_v = get_instant_answer(voice_text, real_lv)
-            st.session_state.messages.append({"role": "user", "content": voice_text})
-            st.session_state.messages.append({"role": "assistant", "content": reply_v, "for_text": voice_text})
-            st.session_state.doctor_asked = False; st.session_state.doctor_step = "none"; st.rerun()
-        else: st.warning(T("आवाज़ समझ नहीं आई, दोबारा बोलिए।","Could not understand, please speak again."))
-    # 3. AB ANSWER SABSE NEECHE
     for m in st.session_state.messages:
         with st.chat_message(m["role"]):
-            if m.get("content") == "DOCTORS_BOX": show_doctor_detail_card(m.get("for_text",""), m.get("loc", st.session_state.doctor_location))
-            elif m.get("type") == "image": st.image(m["image"], caption=T("📸 आपकी फोटो","📸 Your Photo"), use_container_width=True); st.markdown(m["content"])
+            if m.get("content")=="DOCTORS_BOX": show_doctor(m.get("for_text",""),m.get("loc",st.session_state.doctor_location))
+            elif m.get("type")=="image": st.image(m["image"],caption=T("📸 आपकी फोटो","📸 Your Photo"),use_container_width=True); st.markdown(f"**{T('आपने लिखा:','You wrote:')}** {m['content']}")
             else: st.markdown(m["content"])
-    if st.session_state.doctor_step == "location":
-        last_user = ""
+    if st.session_state.doctor_step=="location":
+        lu=""
         for mm in reversed(st.session_state.messages):
-            if mm["role"]=="user": last_user=mm["content"]; break
-        show_location_form(last_user)
-    if st.session_state.messages and st.session_state.messages[-1]["role"] == "assistant" and not st.session_state.doctor_asked and st.session_state.doctor_step == "none":
-        if st.session_state.messages[-1].get("content") != "DOCTORS_BOX":
-            if "सिर्फ स्वास्थ्य" not in st.session_state.messages[-1]["content"] and "only help with health" not in st.session_state.messages[-1]["content"].lower():
-                st.info(T("👨‍⚕️ क्या आप डॉक्टर से बात करना चाहेंगी?","👨‍⚕️ Would you like to see a doctor?"))
-                c1, c2 = st.columns(2)
-                with c1:
-                    if st.button(T("✅ हाँ, डॉक्टर से बात करें","✅ Yes, See Doctor"), use_container_width=True, key="yes_doctor"): st.session_state.doctor_asked = True; st.session_state.doctor_step = "location"; st.rerun()
-                with c2:
-                    if st.button(T("❌ नहीं, बस ऐसे ही","❌ No, Thanks"), use_container_width=True, key="no_doctor"): st.session_state.doctor_asked = True; st.session_state.doctor_step = "none"; st.session_state.messages.append({"role": "assistant", "content": T("ठीक है, अपना ख्याल रखिए। तकलीफ बढ़े तो तुरंत 104 या 108 पर कॉल कीजिएगा।","Okay, take care. If problem increases, call 104 or 108 immediately.")}); st.rerun()
-    show_floating_banner()
+            if mm["role"]=="user": lu=mm["content"]; break
+        loc_form(lu)
+    if st.session_state.messages and st.session_state.messages[-1]["role"]=="assistant" and not st.session_state.doctor_asked and st.session_state.doctor_step=="none" and st.session_state.messages[-1].get("content")!="DOCTORS_BOX" and "सिर्फ स्वास्थ्य" not in st.session_state.messages[-1]["content"] and "only help with health" not in st.session_state.messages[-1]["content"].lower():
+        st.info(T("👨‍⚕️ क्या आप डॉक्टर से बात करना चाहेंगी?","👨‍⚕️ Would you like to see a doctor?"))
+        c1,c2=st.columns(2)
+        with c1:
+            if st.button(T("✅ हाँ, डॉक्टर से बात करें","✅ Yes, See Doctor"),use_container_width=True):
+                st.session_state.doctor_asked=True; st.session_state.doctor_step="location"; st.rerun()
+        with c2:
+            if st.button(T("❌ नहीं, बस ऐसे ही","❌ No, Thanks"),use_container_width=True):
+                st.session_state.doctor_asked=True; st.session_state.messages.append({"role":"assistant","content":T("ठीक है, अपना ख्याल रखिए। तकलीफ बढ़े तो तुरंत 104 या 108 पर कॉल कीजिएगा।","Okay, take care. If problem increases, call 104 or 108 immediately.")}); st.rerun()
+    st.markdown("---")
+    st.write(f"**{T('✍️ अपनी तकलीफ लिखें','✍️ Write Your Symptom')}**")
+    with st.form("chat_form",clear_on_submit=True):
+        ct=st.text_input("Type...",label_visibility="collapsed"); sub=st.form_submit_button(T("➤ भेजें","➤ Send"),use_container_width=True)
+    if sub and ct.strip():
+        st.session_state.messages.append({"role":"user","content":ct}); st.session_state.doctor_asked=False; st.session_state.doctor_step="none"
+        with st.chat_message("user"): st.markdown(ct)
+        with st.chat_message("assistant"): r=ask_reply(ct,st.empty())
+        st.session_state.messages.append({"role":"assistant","content":r,"for_text":ct}); st.rerun()
+    if st.button(T("🧹 चैट साफ करें","🧹 Clear Chat"),use_container_width=True):
+        for k in ["messages","doctor_asked","doctor_step","doctor_location","last_audio_id","photo_sent"]: st.session_state[k]=[] if k=="messages" else False if k=="doctor_asked" else "none" if k=="doctor_step" else {} if k=="doctor_location" else "" if k=="last_audio_id" else False
+        st.session_state.uploader_key+=1; st.rerun()
+    cp,ca=st.columns(2)
+    with cp:
+        st.write(T("📷 फोटो","📷 Photo")); up=st.file_uploader("Upload Photo",type=["jpg","jpeg","png"],label_visibility="collapsed",key=f"wa_cam_{st.session_state.uploader_key}")
+    with ca:
+        st.write(T("🎤 आवाज़","🎤 Voice")); au=st.audio_input("Speak",label_visibility="collapsed",key="wa_mic")
+    if up:
+        st.image(up,width=200); st.write(T("📸 यह फोटो किस चीज़ की है?","📸 What is this photo of?"))
+        pt=st.radio("Photo Type",T(["एलर्जी / दाने","चोट / जख्म","खुजली / दाने"],["Allergy / Rash","Injury / Wound","Itching / Rash"]),label_visibility="collapsed",horizontal=True)
+        pd=st.text_input(T("फोटो में क्या दिख रहा है?","What is visible in photo?"),key="photo_desc")
+        if st.button(T("📸 फोटो भेजें","📸 Send Photo"),use_container_width=True):
+            kw="चोट जख्म" if "चोट" in pt or "Injury" in pt else "खुजली दाने" if "खुजली" in pt or "Itching" in pt else "एलर्जी दाने" if IS_HINDI else "chot zakhm" if "Injury" in pt else "khujli rash" if "Itching" in pt else "allergy daane"
+            ptxt=f"{kw} {pd}".strip()
+            with st.chat_message("user"): st.image(up,caption=T("📸 आपकी फोटो","📸 Your Photo"),use_container_width=True); st.markdown(f"**{T('आपने लिखा:','You wrote:')}** {ptxt}")
+            with st.chat_message("assistant"): r=ask_photo(kw,pd,st.empty())
+            st.session_state.messages.append({"role":"user","content":ptxt,"type":"image","image":up}); st.session_state.messages.append({"role":"assistant","content":r,"for_text":ptxt}); st.session_state.doctor_asked=False; st.session_state.doctor_step="none"; st.session_state.uploader_key+=1; st.rerun()
+    if au and st.session_state.get("last_audio_id")!=str(au):
+        st.session_state["last_audio_id"]=str(au)
+        with st.spinner(T("सुन रहे हैं...","Listening...")): vt=speech_to_text(au.read())
+        if vt and not vt.startswith("ERROR:"):
+            with st.chat_message("user"): st.markdown(f"🎤 {T('आपने बोला:','You said:')} {vt}")
+            st.session_state.messages.append({"role":"user","content":vt}); st.session_state.doctor_asked=False; st.session_state.doctor_step="none"
+            with st.chat_message("assistant"): r=ask_reply(vt,st.empty())
+            st.session_state.messages.append({"role":"assistant","content":r,"for_text":vt}); st.rerun()
+        else: st.warning(T("आवाज़ समझ नहीं आई, दोबारा बोलिए।","Could not understand, please speak again."))
+    banner()
 
-elif menu in ["💊 Medicine Reminder", "💊 दवाई रिमाइंडर"]:
-    st.title(T("💊 दवाई रिमाइंडर","💊 Medicine Reminder"))
-    st.write(T("दवाई का समय सेट कीजिए, समय होने पर ऐप याद दिलाएगा।","Set medicine time, app will remind you."))
+elif menu in ["💊 Medicine Info","💊 दवाई की जानकारी"]:
+    st.title(T("💊 दवाई की जानकारी","💊 Medicine Info")); st.write(T("दुनिया की कोई भी दवाई का नाम लिखें, उसके बारे में पूरी जानकारी मिलेगी।","Write name of any medicine in the world, you will get full info about it."))
+    st.write(f"**{T('💊 दवाई का नाम लिखें','💊 Write Medicine Name')}**")
+    mi=st.text_input(T("दवाई का नाम...","Medicine name..."),key="med_info_input")
+    if st.button(T("🔍 दवाई की जानकारी देखें","🔍 See Medicine Info"),use_container_width=True):
+        if not mi.strip(): st.warning(T("पहले दवाई का नाम लिखिए।","First write medicine name."))
+        else: st.markdown(f"**{T('आपने लिखा:','You wrote:')}** {mi}"); st.markdown("---"); st.markdown(f"""<div class="medicine-card">{med_info(mi,"Hindi" if IS_HINDI else "English")}</div>""",unsafe_allow_html=True)
+    st.markdown("---"); st.write(T("**लोकप्रिय दवाइयां:**","**Popular Medicines:**"))
+    cols=st.columns(3)
+    for i,p in enumerate(["Paracetamol","Azithromycin","Cetirizine","Omeprazole","Ibuprofen","ORS"]):
+        with cols[i%3]:
+            if st.button(p,key=f"pop_{p}"): st.markdown(f"**{T('आपने लिखा:','You wrote:')}** {p}"); st.markdown(med_info(p,"Hindi" if IS_HINDI else "English"))
+    st.info(T("⚠️ ये जानकारी सिर्फ समझने के लिए है, डॉक्टर की जगह नहीं लेती।","⚠️ This info is only for understanding, not a replacement for doctor."))
+    banner()
+
+elif menu in ["💊 Medicine Reminder","💊 दवाई रिमाइंडर"]:
+    st.title(T("💊 दवाई रिमाइंडर","💊 Medicine Reminder")); st.write(T("दवाई का समय सेट कीजिए, समय होने पर ऐप याद दिलाएगा।","Set medicine time, app will remind you."))
     with st.form("reminder_form"):
-        med_name = st.text_input(T("दवाई का नाम","Medicine Name"), value="", placeholder="")
-        st.write(T("समय","Time")); c_h, c_m, c_ap = st.columns(3)
-        with c_h: hour = st.selectbox(T("घंटा","Hour"), list(range(1, 13)), index=None, placeholder="")
-        with c_m: minute = st.selectbox(T("मिनट","Minute"), [f"{i:02d}" for i in range(0, 60)], index=None, placeholder="")
-        with c_ap: ampm = st.radio("AM / PM", ["AM", "PM"], horizontal=True)
-        med_days = st.number_input(T("कितने दिन तक?","How many days?"), min_value=1, max_value=30, value=None, placeholder="")
-        if st.form_submit_button(T("✅ रिमाइंडर सेट करें","✅ Set Reminder"), use_container_width=True):
-            if med_name.strip() == "" or hour is None or minute is None or med_days is None: st.warning(T("पहले दवाई का नाम, समय और दिन लिखिए","First write medicine name, time and days"))
+        mn=st.text_input(T("दवाई का नाम","Medicine Name")); st.write(T("समय","Time")); ch,cm,cap=st.columns(3)
+        with ch: h=st.selectbox(T("घंटा","Hour"),list(range(1,13)),index=None,placeholder="")
+        with cm: mi2=st.selectbox(T("मिनट","Minute"),[f"{i:02d}" for i in range(60)],index=None,placeholder="")
+        with cap: ap=st.radio("AM / PM",["AM","PM"],horizontal=True)
+        md=st.number_input(T("कितने दिन तक?","How many days?"),min_value=1,max_value=30,value=None,placeholder="")
+        if st.form_submit_button(T("✅ रिमाइंडर सेट करें","✅ Set Reminder"),use_container_width=True):
+            if not mn.strip() or h is None or mi2 is None or md is None: st.warning(T("पहले दवाई का नाम, समय और दिन लिखिए","First write medicine name, time and days"))
             else:
-                hour_24 = hour % 12
-                if ampm == "PM": hour_24 += 12
-                if ampm == "AM" and hour == 12: hour_24 = 0
-                time_str = f"{hour_24:02d}:{minute}"; display_time = f"{hour}:{minute} {ampm}"
-                st.session_state.reminders.append({"name": med_name.strip(), "time": time_str, "display": display_time, "days": med_days, "hour24": hour_24, "minute": minute})
-                st.success(T(f"✅ रिमाइंडर सेट: {med_name.strip()} - {display_time} - {med_days} दिन", f"✅ Reminder set: {med_name.strip()} - {display_time} - {med_days} days"))
-    st.markdown("---"); st.write(T("📋 **आपके रिमाइंडर**","📋 **Your Reminders**")); now_str = datetime.datetime.now().strftime("%H:%M")
+                h24=h%12 + (12 if ap=="PM" else 0) if not (ap=="AM" and h==12) else 0
+                st.session_state.reminders.append({"name":mn.strip(),"time":f"{h24:02d}:{mi2}","display":f"{h}:{mi2} {ap}","days":md,"hour24":h24,"minute":mi2}); st.success(T(f"✅ रिमाइंडर सेट: {mn} - {h}:{mi2} {ap} - {md} दिन",f"✅ Reminder set: {mn} - {h}:{mi2} {ap} - {md} days"))
+    st.markdown("---"); st.write(T("📋 **आपके रिमाइंडर**","📋 **Your Reminders**")); now=datetime.datetime.now().strftime("%H:%M")
     for r in st.session_state.reminders:
-        r_time_short = r["time"][:5]; show_time = r.get("display", r["time"])
-        if r_time_short == now_str: st.error(T(f"🔔 दवाई का समय हो गया! {r['name']} ले लीजिए! - {show_time}", f"🔔 TIME FOR MEDICINE! Take {r['name']} now! - {show_time}"))
-        st.info(T(f"💊 {r['name']} - ⏰ {show_time} - 📅 {r['days']} दिन", f"💊 {r['name']} - ⏰ {show_time} - 📅 {r['days']} days"))
-        today = datetime.date.today().strftime("%Y%m%d"); hh = str(r.get("hour24", 9)).zfill(2); mm = str(r.get("minute", "00")).zfill(2)
-        gcal_url = f"https://calendar.google.com/calendar/render?action=TEMPLATE&text={urllib.parse.quote(r['name'] + ' - Dawa Leni Hai')}&dates={today}T{hh}{mm}00/{today}T{hh}{mm}00&recur=RRULE:FREQ=DAILY;COUNT={r['days']}&details={urllib.parse.quote('Daily Medicine Reminder - ' + r['name'])}"
-        st.link_button(T("📅 गूगल कैलेंडर में जोड़ें - रोज़ दोहराएं","📅 Add to Google Calendar - Daily Repeat"), gcal_url, use_container_width=True)
+        if r["time"][:5]==now: st.error(T(f"🔔 दवाई का समय हो गया! {r['name']} ले लीजिए!","🔔 TIME FOR MEDICINE! Take "+r['name']+" now!"))
+        st.info(f"💊 {r['name']} - ⏰ {r['display']} - 📅 {r['days']} {T('दिन','days')}")
+        today=datetime.date.today().strftime("%Y%m%d"); hh=str(r["hour24"]).zfill(2); mm=str(r["minute"]).zfill(2)
+        st.link_button(T("📅 गूगल कैलेंडर में जोड़ें","📅 Add to Google Calendar"),f"https://calendar.google.com/calendar/render?action=TEMPLATE&text={urllib.parse.quote(r['name'])}&dates={today}T{hh}{mm}00/{today}T{hh}{mm}00&recur=RRULE:FREQ=DAILY;COUNT={r['days']}",use_container_width=True)
     if st.session_state.reminders:
-        if st.button(T("🗑️ सारे रिमाइंडर हटाएं","🗑️ Delete All Reminders"), use_container_width=True): st.session_state.reminders = []; st.rerun()
+        if st.button(T("🗑️ सारे रिमाइंडर हटाएं","🗑️ Delete All Reminders"),use_container_width=True): st.session_state.reminders=[]; st.rerun()
     else: st.write(T("अभी कोई रिमाइंडर नहीं है।","No reminders yet."))
-    show_floating_banner()
+    banner()
 
-elif menu in ["👨‍⚕️ Talk To Doctor", "👨‍⚕️ डॉक्टर से बात करें"]:
-    st.title(T("👨‍⚕️ डॉक्टर से बात करें","👨‍⚕️ Talk To Doctor"))
-    st.success(T("ये सब सरकारी डॉक्टर की सेवाएं हैं, 100% असली।","All these are Government doctor services, 100% Real."))
-    st.write(T("पहले अपनी तकलीफ लिखें, फिर लोकेशन बताएं, डॉक्टर की पूरी जानकारी मिलेगी।","First write your problem, then tell location, you will get full doctor details."))
-    talk_symptom = st.text_input(T("अपनी तकलीफ लिखें","Write Your Problem"), value="", placeholder="", key="talk_symptom")
-    if talk_symptom.strip() != "": show_location_form(talk_symptom)
-    st.markdown("---"); st.markdown(f"### {T('📞 104 - हेल्थ हेल्पलाइन','📞 104 - Health Helpline')}")
-    st.link_button(T("📞 104 पर कॉल करें","📞 Call 104"), "tel:104", use_container_width=True)
-    st.markdown(f"### {T('🏥 नज़दीकी सरकारी अस्पताल','🏥 Nearest Government Hospital')}")
-    st.write(T("- **सुबह:** 9 बजे से 1 बजे तक ओपीडी","- **Morning:** 9 AM to 1 PM OPD"))
-    show_floating_banner()
+elif menu in ["👨‍⚕️ Talk To Doctor","👨‍⚕️ डॉक्टर से बात करें"]:
+    st.title(T("👨‍⚕️ डॉक्टर से बात करें","👨‍⚕️ Talk To Doctor")); st.success(T("ये सब सरकारी डॉक्टर की सेवाएं हैं, 100% असली।","All these are Government doctor services, 100% Real."))
+    ts=st.text_input(T("अपनी तकलीफ लिखें","Write Your Problem"),key="talk_symptom")
+    if ts.strip(): loc_form(ts)
+    st.markdown("---"); st.markdown(f"### {T('📞 104 - हेल्थ हेल्पलाइन','📞 104 - Health Helpline')}"); st.link_button(T("📞 104 पर कॉल करें","📞 Call 104"),"tel:104",use_container_width=True)
+    st.markdown(f"### {T('🏥 नज़दीकी सरकारी अस्पताल','🏥 Nearest Government Hospital')}"); st.write(T("- **सुबह:** 9 बजे से 1 बजे तक ओपीडी","- **Morning:** 9 AM to 1 PM OPD")); banner()
 
-elif menu in ["🚨 Emergency", "🚨 आपातकाल"]:
-    st.title(T("🚨 आपातकाल - Emergency","🚨 Emergency"))
-    st.error(T("अगर तकलीफ बहुत ज़्यादा है तो पहले CALL करें, ऐप का इंतज़ार मत करें!","If problem is very serious, CALL FIRST, do not wait for app!"))
-    st.markdown(f"### {T('📞 आपातकालीन नंबर - पहले इन पर कॉल करें','📞 Emergency Numbers - Call These First')}")
-    st.link_button(T("🚑 108 - एम्बुलेंस बुलाएं","🚑 108 - Call Ambulance"), "tel:108", use_container_width=True)
-    st.link_button(T("🚓 112 - पुलिस / आपातकाल","🚓 112 - Police / Emergency"), "tel:112", use_container_width=True)
-    st.link_button(T("🔥 101 - फायर ब्रिगेड","🔥 101 - Fire Brigade"), "tel:101", use_container_width=True)
-    st.link_button(T("📞 104 - हेल्थ हेल्पलाइन","📞 104 - Health Helpline"), "tel:104", use_container_width=True)
-    st.link_button(T("👧 1098 - चाइल्ड हेल्पलाइन","👧 1098 - Child Helpline"), "tel:1098", use_container_width=True)
-    st.link_button(T("👩 181 - महिला हेल्पलाइन","👩 181 - Women Helpline"), "tel:181", use_container_width=True)
-    st.markdown("---"); st.markdown(f"### {T('🆘 अपनी इमरजेंसी लिखें / बोलें','🆘 Write / Speak Your Emergency')}")
-    st.write(T("जैसे: हाथ कट गया, खून आ रहा है, सांस नहीं आ रही","Like: hand cut, bleeding, cannot breathe"))
-    em_text = st.text_input(T("इमरजेंसी लिखें...","Write emergency..."), value="", placeholder="", key="em_text")
-    em_audio = st.audio_input(T("इमरजेंसी बोलें","Speak Emergency"), key="em_mic")
-    em_final = em_text
-    if em_audio and st.session_state.get("last_em_audio") != str(em_audio):
-        st.session_state["last_em_audio"] = str(em_audio); vt = speech_to_text(em_audio.read())
-        if vt and not vt.startswith("ERROR:"): st.success(T(f"🗣️ आपने बोला: {vt}", f"🗣️ You said: {vt}")); em_final = vt
-    if st.button(T("🚨 इमरजेंसी स्टेप्स देखें","🚨 See Emergency Steps"), use_container_width=True):
-        e = (em_final or "").lower()
-        if e.strip()=="": st.warning(T("पहले अपनी इमरजेंसी लिखें या बोलें।","First write or speak your emergency."))
-        elif "कट" in e or "खून" in e or "blood" in e or "चोट" in e or "cut" in e: st.error(T("**कट / खून - एम्बुलेंस आने तक:**\n1. 108 पर कॉल करें\n2. साफ कपड़े से ज़ोर से दबाएं\n3. हाथ / पैर ऊपर रखें","**CUT / BLEEDING - Till Ambulance Arrives:**\n1. Call 108\n2. Press firmly with clean cloth\n3. Keep hand / leg up"))
-        elif "सांस" in e or "breath" in e or "गला" in e or "choke" in e: st.error(T("**सांस की समस्या - एम्बुलेंस आने तक:**\n1. 108 पर कॉल करें\n2. मरीज़ को सीधा बैठाएं\n3. गले के कपड़े ढीले कर दें","**BREATHING PROBLEM - Till Ambulance Arrives:**\n1. Call 108\n2. Make patient sit straight\n3. Loosen clothes around neck"))
-        elif "बुखार" in e or "fever" in e: st.error(T("**तेज़ बुखार - एम्बुलेंस आने तक:**\n1. ठंडी पट्टी रखें\n2. भारी कपड़े हटा दें\n3. थोड़ा-थोड़ा पानी पिलाते रहें","**HIGH FEVER - Till Ambulance Arrives:**\n1. Keep cold wet cloth\n2. Remove heavy blanket\n3. Give water in small sips"))
-        elif "उल्टी" in e or "vomit" in e: st.error(T("**उल्टी - एम्बुलेंस आने तक:**\n1. मरीज़ को एक तरफ लिटाएं\n2. थोड़ा-थोड़ा ओआरएस पिलाएं","**VOMITING - Till Ambulance Arrives:**\n1. Make patient lie on one side\n2. Give ORS in small sips"))
-        elif "बेहोश" in e or "faint" in e: st.error(T("**बेहोश - एम्बुलेंस आने तक:**\n1. सांस चेक करें\n2. सांस चल रही है तो एक तरफ लिटाएं\n3. पानी / खाना मत पिलाएं\n4. तुरंत 108 पर कॉल करें","**UNCONSCIOUS - Till Ambulance Arrives:**\n1. Check breathing\n2. If breathing, lie on one side\n3. Do not give water / food\n4. Call 108 immediately"))
-        else: st.error(T("**इमरजेंसी - एम्बुलेंस आने तक:**\n1. घबराएं नहीं, 108 पर कॉल करें\n2. मरीज़ को सीधा लिटाएं","**EMERGENCY - Till Ambulance Arrives:**\n1. Do not panic, call 108\n2. Lay patient straight"))
+elif menu in ["🚨 Emergency","🚨 आपातकाल"]:
+    st.title(T("🚨 आपातकाल - Emergency","🚨 Emergency")); st.error(T("अगर तकलीफ बहुत ज़्यादा है तो पहले CALL करें, ऐप का इंतज़ार मत करें!","If problem is very serious, CALL FIRST, do not wait for app!"))
+    for lbl,link in [(T("🚑 108 - एम्बुलेंस बुलाएं","🚑 108 - Call Ambulance"),"tel:108"),(T("🚓 112 - पुलिस / आपातकाल","🚓 112 - Police / Emergency"),"tel:112"),(T("🔥 101 - फायर ब्रिगेड","🔥 101 - Fire Brigade"),"tel:101"),(T("📞 104 - हेल्थ हेल्पलाइन","📞 104 - Health Helpline"),"tel:104"),(T("👧 1098 - चाइल्ड हेल्पलाइन","👧 1098 - Child Helpline"),"tel:1098"),(T("👩 181 - महिला हेल्पलाइन","👩 181 - Women Helpline"),"tel:181")]: st.link_button(lbl,link,use_container_width=True)
+    st.markdown("---"); st.markdown(f"### {T('🆘 अपनी इमरजेंसी लिखें / बोलें','🆘 Write / Speak Your Emergency')}"); st.write(T("जैसे: हाथ कट गया, खून आ रहा है, सांस नहीं आ रही","Like: hand cut, bleeding, cannot breathe"))
+    et=st.text_input(T("इमरजेंसी लिखें...","Write emergency..."),key="em_text"); ea=st.audio_input(T("इमरजेंसी बोलें","Speak Emergency"),key="em_mic"); ef=et
+    if ea and st.session_state.get("last_em_audio")!=str(ea):
+        st.session_state["last_em_audio"]=str(ea); vt=speech_to_text(ea.read())
+        if vt and not vt.startswith("ERROR:"): st.success(T(f"🗣️ आपने बोला: {vt}",f"🗣️ You said: {vt}")); ef=vt
+    if st.button(T("🚨 इमरजेंसी स्टेप्स देखें","🚨 See Emergency Steps"),use_container_width=True):
+        e=(ef or "").lower()
+        if not e.strip(): st.warning(T("पहले अपनी इमरजेंसी लिखें या बोलें।","First write or speak your emergency."))
+        elif any(w in e for w in ["कट","खून","blood","चोट","cut"]): st.error(T("**कट / खून:**\n1. 108 पर कॉल करें\n2. साफ कपड़े से ज़ोर से दबाएं\n3. हाथ / पैर ऊपर रखें","**CUT / BLEEDING:**\n1. Call 108\n2. Press firmly with clean cloth\n3. Keep hand / leg up"))
+        elif any(w in e for w in ["सांस","breath","गला","choke"]): st.error(T("**सांस की समस्या:**\n1. 108 पर कॉल करें\n2. मरीज़ को सीधा बैठाएं\n3. गले के कपड़े ढीले करें","**BREATHING PROBLEM:**\n1. Call 108\n2. Make patient sit straight\n3. Loosen clothes around neck"))
+        elif any(w in e for w in ["बुखार","fever"]): st.error(T("**तेज़ बुखार:**\n1. ठंडी पट्टी रखें\n2. भारी कपड़े हटा दें\n3. थोड़ा-थोड़ा पानी पिलाएं","**HIGH FEVER:**\n1. Keep cold wet cloth\n2. Remove heavy blanket\n3. Give water in small sips"))
+        elif any(w in e for w in ["उल्टी","vomit"]): st.error(T("**उल्टी:**\n1. मरीज़ को एक तरफ लिटाएं\n2. थोड़ा-थोड़ा ओआरएस पिलाएं","**VOMITING:**\n1. Make patient lie on one side\n2. Give ORS in small sips"))
+        elif any(w in e for w in ["बेहोश","faint"]): st.error(T("**बेहोश:**\n1. सांस चेक करें\n2. सांस चल रही है तो एक तरफ लिटाएं\n3. पानी / खाना मत पिलाएं\n4. तुरंत 108 पर कॉल करें","**UNCONSCIOUS:**\n1. Check breathing\n2. If breathing, lie on one side\n3. Do not give water / food\n4. Call 108 immediately"))
+        else: st.error(T("**इमरजेंसी:**\n1. घबराएं नहीं, 108 पर कॉल करें\n2. मरीज़ को सीधा लिटाएं","**EMERGENCY:**\n1. Do not panic, call 108\n2. Lay patient straight"))
     st.markdown("---"); st.markdown(f"### {T('🆘 इमरजेंसी टिप्स','🆘 Emergency Tips')}")
-    st.write(T("- **चोट:** साफ कपड़े से दबाएं, हल्दी / मिट्टी मत लगाएं","- **Injury:** Press with clean cloth, do not apply haldi / mud"))
-    st.write(T("- **सांस:** सीधा बैठाएं, कपड़े ढीले करें","- **Breathing:** Sit straight, loosen clothes"))
-    st.write(T("- **बुखार:** ठंडी पट्टी, थोड़ा-थोड़ा पानी","- **Fever:** Cold cloth, water in small sips"))
-    st.write(T("- **बेहोश:** पानी मत पिलाएं, एक तरफ लिटाएं, 108 पर कॉल करें","- **Unconscious:** Do not give water, lie on side, call 108"))
-    show_floating_banner()
+    for tip in [T("- **चोट:** साफ कपड़े से दबाएं, हल्दी / मिट्टी मत लगाएं","- **Injury:** Press with clean cloth, do not apply haldi / mud"),T("- **सांस:** सीधा बैठाएं, कपड़े ढीले करें","- **Breathing:** Sit straight, loosen clothes"),T("- **बुखार:** ठंडी पट्टी, थोड़ा-थोड़ा पानी","- **Fever:** Cold cloth, water in small sips"),T("- **बेहोश:** पानी मत पिलाएं, एक तरफ लिटाएं, 108 पर कॉल करें","- **Unconscious:** Do not give water, lie on side, call 108")]: st.write(tip)
+    banner()
 
-# ---------- NEW PAGE 1 - HOSPITAL FINDER - EMERGENCY KE BAAD ----------
-elif menu in ["🏥 Hospital Finder", "🏥 हॉस्पिटल खोजें"]:
-    st.title(T("🏥 हॉस्पिटल खोजें - Hospital Finder","🏥 Hospital Finder"))
-    st.write(T("अपनी लोकेशन डालिए, आपके पास के हॉस्पिटल की लिस्ट आ जाएगी।","Enter your location, list of hospitals near you will appear."))
-    # BOX UPAR, ANSWER NEECHE
-    hosp_city = st.text_input(T("शहर का नाम","City Name"), value="", placeholder="", key="hosp_city")
-    hosp_pin = st.text_input(T("पिनकोड","Pincode"), value="", placeholder="", key="hosp_pin")
-    hosp_type = st.selectbox(T("कौन सा हॉस्पिटल चाहिए?","Which Hospital Do You Need?"), T(["सभी हॉस्पिटल", "सरकारी हॉस्पिटल", "प्राइवेट हॉस्पिटल", "बच्चों का हॉस्पिटल", "आंख का हॉस्पिटल", "दांत का हॉस्पिटल", "महिला हॉस्पिटल"], ["All Hospitals", "Government Hospital", "Private Hospital", "Children Hospital", "Eye Hospital", "Dental Hospital", "Women Hospital"]), index=None, placeholder="", key="hosp_type")
-    if st.button(T("🔍 हॉस्पिटल खोजें","🔍 Find Hospitals"), use_container_width=True):
-        if hosp_city.strip() == "" or hosp_pin.strip() == "":
-            st.warning(T("पहले शहर और पिनकोड लिखिए।","First write city and pincode."))
+elif menu in ["🏥 Hospital Finder","🏥 अस्पताल खोजें"]:
+    st.title(T("🏥 अस्पताल खोजें","🏥 Hospital Finder")); st.write(T("अपना शहर और पिनकोड लिखें, आपके पास के अस्पतालों की लिस्ट आ जाएगी।","Write your city and pincode, list of hospitals near you will appear."))
+    hc=st.text_input(T("शहर का नाम","City Name"),key="hosp_city"); hp=st.text_input(T("पिनकोड","Pincode"),key="hosp_pin")
+    if st.button(T("🏥 अस्पताल खोजें","🏥 Find Hospitals"),use_container_width=True):
+        if not hc.strip() or not hp.strip(): st.warning(T("पहले शहर और पिनकोड लिखिए।","First write city and pincode."))
         else:
-            st.session_state.hosp_location = {"city": hosp_city.strip(), "pincode": hosp_pin.strip(), "type": hosp_type}
-            st.rerun()
-    # ANSWER - BOX KE NEECHE
-    if st.session_state.hosp_location:
-        city = st.session_state.hosp_location["city"]; pin = st.session_state.hosp_location["pincode"]; typ = st.session_state.hosp_location.get("type") or (T("सभी हॉस्पिटल","All Hospitals"))
-        st.success(T(f"📍 {city}, {pin} - {typ} की लिस्ट","📍 List of " + str(typ) + f" in {city}, {pin}"))
-        hosp_types = [
-            (T("🏥 सरकारी हॉस्पिटल - FREE इलाज","🏥 Government Hospital - FREE Treatment"), f"Government Hospital in {city} {pin}", T("यहाँ आयुष्मान कार्ड पर FREE इलाज होता है। OPD सुबह 9 - दोपहर 1 बजे तक।","Ayushman Card FREE treatment here. OPD 9 AM - 1 PM.")),
-            (T("🏥 प्राइवेट हॉस्पिटल","🏥 Private Hospital"), f"Private Hospital in {city} {pin}", T("24 घंटे इमरजेंसी, सभी स्पेशलिस्ट डॉक्टर।","24 hours emergency, all specialist doctors.")),
-            (T("🏥 प्राथमिक स्वास्थ्य केंद्र - PHC","🏥 Primary Health Centre - PHC"), f"PHC Primary Health Centre in {city} {pin}", T("गांव / मोहल्ले का सबसे नज़दीकी सरकारी सेंटर। BP, Sugar, बुखार की FREE जांच।","Nearest Govt centre. FREE BP, Sugar, Fever check.")),
-            (T("👶 बच्चों का हॉस्पिटल","👶 Children Hospital"), f"Children Hospital in {city} {pin}", T("बच्चों के डॉक्टर, टीके, बुखार, दस्त के लिए।","Child doctor, vaccines, fever, loose motion.")),
-            (T("👁️ आंख का हॉस्पिटल","👁️ Eye Hospital"), f"Eye Hospital in {city} {pin}", T("आंख की जांच, चश्मा, मोतियाबिंद के लिए।","Eye checkup, glasses, cataract.")),
-            (T("🦷 दांत का हॉस्पिटल","🦷 Dental Hospital"), f"Dental Hospital in {city} {pin}", T("दांत दर्द, कीड़ा, मसूड़े के लिए।","Tooth pain, cavity, gum.")),
-            (T("🤰 महिला हॉस्पिटल","🤰 Women Hospital"), f"Women Hospital in {city} {pin}", T("माहवारी, गर्भावस्था, डिलीवरी के लिए।","Periods, pregnancy, delivery.")),
-            (T("💊 नज़दीकी मेडिकल स्टोर","💊 Nearest Medical Store"), f"Medical Store Pharmacy in {city} {pin}", T("दवाई, ORS, बेटाडीन के लिए।","For medicine, ORS, Betadine.")),
-        ]
-        for title, query, desc in hosp_types:
-            gmap = f"https://www.google.com/maps/search/{urllib.parse.quote(query + ' India')}"
-            st.markdown(f"""<div class="hosp-card"><b>{title}</b><br><span>{desc}</span><br><span><b>{T('इलाका:','Area:')}</b> {city}, {pin}, India</span></div>""", unsafe_allow_html=True)
-            st.link_button(T(f"📍 {title} - Maps पर देखें","📍 View on Maps - " + title), gmap, use_container_width=True)
-        st.link_button(T("🚑 108 - एम्बुलेंस बुलाएं","🚑 108 - Call Ambulance"), "tel:108", use_container_width=True)
-        st.link_button(T("📞 104 - हेल्थ हेल्पलाइन","📞 104 - Health Helpline"), "tel:104", use_container_width=True)
-    show_floating_banner()
+            st.success(T(f"✅ {hc} - {hp} के पास के अस्पताल:","✅ Hospitals near "+hc+" - "+hp+":"))
+            for n,ty,ad,ph in hospitals(hc,hp): st.markdown(f"""<div class="hospital-card"><b>🏥 {n}</b><br>{ty}<br>📍 {ad}<br>📞 {ph}</div>""",unsafe_allow_html=True)
+            st.link_button(T("📍 गूगल मैप्स पर सारे अस्पताल देखें","📍 See All Hospitals On Google Maps"),f"https://www.google.com/maps/search/{urllib.parse.quote('hospital near '+hc+' '+hp+' India')}",use_container_width=True)
+            st.link_button(T("🚑 108 - एम्बुलेंस बुलाएं","🚑 108 - Call Ambulance"),"tel:108",use_container_width=True)
+    banner()
 
-# ---------- NEW PAGE 2 - MEDICINE INFO ----------
-elif menu in ["💊 Medicine Info", "💊 दवाई की जानकारी"]:
-    st.title(T("💊 दवाई की जानकारी - Medicine Info","💊 Medicine Info"))
-    st.write(T("दुनिया की कोई भी दवाई डालिए, हम उसकी पूरी जानकारी देंगे - किस काम की है, कैसे लेनी है, साइड इफेक्ट क्या है।","Enter any medicine in the world, we will give full info - what it is for, how to take, side effects."))
-    # BOX UPAR, ANSWER NEECHE
-    med_input = st.text_input(T("दवाई का नाम लिखें","Write Medicine Name"), value="", placeholder="", key="med_info_input")
-    if st.button(T("🔍 दवाई की जानकारी देखें","🔍 See Medicine Info"), use_container_width=True):
-        if med_input.strip() == "":
-            st.warning(T("पहले दवाई का नाम लिखिए।","First write medicine name."))
-        else:
-            st.session_state.med_history.append(med_input.strip())
-            st.rerun()
-    st.write(T("**लोकप्रिय दवाइयां - क्लिक करके देखें:**","**Popular Medicines - Click to See:**"))
-    cols = st.columns(4)
-    popular = ["Paracetamol", "Dolo 650", "Azithromycin", "Cetirizine", "Pantop", "ORS", "Combiflam", "Betadine"]
-    for i, p in enumerate(popular):
-        with cols[i % 4]:
-            if st.button(p, key=f"pop_{p}"): st.session_state.med_history.append(p); st.rerun()
-    # ANSWER - BOX KE NEECHE
-    if st.session_state.med_history:
-        last_med = st.session_state.med_history[-1]
-        info, found_key = get_medicine_info(last_med)
-        if info:
-            name = info["hi_name"] if IS_HINDI else info["en_name"]
-            use = info["use_hi"] if IS_HINDI else info["use_en"]; how = info["how_hi"] if IS_HINDI else info["how_en"]; side = info["side_hi"] if IS_HINDI else info["side_en"]; nottake = info["not_hi"] if IS_HINDI else info["not_en"]
-            st.markdown(f"""<div class="med-card"><b>💊 {name} - {T('पूरी जानकारी','Full Info')}</b><br><br><b>{T('किस काम की है?','What is it for?')}</b><br>{use}<br><br><b>{T('कैसे लेनी है?','How to take?')}</b><br>{how}<br><br><b>{T('साइड इफेक्ट:','Side Effects:')}</b><br>{side}<br><br><b>{T('कब नहीं लेनी?','When NOT to take?')}</b><br>{nottake}<br><br><b>{T('अंदाज़न कीमत:','Approx Price:')}</b> {info['price']}</div>""", unsafe_allow_html=True)
-            st.warning(T("⚠️ ये जानकारी सिर्फ समझने के लिए है। दवाई हमेशा डॉक्टर से पूछकर ही लें। एंटीबायोटिक बिना डॉक्टर के मत लें।","⚠️ This info is only for understanding. Always take medicine after asking doctor. Do not take antibiotics without doctor."))
-            st.link_button(T("💊 नज़दीकी जन औषधि केंद्र - सस्ती दवाई","💊 Nearest Jan Aushadhi Kendra - Cheap Medicine"), "https://janaushadhi.gov.in", use_container_width=True)
-            st.link_button(T("🏥 नज़दीकी मेडिकल स्टोर - Maps","🏥 Nearest Medical Store - Maps"), f"https://www.google.com/maps/search/{urllib.parse.quote('Medical Store near me India')}", use_container_width=True)
-        else:
-            # Duniya ki koi bhi dawai - generic good explanation
-            st.markdown(f"""<div class="med-card"><b>💊 {last_med} - {T('पूरी जानकारी','Full Info')}</b><br><br><b>{T('किस काम की है?','What is it for?')}</b><br>{T(f'{last_med} एक दवाई है। ये दवाई डॉक्टर आपकी तकलीफ के हिसाब से देते हैं। पैकेट पर लिखी बीमारी के लिए ही इसका इस्तेमाल करें।', f'{last_med} is a medicine. Doctor gives this medicine as per your problem. Use it only for disease written on packet.')}<br><br><b>{T('कैसे लेनी है?','How to take?')}</b><br>{T('हमेशा डॉक्टर के बताए अनुसार ही लें। खाना खाने के बाद 1 गोली, पानी के साथ। अपनी मर्जी से डोज मत बढ़ाएं, कोर्स बीच में मत छोड़ें।', 'Always take as doctor says. 1 tablet after food, with water. Do not increase dose yourself, do not leave course in middle.')}<br><br><b>{T('साइड इफेक्ट:','Side Effects:')}</b><br>{T('हर दवाई का हल्का साइड इफेक्ट हो सकता है - जैसे पेट दर्द, चक्कर, नींद। अगर बहुत ज्यादा दिक्कत हो तो दवाई बंद करके तुरंत डॉक्टर को दिखाएं।', 'Every medicine can have mild side effect - like stomach pain, dizziness, sleep. If too much problem, stop medicine and see doctor immediately.')}<br><br><b>{T('कब नहीं लेनी?','When NOT to take?')}</b><br>{T('बिना डॉक्टर के एंटीबायोटिक मत लें। गर्भवती महिला, छोटे बच्चे और लीवर / किडनी की बीमारी वाले लोग पहले डॉक्टर से पूछें।', 'Do not take antibiotics without doctor. Pregnant women, small children and liver / kidney patients should ask doctor first.')}<br><br><b>{T('ज़रूरी बात:','Important:')}</b><br>{T('दवाई की एक्सपायरी डेट जरूर चेक करें। दवाई को बच्चों से दूर रखें।', 'Always check expiry date. Keep medicine away from children.')}</div>""", unsafe_allow_html=True)
-            st.warning(T("⚠️ ये जानकारी सिर्फ समझने के लिए है। सही जानकारी के लिए डॉक्टर या फार्मासिस्ट से पूछें।","⚠️ This info is only for understanding. For correct info, ask doctor or pharmacist."))
-            st.link_button(T("🔍 इस दवाई को Google पर देखें","🔍 Search This Medicine on Google"), f"https://www.google.com/search?q={urllib.parse.quote(last_med + ' medicine uses side effects')}", use_container_width=True)
-            st.link_button(T("💊 नज़दीकी जन औषधि केंद्र - सस्ती दवाई","💊 Nearest Jan Aushadhi Kendra - Cheap Medicine"), "https://janaushadhi.gov.in", use_container_width=True)
-        if st.button(T("🧹 साफ करें","🧹 Clear"), use_container_width=True): st.session_state.med_history = []; st.rerun()
-    show_floating_banner()
+elif menu in ["💡 Health Tips","💡 स्वास्थ्य टिप्स"]:
+    st.title(T("💡 स्वास्थ्य टिप्स - रोज़ का रूटीन","💡 Health Tips - Daily Routine")); st.write(T("ये छोटी-छोटी आदतें आपको बड़े रोग से बचा सकती हैं।","These small habits can save you from big diseases."))
+    for head,lines in [(T("🌅 1. सुबह उठते ही","🌅 1. Morning"),[T("- **गुनगुना पानी:** सुबह 1-2 गिलास गुनगुना पानी पिएं","- **Warm Water:** Drink 1-2 glasses warm water after waking up"),T("- **धूप:** सुबह 15 मिनट धूप में बैठें","- **Sunlight:** Sit in sunlight 15 minutes"),T("- **फोन मत देखें:** उठते ही फोन मत देखें","- **No Phone:** Do not see phone just after waking up")]),(T("🚶 2. टहल और व्यायाम","🚶 2. Walk And Exercise"),[T("- **रोज़ 30 मिनट टहल:** बीपी, शुगर, वज़न नियंत्रण में रहता है","- **30 Min Walk Daily:** Controls BP, sugar and weight"),T("- **सीढ़ी:** लिफ्ट की जगह सीढ़ी इस्तेमाल करें","- **Stairs:** Use stairs instead of lift")]),(T("🍲 3. खाना-पीना","🍲 3. Food And Water"),[T("- **हरी सब्जियां:** रोज़ एक समय हरी सब्जी खाएं","- **Green Vegetables:** Eat green vegetables once daily"),T("- **पानी:** दिन में 8 गिलास पानी पिएं","- **Water:** Drink 8 glasses water daily"),T("- **नमक-कम:** खाने में नमक और तेल कम रखें","- **Less Salt-Oil:** Keep salt and oil less")]),(T("😴 4. नींद","😴 4. Sleep"),[T("- **7-8 घंटे:** रोज़ 7-8 घंटे की नींद लें","- **7-8 Hours:** Take 7-8 hours sleep daily"),T("- **मोबाइल दूर:** सोने से 30 मिनट पहले मोबाइल बंद करें","- **Mobile Away:** Switch off mobile 30 min before sleeping")]),(T("🧼 5. साफ-सफाई","🧼 5. Cleanliness"),[T("- **हाथ धोएं:** खाना खाने से पहले हाथ साबुन से धोएं","- **Wash Hands:** Wash hands with soap before eating"),T("- **दांत:** दिन में 2 बार ब्रश करें","- **Teeth:** Brush 2 times a day")]),(T("👶 6. बच्चों के लिए","👶 6. For Children"),[T("- **टीका:** बच्चों के सारे टीके समय पर लगवाएं, पीएचसी में फ्री","- **Vaccination:** Get all vaccines on time, FREE in PHC"),T("- **दूध:** रोज़ 1 गिलास दूध पिलाएं","- **Milk:** Give 1 glass milk daily")]),(T("👵 7. बुजुर्गों के लिए","👵 7. For Elderly"),[T("- **बीपी-शुगर जांच:** महीने में 1 बार जांच कराएं, पीएचसी में फ्री","- **BP-Sugar Check:** Check once a month, FREE in PHC"),T("- **दवाई समय पर:** दवाई का समय कभी मत छोड़ें","- **Medicine On Time:** Never miss medicine time")])]:
+        st.markdown(f"### {head}")
+        for l in lines: st.write(l)
+    banner()
 
-elif menu in ["💡 Health Tips", "💡 स्वास्थ्य टिप्स"]:
-    st.title(T("💡 स्वास्थ्य टिप्स - रोज़ का रूटीन","💡 Health Tips - Daily Routine"))
-    st.write(T("ये छोटी-छोटी आदतें आपको बड़े रोग से बचा सकती हैं।","These small habits can save you from big diseases."))
-    st.markdown(f"### {T('🌅 1. सुबह उठते ही','🌅 1. Morning')}")
-    st.write(T("- **गुनगुना पानी:** सुबह उठते ही 1-2 गिलास गुनगुना पानी पिएं","- **Warm Water:** Drink 1-2 glasses of warm water after waking up"))
-    st.write(T("- **धूप```python
-    st.write(T("- **धूप:** सुबह 15 मिनट धूप में बैठें, विटामिन डी मिलता है","- **Sunlight:** Sit in sunlight for 15 minutes, you get Vitamin D"))
-    st.write(T("- **फोन मत देखें:** उठते ही फोन मत देखें, 30 मिनट बाद देखें","- **No Phone:** Do not see phone just after waking up"))
-    st.markdown(f"### {T('🚶 2. टहल और व्यायाम','🚶 2. Walk And Exercise')}")
-    st.write(T("- **रोज़ 30 मिनट टहल:** बीपी, शुगर और वज़न नियंत्रण में रहता है","- **30 Min Walk Daily:** Controls BP, sugar and weight"))
-    st.write(T("- **सीढ़ी:** लिफ्ट की जगह सीढ़ी इस्तेमाल करें","- **Stairs:** Use stairs instead of lift"))
-    st.markdown(f"### {T('🍲 3. खाना-पीना','🍲 3. Food And Water')}")
-    st.write(T("- **हरी सब्जियां:** रोज़ एक समय हरी सब्जी खाएं","- **Green Vegetables:** Eat green vegetables once daily"))
-    st.write(T("- **पानी:** दिन में 8 गिलास पानी पिएं","- **Water:** Drink 8 glasses of water daily"))
-    st.write(T("- **नमक-कम:** खाने में नमक और तेल कम रखें","- **Less Salt-Oil:** Keep salt and oil less in food"))
-    st.markdown(f"### {T('😴 4. नींद','😴 4. Sleep')}")
-    st.write(T("- **7-8 घंटे:** रोज़ 7-8 घंटे की नींद लें","- **7-8 Hours:** Take 7-8 hours sleep daily"))
-    st.write(T("- **मोबाइल दूर:** सोने से 30 मिनट पहले मोबाइल बंद कर दें","- **Mobile Away:** Switch off mobile 30 minutes before sleeping"))
-    st.markdown(f"### {T('🧼 5. साफ-सफाई','🧼 5. Cleanliness')}")
-    st.write(T("- **हाथ धोएं:** खाना खाने से पहले हाथ साबुन से धोएं","- **Wash Hands:** Wash hands with soap before eating"))
-    st.write(T("- **दांत:** दिन में 2 बार ब्रश करें","- **Teeth:** Brush 2 times a day"))
-    st.markdown(f"### {T('👶 6. बच्चों के लिए','👶 6. For Children')}")
-    st.write(T("- **टीका:** बच्चों के सारे टीके समय पर लगवाएं, पीएचसी में फ्री लगते हैं","- **Vaccination:** Get all vaccines on time, FREE in PHC"))
-    st.write(T("- **दूध:** रोज़ 1 गिलास दूध पिलाएं","- **Milk:** Give 1 glass milk daily"))
-    st.markdown(f"### {T('👵 7. बुजुर्गों के लिए','👵 7. For Elderly')}")
-    st.write(T("- **बीपी-शुगर जांच:** महीने में 1 बार बीपी और शुगर जांच करवाएं, पीएचसी में फ्री होता है","- **BP-Sugar Check:** Check BP and sugar once a month, FREE in PHC"))
-    st.write(T("- **दवाई समय पर:** दवाई का समय कभी मत छोड़ें","- **Medicine On Time:** Never miss medicine time"))
-    show_floating_banner()
-
-elif menu in ["⚖️ BMI Calculator", "⚖️ बीएमआई कैलकुलेटर"]:
+elif menu in ["⚖️ BMI Calculator","⚖️ बीएमआई कैलकुलेटर"]:
     st.title(T("⚖️ बीएमआई कैलकुलेटर","⚖️ BMI Calculator"))
-    weight = st.number_input(T("वज़न (kg)","Weight (kg)"), min_value=10.0, max_value=200.0, value=None, placeholder="")
-    height = st.number_input(T("ऊंचाई (cm)","Height (cm)"), min_value=100.0, max_value=220.0, value=None, placeholder="")
+    w=st.number_input(T("वज़न (kg)","Weight (kg)"),min_value=10.0,max_value=200.0,value=None,placeholder=""); h=st.number_input(T("ऊंचाई (cm)","Height (cm)"),min_value=100.0,max_value=220.0,value=None,placeholder="")
     if st.button(T("हिसाब लगाएं","Calculate")):
-        if weight is None or height is None:
-            st.warning(T("पहले वज़न और ऊंचाई लिखिए","First write weight and height"))
+        if w is None or h is None: st.warning(T("पहले वज़न और ऊंचाई लिखिए","First write weight and height"))
         else:
-            h_m = height / 100
-            bmi = weight / (h_m * h_m)
-            st.success(f"आपका बीएमआई: {bmi:.1f}" if IS_HINDI else f"Your BMI: {bmi:.1f}")
-            if bmi < 18.5: st.write(T("कम वज़न - स्वस्थ खाना खाएं","Underweight - Eat healthy food"))
-            elif bmi < 25: st.write(T("सामान्य - बहुत बढ़िया!","Normal - Good! Keep it up"))
-            elif bmi < 30: st.write(T("ज्यादा वज़न - रोज़ टहलें","Overweight - Walk daily"))
-            else: st.write(T("मोटापा - डॉक्टर से बात करें","Obese - Please consult doctor"))
-    show_floating_banner()
+            bmi=w/((h/100)**2); st.success(f"आपका बीएमआई: {bmi:.1f}" if IS_HINDI else f"Your BMI: {bmi:.1f}")
+            st.write(T("कम वज़न - स्वस्थ खाना खाएं","Underweight - Eat healthy food") if bmi<18.5 else T("सामान्य - बहुत बढ़िया!","Normal - Good! Keep it up") if bmi<25 else T("ज्यादा वज़न - रोज़ टहलें","Overweight - Walk daily") if bmi<30 else T("मोटापा - डॉक्टर से बात करें","Obese - Please consult doctor"))
+    banner()
 
-elif menu in ["🏛️ Government Schemes", "🏛️ सरकारी योजनाएं"]:
-    st.title(T("🏛️ सरकारी योजनाएं - फ्री का फायदा उठाएं","🏛️ Government Schemes - Take FREE Benefit"))
-    st.success(T("ये सब सरकारी योजनाएं हैं, 100% असली और फ्री। किसी को पैसे मत दें।","All these are Government schemes, 100% Real and FREE. Do not pay money to anyone."))
-    # 1 - Ayushman - FIXED LINK
-    st.markdown(f"""<div class="scheme-card"><b>1. 🩺 {T('आयुष्मान भारत - पीएमजेएवाई','Ayushman Bharat - PMJAY')}</b><br><span>{T('क्या मिलता है: 5 लाख तक का फ्री इलाज, हर साल, पूरे परिवार के लिए','Benefit: FREE treatment up to 5 Lakh, every year, for whole family')}</span><br><span>{T('क्या चाहिए: आधार कार्ड + राशन कार्ड','Need: Aadhaar Card + Ration Card')}</span></div>""", unsafe_allow_html=True)
-    st.link_button(T("🪪 आयुष्मान कार्ड बनाएं / चेक करें - Direct Link","🪪 Make / Check Ayushman Card - Direct Link"), "https://beneficiary.nha.gov.in", use_container_width=True)
-    # 2
-    st.markdown(f"""<div class="scheme-card"><b>2. 💊 {T('जन औषधि - सस्ती दवाई','Jan Aushadhi - Cheap Medicines')}</b><br><span>{T('क्या मिलता है: दवाई 50% से 90% तक सस्ती मिलती है','Benefit: Medicines 50% to 90% cheaper')}</span><br><span>{T('कौन ले सकता है: कोई भी, सबके लिए है','Who Can Get: Anyone, for everyone')}</span></div>""", unsafe_allow_html=True)
-    st.link_button(T("💊 नज़दीकी जन औषधि केंद्र ढूंढें","💊 Find Nearest Jan Aushadhi Kendra"), "https://janaushadhi.gov.in", use_container_width=True)
-    # 3
-    st.markdown(f"""<div class="scheme-card"><b>3. 🤰 {T('पीएम सुरक्षित मातृत्व - गर्भवती महिला','PM Surakshit Matritva - Pregnant Women')}</b><br><span>{T('क्या मिलता है: गर्भवती महिला की फ्री जांच, फ्री दवाई, फ्री अल्ट्रासाउंड','Benefit: FREE checkup, FREE medicine, FREE ultrasound for pregnant women')}</span><br><span>{T('कब: हर महीने की 9 तारीख को पीएचसी में फ्री जांच होती है','When: On 9th of every month, FREE checkup in PHC')}</span></div>""", unsafe_allow_html=True)
-    st.link_button(T("🤰 योजना की जानकारी देखें","🤰 See Scheme Info"), "https://nhm.gov.in", use_container_width=True)
-    # 4
-    st.markdown(f"""<div class="scheme-card"><b>4. 👶 {T('मिशन इंद्रधनुष - बच्चों के टीके','Mission Indradhanush - Children Vaccines')}</b><br><span>{T('क्या मिलता है: बच्चों के सारे टीके बिल्कुल फ्री','Benefit: All vaccines of children totally FREE')}</span><br><span>{T('कहां मिलेगा: गांव के आंगनवाड़ी / पीएचसी में','Where: Village Anganwadi / PHC')}</span></div>""", unsafe_allow_html=True)
-    st.link_button(T("👶 टीके की जानकारी देखें","👶 See Vaccine Info"), "https://nhm.gov.in", use_container_width=True)
-    # 5
-    st.markdown(f"""<div class="scheme-card"><b>5. 👵 {T('पीएम वय वंदना - बुजुर्गों के लिए','PM Vaya Vandana - For Elderly')}</b><br><span>{T('क्या मिलता है: 60 साल से ऊपर के बुजुर्गों को हर महीने पेंशन जैसा पैसा मिलता है','Benefit: Elderly above 60 years get monthly pension-like money')}</span></div>""", unsafe_allow_html=True)
-    st.link_button(T("👵 योजना देखें","👵 See Scheme"), "https://www.licindia.in", use_container_width=True)
-    # 6
-    st.markdown(f"""<div class="scheme-card"><b>6. 🦟 {T('राष्ट्रीय स्वास्थ्य मिशन - फ्री जांच','National Health Mission - FREE Checkup')}</b><br><span>{T('क्या मिलता है: पीएचसी में बीपी, शुगर, बुखार, मलेरिया की जांच बिल्कुल फ्री','Benefit: BP, Sugar, Fever, Malaria checkup totally FREE in PHC')}</span></div>""", unsafe_allow_html=True)
-    st.link_button(T("🦟 NHM वेबसाइट देखें","🦟 See NHM Website"), "https://nhm.gov.in", use_container_width=True)
-    # 7
-    st.markdown(f"""<div class="scheme-card"><b>7. 🤱 {T('जननी सुरक्षा योजना - डिलीवरी','Janani Suraksha Yojana - Delivery')}</b><br><span>{T('क्या मिलता है: सरकारी अस्पताल में FREE डिलीवरी + पैसे की मदद','Benefit: FREE delivery in Govt hospital + cash help')}</span><br><span>{T('कौन ले सकता है: गर्भवती महिला, गांव और शहर दोनों','Who Can Get: Pregnant women, village and city both')}</span></div>""", unsafe_allow_html=True)
-    st.link_button(T("🤱 योजना देखें","🤱 See Scheme"), "https://nhm.gov.in", use_container_width=True)
-    # 8
-    st.markdown(f"""<div class="scheme-card"><b>8. 🪪 {T('आभा कार्ड - डिजिटल हेल्थ ID','ABHA Card - Digital Health ID')}</b><br><span>{T('क्या मिलता है: तुम्हारी सारी हेल्थ रिपोर्ट एक जगह, किसी भी अस्पताल में दिखा सकते हो','Benefit: All your health reports in one place, can show in any hospital')}</span><br><span>{T('क्या चाहिए: आधार कार्ड + मोबाइल नंबर','Need: Aadhaar Card + Mobile Number')}</span></div>""", unsafe_allow_html=True)
-    st.link_button(T("🪪 आभा कार्ड बनाएं - Direct Link","🪪 Make ABHA Card - Direct Link"), "https://abha.abdm.gov.in", use_container_width=True)
-    # 9
-    st.markdown(f"""<div class="scheme-card"><b>9. 🩺 {T('ई-संजीवनी - फ्री ऑनलाइन डॉक्टर','eSanjeevani - FREE Online Doctor')}</b><br><span>{T('क्या मिलता है: घर बैठे सरकारी डॉक्टर से फ्री वीडियो कॉल','Benefit: FREE video call with Govt doctor from home')}</span><br><span>{T('समय: सुबह 10 - शाम 4 | फीस: बिल्कुल फ्री','Timing: 10 AM - 4 PM | Fees: Totally FREE')}</span></div>""", unsafe_allow_html=True)
-    st.link_button(T("🩺 डायरेक्ट लॉगिन करें - ई-संजीवनी","🩺 Direct Login - eSanjeevani"), "https://esanjeevani.mohfw.gov.in/patient/", use_container_width=True)
-    # 10
-    st.markdown(f"""<div class="scheme-card"><b>10. 🧒 {T('राष्ट्रीय बाल स्वास्थ्य - बच्चों की जांच','Rashtriya Bal Swasthya - Child Checkup')}</b><br><span>{T('क्या मिलता है: स्कूल में बच्चों की FREE जांच, आंख, कान, दांत, दिल की जांच','Benefit: FREE checkup of children in school, eye, ear, teeth, heart check')}</span></div>""", unsafe_allow_html=True)
-    st.link_button(T("🧒 योजना देखें","🧒 See Scheme"), "https://nhm.gov.in", use_container_width=True)
-    # 11
-    st.markdown(f"""<div class="scheme-card"><b>11. 🫁 {T('राष्ट्रीय टीबी उन्मूलन - टीबी का फ्री इलाज','National TB Elimination - FREE TB Treatment')}</b><br><span>{T('क्या मिलता है: टीबी की जांच + दवाई बिल्कुल फ्री + इलाज के दौरान पैसे की मदद','Benefit: TB test + medicine totally FREE + cash help during treatment')}</span></div>""", unsafe_allow_html=True)
-    st.link_button(T("🫁 टीबी की जानकारी देखें","🫁 See TB Info"), "https://tbcindia.gov.in", use_container_width=True)
-    # 12
-    st.markdown(f"""<div class="scheme-card"><b>12. 💊 {T('पीएम जन आरोग्य - आयुष्मान वाला अस्पताल','PM Jan Arogya - Ayushman Hospital')}</b><br><span>{T('क्या मिलता है: आयुष्मान कार्ड से लिस्ट वाले अस्पताल में फ्री भर्ती, ऑपरेशन, दवाई','Benefit: With Ayushman Card, FREE admission, operation, medicine in listed hospitals')}</span></div>""", unsafe_allow_html=True)
-    st.link_button(T("💊 अस्पताल की लिस्ट देखें","💊 See Hospital List"), "https://beneficiary.nha.gov.in", use_container_width=True)
-    show_floating_banner()
+elif menu in ["🏛️ Government Schemes","🏛️ सरकारी योजनाएं"]:
+    st.title(T("🏛️ सरकारी योजनाएं - फ्री का फायदा उठाएं","🏛️ Government Schemes - Take FREE Benefit")); st.success(T("ये सब सरकारी योजनाएं हैं, 100% असली और फ्री। किसी को पैसे मत दें।","All these are Government schemes, 100% Real and FREE. Do not pay money to anyone."))
+    SCH=[("🩺",T("आयुष्मान भारत - पीएमजेएवाई","Ayushman Bharat - PMJAY"),T("5 लाख तक का फ्री इलाज, हर साल","FREE treatment up to 5 Lakh, every year"),T("✅ आयुष्मान कार्ड बनाएं / चेक करें","✅ Make / Check Ayushman Card"),"https://beneficiary.nha.gov.in"),("💊",T("जन औषधि - सस्ती दवाई","Jan Aushadhi - Cheap Medicines"),T("दवाई 50% से 90% तक सस्ती","Medicines 50% to 90% cheaper"),T("💊 नज़दीकी जन औषधि केंद्र ढूंढें","💊 Find Nearest Jan Aushadhi Kendra"),"https://janaushadhi.gov.in"),("🩺",T("ई-संजीवनी - फ्री ऑनलाइन डॉक्टर","eSanjeevani - FREE Online Doctor"),T("वीडियो कॉल पर सरकारी डॉक्टर से फ्री बात, सुबह 10 से शाम 4","FREE video call with Govt doctor, 10 AM to 4 PM"),T("🩺 ई-संजीवनी पर फ्री डॉक्टर से बात करें","🩺 Talk To FREE Doctor On eSanjeevani"),"https://esanjeevani.mohfw.gov.in/patient/"),("🤰",T("पीएम सुरक्षित मातृत्व","PM Surakshit Matritva"),T("गर्भवती महिला की फ्री जांच, फ्री दवाई, फ्री अल्ट्रासाउंड","FREE checkup, FREE medicine, FREE ultrasound for pregnant women"),T("🤰 जानकारी देखें","🤰 See Details"),"https://nhm.gov.in"),("👶",T("मिशन इंद्रधनुष - बच्चों के टीके","Mission Indradhanush - Children Vaccines"),T("बच्चों के सारे टीके बिल्कुल फ्री","All vaccines of children totally FREE"),T("👶 टीकाकरण की जानकारी देखें","👶 See Vaccination Details"),"https://www.mohfw.gov.in"),("🤱",T("जननी सुरक्षा योजना","Janani Suraksha Yojana"),T("सरकारी अस्पताल में डिलीवरी पर ₹1400 तक की मदद + फ्री डिलीवरी","Up to Rs. 1400 help + FREE delivery in Govt hospital"),T("🤱 जननी सुरक्षा योजना देखें","🤱 See Janani Suraksha Yojana"),"https://nhm.gov.in"),("👩‍🍼",T("जननी शिशु सुरक्षा","Janani Shishu Suraksha"),T("डिलीवरी, सी-सेक्शन, दवाई, जांच - सब फ्री","Delivery, C-section, medicine, test - All FREE"),T("👩‍🍼 जननी शिशु सुरक्षा देखें","👩‍🍼 See Janani Shishu Suraksha"),"https://nhm.gov.in"),("👵",T("पीएम वय वंदना - बुजुर्गों के लिए","PM Vaya Vandana - For Elderly"),T("60 साल से ऊपर के बुजुर्गों को हर महीने पेंशन जैसा पैसा","Elderly above 60 get monthly pension-like money"),T("👵 पीएम वय वंदना देखें","👵 See PM Vaya Vandana"),"https://www.licindia.in"),("🦟",T("राष्ट्रीय स्वास्थ्य मिशन - फ्री जांच","National Health Mission - FREE Checkup"),T("पीएचसी में बीपी, शुगर, बुखार, मलेरिया की जांच बिल्कुल फ्री","BP, Sugar, Fever, Malaria checkup totally FREE in PHC"),T("🦟 राष्ट्रीय स्वास्थ्य मिशन देखें","🦟 See National Health Mission"),"https://nhm.gov.in"),("🪪",T("आभा कार्ड - डिजिटल हेल्थ आईडी","ABHA Card - Digital Health ID"),T("पूरे इंडिया में किसी भी अस्पताल में सारी रिपोर्ट एक ही कार्ड से","In any hospital in India, all reports with one card"),T("🪪 आभा कार्ड बनाएं","🪪 Make ABHA Card"),"https://abha.abdm.gov.in"),("🧠",T("टेली-मानस - फ्री मानसिक स्वास्थ्य हेल्पलाइन","Tele-MANAS - FREE Mental Health Helpline"),T("घबराहट, उदासी, स्ट्रेस हो तो फ्री में काउंसलर से बात करें - 14416","If anxiety, sadness, stress, talk to counsellor FREE - 14416"),T("📞 14416 पर कॉल करें","📞 Call 14416"),"tel:14416"),("🫁",T("टीबी मुक्त भारत / निक्षय","TB Mukt Bharat / Nikshay"),T("टीबी की जांच, दवाई बिल्कुल फ्री + हर महीने ₹500 पोषण के लिए","TB test, medicine totally FREE + Rs. 500 per month"),T("🫁 निक्षय पोर्टल देखें","🫁 See Nikshay Portal"),"https://nikshay.in")]
+    for i,(ic,ti,be,btn,link) in enumerate(SCH,1):
+        st.markdown(f"""<div class="scheme-card"><b>{i}. {ic} {ti}</b><br><span>{T('क्या मिलता है:','Benefit:')} {be}</span></div>""",unsafe_allow_html=True); st.link_button(btn,link,use_container_width=True)
+    banner()
 
-elif menu in ["ℹ️ About App", "ℹ️ ऐप के बारे में"]:
-    st.title(T("ℹ️ ऐप के बारे में - सेहत साथी","ℹ️ About App - Sehat Saathi"))
-    st.write(T("सेहत साथी **सिर्फ इंडिया के लिए** बनाया गया है - बच्चों से लेकर बुजुर्गों तक, गांव हो या शहर, सभी लोग इसका इस्तेमाल कर सकते हैं।","Sehat Saathi is made **only for India** - from children to elderly, village or city, anyone can use it."))
-    st.markdown("---")
-    st.markdown(f"### {T('🩺 यह ऐप क्या है?','🩺 What Is This App?')}")
-    st.write(T("सेहत साथी एक हेल्थ हेल्पर ऐप है। जब आपको हल्की तकलीफ होती है - जैसे सिर दर्द, बुखार, सर्दी, पेट दर्द - और आपको समझ नहीं आता कि क्या करें, तो यह ऐप तुरंत आपको समझाता है कि यह किस वजह से हो सकता है, कब खतरा है और अभी क्या करना चाहिए।","Sehat Saathi is a health helper app. When you have a small problem - like headache, fever, cold, stomach pain - this app tells you why it can happen, when it is dangerous, and what you should do now."))
+elif menu in ["ℹ️ About App","ℹ️ ऐप के बारे में"]:
+    st.title(T("ℹ️ ऐप के बारे में - सेहत साथी","ℹ️ About App - Sehat Saathi")); st.write(T("सेहत साथी **सिर्फ इंडिया के लिए** बनाया गया है - बच्चों से लेकर बुजुर्गों तक, गांव हो या शहर, सभी लोग इसका इस्तेमाल कर सकते हैं।","Sehat Saathi is made **only for India** - from children to elderly, village or city, anyone can use it."))
+    st.markdown("---"); st.markdown(f"### {T('🩺 यह ऐप क्या है?','🩺 What Is This App?')}")
+    st.write(T("सेहत साथी एक हेल्थ हेल्पर ऐप है। जब आपको हल्की तकलीफ होती है - जैसे सिर दर्द, बुखार, सर्दी, पेट दर्द - तो यह ऐप तुरंत बताता है कि यह किस वजह से हो सकता है, कब खतरा है और अभी क्या करना चाहिए।","Sehat Saathi is a health helper app. When you have a small problem - like headache, fever, cold, stomach pain - this app tells you why it can happen, when it is dangerous, and what you should do now."))
     st.write(T("यह ऐप डॉक्टर की जगह नहीं लेता, यह बस पहली मदद करता है।","This app does not replace a doctor, it only gives first help."))
-    st.markdown("---")
-    st.markdown(f"### {T('✨ फीचर्स','✨ Features')}")
-    st.write(T("- **💬 चैट:** अपनी तकलीफ लिखकर भेजें","- **💬 Chat:** Write your problem"))
-    st.write(T("- **🎤 बोलकर बताएं:** माइक दबाकर बोल दीजिए","- **🎤 Speak:** Press mic and speak"))
-    st.write(T("- **📷 फोटो भेजें:** दाने, चोट या रैश की फोटो भेज दीजिए","- **📷 Send Photo:** Send photo of rash, injury"))
-    st.write(T("- **💊 दवाई रिमाइंडर:** दवाई का समय सेट कीजिए","- **💊 Medicine Reminder:** Set medicine time"))
-    st.write(T("- **👨‍⚕️ डॉक्टर से बात करें:** सरकारी डॉक्टर, ई-संजीवनी और 104 हेल्पलाइन","- **👨‍⚕️ Talk To Doctor:** Govt doctor, eSanjeevani and 104 helpline"))
-    st.write(T("- **🚨 आपातकाल:** इमरजेंसी में क्या करना है, किस नंबर पर कॉल करना है","- **🚨 Emergency:** What to do in emergency, which number to call"))
-    st.write(T("- **🏥 हॉस्पिटल खोजें:** लोकेशन डालो, पास के हॉस्पिटल की लिस्ट आ जाएगी","- **🏥 Hospital Finder:** Enter location, list of nearby hospitals will come"))
-    st.write(T("- **💊 दवाई की जानकारी:** कोई भी दवाई डालो, उसकी पूरी जानकारी मिलेगी","- **💊 Medicine Info:** Enter any medicine, get full info"))
-    st.write(T("- **💡 स्वास्थ्य टिप्स:** रोज़ का रूटीन, खाना-पीना, नींद, टहल","- **💡 Health Tips:** Daily routine, food, sleep, walk"))
-    st.write(T("- **⚖️ बीएमआई कैलकुलेटर:** अपना वज़न सही है या नहीं","- **⚖️ BMI Calculator:** Check if your weight is correct"))
-    st.write(T("- **🏛️ सरकारी योजनाएं:** आयुष्मान, जन औषधि जैसी योजनाओं की जानकारी फ्री में","- **🏛️ Government Schemes:** Ayushman, Jan Aushadhi info FREE"))
-    st.markdown("---")
-    st.info(T("⚠️ **ज़रूरी बात:** यह ऐप सिर्फ जानकारी और पहली मदद के लिए है। यह डॉक्टर की जगह नहीं ले सकता। अगर तकलीफ ज़्यादा है, तो तुरंत डॉक्टर को दिखाएं या 108 पर कॉल करें।","⚠️ **Important:** This app is only for information and first help. It cannot replace a doctor. If problem is more, see doctor immediately or call 108."))
-    show_floating_banner()
+    st.markdown("---"); st.markdown(f"### {T('✨ फीचर्स','✨ Features')}")
+    for f in [T("- **💬 चैट:** अपनी तकलीफ लिखकर भेजें","- **💬 Chat:** Write your problem"),T("- **🎤 बोलकर बताएं:** माइक दबाकर बोल दीजिए","- **🎤 Speak:** Press mic and speak"),T("- **📷 फोटो भेजें:** दाने, चोट या रैश की फोटो भेज दीजिए","- **📷 Send Photo:** Send photo of rash, injury"),T("- **💊 दवाई की जानकारी:** किसी भी दवाई के बारे में जानें","- **💊 Medicine Info:** Know about any medicine"),T("- **💊 दवाई रिमाइंडर:** दवाई का समय सेट कीजिए","- **💊 Medicine Reminder:** Set medicine time"),T("- **👨‍⚕️ डॉक्टर से बात करें:** सरकारी डॉक्टर, ई-संजीवनी और 104 हेल्पलाइन","- **👨‍⚕️ Talk To Doctor:** Govt doctor, eSanjeevani and 104 helpline"),T("- **🚨 आपातकाल:** इमरजेंसी में क्या करना है, किस नंबर पर कॉल करना है","- **🚨 Emergency:** What to do in emergency, which number to call"),T("- **🏥 अस्पताल खोजें:** शहर + पिनकोड से पास के अस्पताल","- **🏥 Hospital Finder:** Nearby hospitals by city + pincode"),T("- **💡 स्वास्थ्य टिप्स:** रोज़ का रूटीन, खाना-पीना, नींद, टहल","- **💡 Health Tips:** Daily routine, food, sleep, walk"),T("- **⚖️ बीएमआई कैलकुलेटर:** अपना वज़न सही है या नहीं","- **⚖️ BMI Calculator:** Check if your weight is correct"),T("- **🏛️ सरकारी योजनाएं:** आयुष्मान, जन औषधि जैसी 12 योजनाओं की जानकारी फ्री में","- **🏛️ Government Schemes:** 12 Schemes like Ayushman, Jan Aushadhi info FREE")]: st.write(f)
+    st.markdown("---"); st.info(T("⚠️ **ज़रूरी बात:** यह ऐप सिर्फ जानकारी और पहली मदद के लिए है। यह डॉक्टर की जगह नहीं ले सकता। अगर तकलीफ ज़्यादा है, तो तुरंत डॉक्टर को दिखाएं या 108 पर कॉल करें।","⚠️ **Important:** This app is only for information and first help. It cannot replace a doctor. If problem is more, see doctor immediately or call 108."))
+    banner()
