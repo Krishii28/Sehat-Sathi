@@ -4,32 +4,34 @@ import re
 import urllib.parse
 st.set_page_config(page_title="Sehat Saathi", page_icon="🩺", layout="centered")
 
-# ---------- UI - LIGHT ADVANCE, SAB VISIBLE ----------
+# ---------- MOBILE APP LOOK + LIGHT, SAB VISIBLE ----------
 st.markdown("""
 <style>
-.stApp { background: #F6F7FF !important; }
-.block-container { padding-top: 1rem !important; padding-bottom: 70px !important; }
+.stApp { background: #E5E7EB !important; }
+.block-container { max-width: 430px !important; margin: 0 auto !important; background: #F6F7FF !important; padding: 12px 14px 90px 14px !important; min-height: 100vh; box-shadow: 0 0 30px rgba(0,0,0,0.15); }
 h1, h2, h3, p, label, .stMarkdown, .stWrite, span { color: #111827 !important; }
-section[data-testid="stSidebar"] { background: #FFFFFF !important; border-right: 1px solid #E5E7EB; }
+section[data-testid="stSidebar"] { background: white !important; }
 section[data-testid="stSidebar"] * { color: #111827 !important; }
 .stTextInput input, .stSelectbox div[data-baseweb="select"] div, .stNumberInput input {
-    background: white !important; color: #111827 !important; border: 1px solid #D1D5DB !important; border-radius: 12px !important;
+    background: white !important; color: #111827 !important; border: 1.5px solid #D1D5DB !important; border-radius: 14px !important; min-height: 48px !important; font-size: 16px !important;
 }
 .stButton button {
     background: linear-gradient(90deg, #7C3AED, #2563EB) !important;
-    color: white !important; border: none !important; border-radius: 25px !important; font-weight: 700 !important;
+    color: white !important; border: none !important; border-radius: 25px !important; font-weight: 700 !important; min-height: 48px !important; font-size: 16px !important;
 }
-.stButton button:hover { transform: scale(1.02); }
 .stButton button * { color: white !important; }
 div[data-testid="stChatMessage"] { background: white !important; border-radius: 16px !important; border: 1px solid #E5E7EB !important; }
 div[data-testid="stChatMessage"] * { color: #111827 !important; }
-.ai-header { background: linear-gradient(90deg, #7C3AED, #2563EB); padding: 18px; border-radius: 18px; text-align: center; margin-bottom: 12px; }
-.ai-header h1 { font-size: 28px; margin: 0; color: white !important; }
-.ai-header p { margin: 4px 0 0 0; color: #E0E7FF !important; font-size: 14px; }
+.ai-header { background: linear-gradient(90deg, #7C3AED, #2563EB); padding: 16px; border-radius: 18px; text-align: center; margin-bottom: 12px; }
+.ai-header h1 { font-size: 26px; margin: 0; color: white !important; }
+.ai-header p { margin: 4px 0 0 0; color: #E0E7FF !important; font-size: 13px; }
 .doctor-card { background: white; border: 2px solid #7C3AED; border-radius: 16px; padding: 14px; margin: 10px 0; }
 .doctor-card b, .doctor-card span, .doctor-card p { color: #111827 !important; }
+.online-card { background: white; border: 2px solid #059669; border-radius: 16px; padding: 14px; margin: 10px 0; }
+.online-card b, .online-card span { color: #111827 !important; }
 .info-box { background: #EEF2FF; border-radius: 14px; padding: 12px; border: 1px solid #C7D2FE; }
 .info-box * { color: #111827 !important; }
+@media (max-width: 480px) { .block-container { max-width: 100% !important; box-shadow: none !important; } }
 </style>
 """, unsafe_allow_html=True)
 
@@ -38,7 +40,7 @@ if "messages" not in st.session_state:
 if "doctor_asked" not in st.session_state:
     st.session_state.doctor_asked = False
 if "doctor_step" not in st.session_state:
-    st.session_state.doctor_step = "none"  # none / location / done
+    st.session_state.doctor_step = "none"
 if "doctor_location" not in st.session_state:
     st.session_state.doctor_location = {}
 if "reminders" not in st.session_state:
@@ -50,7 +52,6 @@ if "uploader_key" not in st.session_state:
 if "photo_sent" not in st.session_state:
     st.session_state.photo_sent = False
 
-# ---------- LANGUAGE - PURA ENGLISH YA PURA HINDI ----------
 st.sidebar.write("Language - Menu Ki Bhasha")
 lang = st.sidebar.radio("Choose Language", ["English", "Hindi"], label_visibility="collapsed")
 IS_HINDI = (lang == "Hindi")
@@ -103,7 +104,7 @@ def detect_language(user_text):
             return "Hindi"
     return "Hindi" if IS_HINDI else "English"
 
-# ---------- DOCTOR DETAIL - PEHLE DETAIL, FIR SYMPTOM WISE DOCTOR ----------
+# ---------- DOCTOR - SYMPTOM WISE ONLY ----------
 def get_category_for(text):
     t = (text or "").lower()
     if any(k in t for k in ["daane","rash","khujli","itching","allergy","दाने","खुजली","skin"]): return "skin"
@@ -120,17 +121,17 @@ def get_category_for(text):
     return "general"
 
 DOCTOR_INFO = {
-    "fever": {"spec_hi":"सामान्य चिकित्सक","spec_en":"General Physician","work_hi":"बुखार, सर्दी, बदन दर्द जैसी आम बीमारियों का इलाज करते हैं।","work_en":"Treats common problems like fever, cold and body pain.","when_hi":"बुखार 102 से ऊपर हो, 3 दिन से ज्यादा रहे, तो तुरंत दिखाएं।","when_en":"If fever is above 102 or stays more than 3 days, see immediately.","fees_hi":"₹200 - ₹500","fees_en":"Rs. 200 - Rs. 500 (India) / Check local clinic fee in other countries"},
-    "back": {"spec_hi":"हड्डी रोग विशेषज्ञ","spec_en":"Orthopedic Doctor","work_hi":"कमर, घुटना, हाथ-पैर और हड्डी के दर्द का इलाज करते हैं।","work_en":"Treats back, knee, joint and bone pain.","when_hi":"दर्द पैर तक जा रहा हो या चलने में दिक्कत हो, तो तुरंत दिखाएं।","when_en":"If pain goes to leg or you have difficulty walking, see immediately.","fees_hi":"₹300 - ₹600","fees_en":"Rs. 300 - Rs. 600 (India) / Check local clinic fee in other countries"},
-    "skin": {"spec_hi":"त्वचा रोग विशेषज्ञ","spec_en":"Dermatologist","work_hi":"दाने, खुजली, एलर्जी और त्वचा की समस्या का इलाज करते हैं।","work_en":"Treats rash, itching, allergy and skin problems.","when_hi":"दानों से मवाद आए या पूरा शरीर लाल हो जाए, तो तुरंत दिखाएं।","when_en":"If pus comes from rash or full body becomes red, see immediately.","fees_hi":"₹300 - ₹600","fees_en":"Rs. 300 - Rs. 600 (India) / Check local clinic fee in other countries"},
-    "stomach": {"spec_hi":"पेट रोग विशेषज्ञ","spec_en":"Gastroenterologist","work_hi":"पेट दर्द, गैस, एसिडिटी, उल्टी-दस्त का इलाज करते हैं।","work_en":"Treats stomach pain, gas, acidity, vomiting and loose motion.","when_hi":"पेट में बहुत तेज दर्द हो या पॉटी में खून आए, तो तुरंत दिखाएं।","when_en":"If stomach pain is very severe or blood in stool, see immediately.","fees_hi":"₹400 - ₹700","fees_en":"Rs. 400 - Rs. 700 (India) / Check local clinic fee in other countries"},
-    "head": {"spec_hi":"न्यूरोलॉजिस्ट","spec_en":"Neurologist","work_hi":"सिर दर्द, माइग्रेन, चक्कर की समस्या का इलाज करते हैं।","work_en":"Treats headache, migraine and dizziness.","when_hi":"अचानक बहुत तेज सिर दर्द हो या उल्टी के साथ दर्द हो, तो तुरंत दिखाएं।","when_en":"If sudden very severe headache with vomiting, see immediately.","fees_hi":"₹500 - ₹800","fees_en":"Rs. 500 - Rs. 800 (India) / Check local clinic fee in other countries"},
-    "chest": {"spec_hi":"हृदय / फेफड़े रोग विशेषज्ञ","spec_en":"Cardiologist / Pulmonologist","work_hi":"सीने में दर्द, सांस की तकलीफ का इलाज करते हैं।","work_en":"Treats chest pain and breathing problems.","when_hi":"सीने में तेज दर्द + पसीना आए, तो तुरंत 108 पर कॉल करें।","when_en":"If severe chest pain with sweating, call emergency immediately.","fees_hi":"₹500 - ₹800","fees_en":"Rs. 500 - Rs. 800 (India) / Check local clinic fee in other countries"},
-    "tooth": {"spec_hi":"दांत के डॉक्टर","spec_en":"Dentist","work_hi":"दांत दर्द, कीड़ा, मसूड़े की सूजन का इलाज करते हैं।","work_en":"Treats tooth pain, cavity and gum swelling.","when_hi":"गाल सूज जाए या दर्द 2 दिन से न रुके, तो दिखाएं।","when_en":"If cheek swells or pain does not stop in 2 days, see dentist.","fees_hi":"₹200 - ₹500","fees_en":"Rs. 200 - Rs. 500 (India) / Check local clinic fee in other countries"},
-    "eye": {"spec_hi":"आंख के डॉक्टर","spec_en":"Eye Doctor","work_hi":"आंख में जलन, लालपन, दिखाई की समस्या का इलाज करते हैं।","work_en":"Treats eye burning, redness and vision problems.","when_hi":"दिखाई कम हो या आंख से मवाद आए, तो तुरंत दिखाएं।","when_en":"If vision is less or pus comes from eye, see immediately.","fees_hi":"₹300 - ₹500","fees_en":"Rs. 300 - Rs. 500 (India) / Check local clinic fee in other countries"},
-    "ear": {"spec_hi":"कान-नाक-गला विशेषज्ञ","spec_en":"ENT Doctor","work_hi":"कान दर्द, सुनाई की समस्या का इलाज करते हैं।","work_en":"Treats ear pain and hearing problems.","when_hi":"सुनाई कम दे या कान से पानी आए, तो दिखाएं।","when_en":"If hearing is less or water comes from ear, see doctor.","fees_hi":"₹300 - ₹600","fees_en":"Rs. 300 - Rs. 600 (India) / Check local clinic fee in other countries"},
-    "injury": {"spec_hi":"सर्जन / हड्डी रोग विशेषज्ञ","spec_en":"Surgeon / Orthopedic Doctor","work_hi":"चोट, जख्म, कटने की समस्या का इलाज करते हैं।","work_en":"Treats injury, wound and cuts.","when_hi":"खून न रुके या चोट गहरी हो, तो तुरंत अस्पताल जाएं।","when_en":"If bleeding does not stop or wound is deep, go to hospital immediately.","fees_hi":"₹300 - ₹700","fees_en":"Rs. 300 - Rs. 700 (India) / Check local clinic fee in other countries"},
-    "general": {"spec_hi":"सामान्य चिकित्सक","spec_en":"General Physician","work_hi":"आम बीमारियों का इलाज करते हैं, जरूरत हो तो सही स्पेशलिस्ट के पास भेजते हैं।","work_en":"Treats common diseases and refers to right specialist if needed.","when_hi":"तकलीफ 2-3 दिन से ज्यादा रहे, तो दिखाएं।","when_en":"If problem stays more than 2-3 days, see doctor.","fees_hi":"₹200 - ₹500","fees_en":"Rs. 200 - Rs. 500 (India) / Check local clinic fee in other countries"},
+    "fever": {"spec_hi":"सामान्य चिकित्सक","spec_en":"General Physician","work_hi":"बुखार, सर्दी, बदन दर्द जैसी आम बीमारियों का इलाज करते हैं।","work_en":"Treats common problems like fever, cold and body pain.","when_hi":"बुखार 102 से ऊपर हो, 3 दिन से ज्यादा रहे, तो तुरंत दिखाएं।","when_en":"If fever is above 102 or stays more than 3 days, see immediately.","fees_hi":"₹200 - ₹500","fees_en":"Rs. 200 - Rs. 500 (India)"},
+    "back": {"spec_hi":"हड्डी रोग विशेषज्ञ","spec_en":"Orthopedic Doctor","work_hi":"कमर, घुटना, हाथ-पैर और हड्डी के दर्द का इलाज करते हैं।","work_en":"Treats back, knee, joint and bone pain.","when_hi":"दर्द पैर तक जा रहा हो या चलने में दिक्कत हो, तो तुरंत दिखाएं।","when_en":"If pain goes to leg or you have difficulty walking, see immediately.","fees_hi":"₹300 - ₹600","fees_en":"Rs. 300 - Rs. 600 (India)"},
+    "skin": {"spec_hi":"त्वचा रोग विशेषज्ञ","spec_en":"Dermatologist","work_hi":"दाने, खुजली, एलर्जी और त्वचा की समस्या का इलाज करते हैं।","work_en":"Treats rash, itching, allergy and skin problems.","when_hi":"दानों से मवाद आए या पूरा शरीर लाल हो जाए, तो तुरंत दिखाएं।","when_en":"If pus comes from rash or full body becomes red, see immediately.","fees_hi":"₹300 - ₹600","fees_en":"Rs. 300 - Rs. 600 (India)"},
+    "stomach": {"spec_hi":"पेट रोग विशेषज्ञ","spec_en":"Gastroenterologist","work_hi":"पेट दर्द, गैस, एसिडिटी, उल्टी-दस्त का इलाज करते हैं।","work_en":"Treats stomach pain, gas, acidity, vomiting and loose motion.","when_hi":"पेट में बहुत तेज दर्द हो या पॉटी में खून आए, तो तुरंत दिखाएं।","when_en":"If stomach pain is very severe or blood in stool, see immediately.","fees_hi":"₹400 - ₹700","fees_en":"Rs. 400 - Rs. 700 (India)"},
+    "head": {"spec_hi":"न्यूरोलॉजिस्ट","spec_en":"Neurologist","work_hi":"सिर दर्द, माइग्रेन, चक्कर की समस्या का इलाज करते हैं।","work_en":"Treats headache, migraine and dizziness.","when_hi":"अचानक बहुत तेज सिर दर्द हो या उल्टी के साथ दर्द हो, तो तुरंत दिखाएं।","when_en":"If sudden very severe headache with vomiting, see immediately.","fees_hi":"₹500 - ₹800","fees_en":"Rs. 500 - Rs. 800 (India)"},
+    "chest": {"spec_hi":"हृदय / फेफड़े रोग विशेषज्ञ","spec_en":"Cardiologist / Pulmonologist","work_hi":"सीने में दर्द, सांस की तकलीफ का इलाज करते हैं।","work_en":"Treats chest pain and breathing problems.","when_hi":"सीने में तेज दर्द + पसीना आए, तो तुरंत 108 पर कॉल करें।","when_en":"If severe chest pain with sweating, call emergency immediately.","fees_hi":"₹500 - ₹800","fees_en":"Rs. 500 - Rs. 800 (India)"},
+    "tooth": {"spec_hi":"दांत के डॉक्टर","spec_en":"Dentist","work_hi":"दांत दर्द, कीड़ा, मसूड़े की सूजन का इलाज करते हैं।","work_en":"Treats tooth pain, cavity and gum swelling.","when_hi":"गाल सूज जाए या दर्द 2 दिन से न रुके, तो दिखाएं।","when_en":"If cheek swells or pain does not stop in 2 days, see dentist.","fees_hi":"₹200 - ₹500","fees_en":"Rs. 200 - Rs. 500 (India)"},
+    "eye": {"spec_hi":"आंख के डॉक्टर","spec_en":"Eye Doctor","work_hi":"आंख में जलन, लालपन, दिखाई की समस्या का इलाज करते हैं।","work_en":"Treats eye burning, redness and vision problems.","when_hi":"दिखाई कम हो या आंख से मवाद आए, तो तुरंत दिखाएं।","when_en":"If vision is less or pus comes from eye, see immediately.","fees_hi":"₹300 - ₹500","fees_en":"Rs. 300 - Rs. 500 (India)"},
+    "ear": {"spec_hi":"कान-नाक-गला विशेषज्ञ","spec_en":"ENT Doctor","work_hi":"कान दर्द, सुनाई की समस्या का इलाज करते हैं।","work_en":"Treats ear pain and hearing problems.","when_hi":"सुनाई कम दे या कान से पानी आए, तो दिखाएं।","when_en":"If hearing is less or water comes from ear, see doctor.","fees_hi":"₹300 - ₹600","fees_en":"Rs. 300 - Rs. 600 (India)"},
+    "injury": {"spec_hi":"सर्जन / हड्डी रोग विशेषज्ञ","spec_en":"Surgeon / Orthopedic Doctor","work_hi":"चोट, जख्म, कटने की समस्या का इलाज करते हैं।","work_en":"Treats injury, wound and cuts.","when_hi":"खून न रुके या चोट गहरी हो, तो तुरंत अस्पताल जाएं।","when_en":"If bleeding does not stop or wound is deep, go to hospital immediately.","fees_hi":"₹300 - ₹700","fees_en":"Rs. 300 - Rs. 700 (India)"},
+    "general": {"spec_hi":"सामान्य चिकित्सक","spec_en":"General Physician","work_hi":"आम बीमारियों का इलाज करते हैं, जरूरत हो तो सही स्पेशलिस्ट के पास भेजते हैं।","work_en":"Treats common diseases and refers to right specialist if needed.","when_hi":"तकलीफ 2-3 दिन से ज्यादा रहे, तो दिखाएं।","when_en":"If problem stays more than 2-3 days, see doctor.","fees_hi":"₹200 - ₹500","fees_en":"Rs. 200 - Rs. 500 (India)"},
 }
 
 def show_doctor_detail_card(user_text, loc):
@@ -143,35 +144,50 @@ def show_doctor_detail_card(user_text, loc):
     work = info["work_hi"] if IS_HINDI else info["work_en"]
     when = info["when_hi"] if IS_HINDI else info["when_en"]
     fees = info["fees_hi"] if IS_HINDI else info["fees_en"]
-    # 1. PEHLE DOCTOR KI DETAIL
+    # 1. PHYSICAL DOCTOR - DETAIL PEHLE, SYMPTOM WISE
     st.markdown(f"""<div class="doctor-card"><b>👨‍⚕️ {T('आपको इस डॉक्टर की जरूरत है:','You need this doctor:')} {spec}</b><br><br><span><b>{T('ये डॉक्टर क्या करते हैं?','What does this doctor do?')}</b><br>{work}</span><br><br><span><b>{T('कब दिखाना चाहिए?','When to see?')}</b><br>{when}</span><br><br><span><b>{T('अंदाज़न फीस:','Approx Fees:')}</b> {fees}</span><br><br><span><b>{T('आपका इलाका:','Your Area:')}</b> {city}, {pincode}, {country}</span></div>""", unsafe_allow_html=True)
-    # 2. FIR US LOCATION KE DOCTOR - MAPS SE ASLI DOCTOR
     maps_q = urllib.parse.quote(f"{spec} doctor near {city} {pincode} {country}")
     st.markdown(f"""<div class="info-box"><b>{T('आपके पास के डॉक्टर - Maps पर असली डॉक्टर देखें','Doctors Near You - See Real Doctors On Maps')}</b><br>{T('हम किसी भी शहर के डॉक्टर का नाम अपने आप से नहीं बनाते। नीचे वाले बटन पर क्लिक करें, गूगल मैप्स आपके शहर और पिनकोड के असली डॉक्टर दिखा देगा।','We do not make up doctor names for any city. Click below button, Google Maps will show real doctors of your city and pincode.')}</div>""", unsafe_allow_html=True)
     st.link_button(f"📍 {T('मेरे पास के डॉक्टर देखें - Maps','See Doctors Near Me - Maps')}", f"https://www.google.com/maps/search/{maps_q}", use_container_width=True)
+    # 2. ONLINE DOCTORS - USI SYMPTOM KE, NEECHE
+    st.markdown(f"### {T('🌐 ऑनलाइन डॉक्टर - इसी तकलीफ के लिए','🌐 Online Doctors - For Same Problem')}")
+    st.write(T(f"आपकी तकलीफ के लिए ऑनलाइन भी यही डॉक्टर चाहिए: {spec}","For your problem, you need same doctor online also: " + spec))
+    # eSanjeevani - Govt
+    st.markdown(f"""<div class="online-card"><b>🩺 {T('ई-संजीवनी - सरकारी, फ्री','eSanjeevani - Govt, FREE')}</b><br><span><b>{T('डॉक्टर:','Doctor:')}</b> {spec}</span><br><span><b>{T('कैसे होगा:','How:')}</b> {T('वीडियो कॉल पर डॉक्टर से बात','Video call with doctor')}</span><br><span><b>{T('समय:','Timing:')}</b> {T('सुबह 10 - शाम 4','10 AM - 4 PM')}</span><br><span><b>{T('फीस:','Fees:')}</b> {T('बिल्कुल फ्री','Totally FREE')}</span></div>""", unsafe_allow_html=True)
+    st.link_button(T("🩺 ई-संजीवनी खोलें - ऑनलाइन डॉक्टर","🩺 Open eSanjeevani - Online Doctor"), "https://esanjeevani.mohfw.gov.in", use_container_width=True)
     if country.strip().lower() in ["india","bharat","hindustan"]:
-        st.markdown(f"### {T('🩺 ऑनलाइन डॉक्टर - सरकारी, फ्री','🩺 Online Doctor - Govt, FREE')}")
-        st.link_button(T("🩺 ई-संजीवनी खोलें","🩺 Open eSanjeevani"), "https://esanjeevani.mohfw.gov.in", use_container_width=True)
         st.link_button(T("📞 104 - हेल्थ हेल्पलाइन पर कॉल करें","📞 104 - Health Helpline Call"), "tel:104", use_container_width=True)
+        # Apollo - Real number 1860-500-1066
+        st.markdown(f"""<div class="online-card"><b>🏥 {T('अपोलो 24/7 - प्राइवेट','Apollo 24/7 - Private')}</b><br><span><b>{T('डॉक्टर:','Doctor:')}</b> {spec}</span><br><span><b>{T('कैसे होगा:','How:')}</b> {T('चैट / कॉल / वीडियो कॉल','Chat / Call / Video Call')}</span><br><span><b>{T('समय:','Timing:')}</b> {T('24 घंटे','24 Hours')}</span><br><span><b>{T('डायरेक्ट नंबर:','Direct Number:')}</b> 1860-500-1066</span></div>""", unsafe_allow_html=True)
+        st.link_button(T("📞 1860-500-1066 पर कॉल करें - अपोलो","📞 Call 1860-500-1066 - Apollo"), "tel:18605001066", use_container_width=True)
+        st.link_button(T("🌐 अपोलो 24/7 खोलें","🌐 Open Apollo 24/7"), "https://www.apollo247.com", use_container_width=True)
+        # Practo - No number, only link - REAL
+        st.markdown(f"""<div class="online-card"><b>💻 {T('प्रैक्टो - प्राइवेट','Practo - Private')}</b><br><span><b>{T('डॉक्टर:','Doctor:')}</b> {spec}</span><br><span><b>{T('कैसे होगा:','How:')}</b> {T('ऐप / वेबसाइट पर ऑनलाइन डॉक्टर','Online doctor on App / Website')}</span><br><span><b>{T('नंबर:','Number:')}</b> {T('नंबर नहीं है, सिर्फ ऐप में चैट','No phone number, only chat in App')}</span></div>""", unsafe_allow_html=True)
+        st.link_button(T("🌐 प्रैक्टो खोलें","🌐 Open Practo"), f"https://www.practo.com/search/doctors?speciality={urllib.parse.quote(spec)}", use_container_width=True)
         st.link_button(T("🚑 108 - एम्बुलेंस","🚑 108 - Ambulance"), "tel:108", use_container_width=True)
     else:
-        st.markdown(f"### {T('🩺 ऑनलाइन डॉक्टर','🩺 Online Doctor')}")
-        st.link_button(T("🌍 अपने देश के ऑनलाइन डॉक्टर खोजें","🌍 Search Online Doctor In Your Country"), f"https://www.google.com/search?q={urllib.parse.quote('online doctor consultation ' + country)}", use_container_width=True)
+        st.markdown(f"""<div class="online-card"><b>🌍 {T('अपने देश के ऑनलाइन डॉक्टर','Online Doctor In Your Country')}</b><br><span><b>{T('डॉक्टर:','Doctor:')}</b> {spec}</span><br><span>{T('अपने देश में इस स्पेशलिस्ट के ऑनलाइन डॉक्टर खोजें।','Search online doctor of this specialist in your country.')}</span></div>""", unsafe_allow_html=True)
+        st.link_button(T("🌍 अपने देश के ऑनलाइन डॉक्टर खोजें","🌍 Search Online Doctor In Your Country"), f"https://www.google.com/search?q={urllib.parse.quote('online ' + spec + ' doctor consultation ' + country)}", use_container_width=True)
         st.info(T("आपातकाल में अपने देश के इमरजेंसी नंबर पर कॉल करें।","In emergency, call emergency number of your country."))
 
+# ---------- LOCATION FORM - BOXES EMPTY ----------
 def show_location_form(for_text):
     st.markdown(f"### {T('📍 डॉक्टर खोजने के लिए अपनी लोकेशन बताइए','📍 Tell Your Location To Find Doctor')}")
     st.write(T("हम किसी भी शहर के डॉक्टर का नाम अपने आप से नहीं बनाएंगे। आपकी लोकेशन के हिसाब से Maps असली डॉक्टर दिखाएगा।","We will not make up doctor names for any city. Maps will show real doctors as per your location."))
-    country = st.selectbox(T("देश चुनें","Select Country"), ["India","USA","UK","Canada","Australia","UAE","Singapore","Other"], key="loc_country")
+    # EMPTY - koi default nahi, user khud bharega
+    country = st.selectbox(T("देश चुनें","Select Country"), ["India","USA","UK","Canada","Australia","UAE","Singapore","Other"], index=None, placeholder=T("देश चुनें...","Select Country..."), key="loc_country")
+    country_final = ""
     if country == "Other":
-        country = st.text_input(T("अपना देश लिखें","Write Your Country"), key="loc_country_other")
-    city = st.text_input(T("शहर का नाम","City Name"), placeholder=T("जैसे: फरीदाबाद","Like: Faridabad"), key="loc_city")
-    pincode = st.text_input(T("पिनकोड / Zip Code","Pincode / Zip Code"), placeholder=T("जैसे: 121001","Like: 121001"), key="loc_pincode")
+        country_final = st.text_input(T("अपना देश लिखें","Write Your Country"), value="", placeholder=T("अपना देश लिखें...","Write your country..."), key="loc_country_other")
+    elif country:
+        country_final = country
+    city = st.text_input(T("शहर का नाम","City Name"), value="", placeholder=T("शहर लिखें...","Write city..."), key="loc_city")
+    pincode = st.text_input(T("पिनकोड / Zip Code","Pincode / Zip Code"), value="", placeholder=T("पिनकोड लिखें...","Write pincode..."), key="loc_pincode")
     if st.button(T("✅ डॉक्टर खोजें","✅ Find Doctor"), use_container_width=True, key="find_doctor_btn"):
-        if city.strip() == "" or pincode.strip() == "":
-            st.warning(T("पहले शहर और पिनकोड लिखिए।","First write city and pincode."))
+        if not country_final or city.strip() == "" or pincode.strip() == "":
+            st.warning(T("पहले देश, शहर और पिनकोड लिखिए।","First write country, city and pincode."))
         else:
-            st.session_state.doctor_location = {"country": country, "city": city.strip(), "pincode": pincode.strip()}
+            st.session_state.doctor_location = {"country": country_final, "city": city.strip(), "pincode": pincode.strip()}
             st.session_state.doctor_step = "done"
             st.session_state.messages.append({"role":"assistant","content":"DOCTORS_BOX","for_text": for_text, "loc": dict(st.session_state.doctor_location)})
             st.rerun()
@@ -194,7 +210,7 @@ def show_floating_banner():
     <div class="banner-wrap">{items}</div>
     """, unsafe_allow_html=True)
 
-# ---------- ANSWER - LANGUAGE PURE ----------
+# ---------- ANSWER ----------
 def get_instant_answer(user_text, lang):
     text = user_text.lower()
     def make_answer(symptom_name, causes, dangers, dos, tip, summary, lang):
@@ -395,7 +411,7 @@ def ask_reply_photo(photo_keyword, photo_desc, placeholder):
     placeholder.markdown(instant)
     return instant
 
-# ================= HOME =================
+# ================= HOME - MOBILE APP =================
 if menu in ["🏠 Home", "🏠 होम"]:
     st.markdown(f"""<div class="ai-header"><h1>🩺 Sehat Saathi ✨</h1><p>{T('आपका एआई हेल्थ असिस्टेंट - अपनी तकलीफ लिखें, तुरंत सलाह पाएं','Your AI Health Assistant - Write your symptom, get instant advice')}</p></div>""", unsafe_allow_html=True)
     st.write(T("नमस्ते, मैं यहाँ आपकी मदद करने के लिए हूँ! 👋","Hello, I am here to help you! 👋"))
@@ -409,7 +425,6 @@ if menu in ["🏠 Home", "🏠 होम"]:
                 st.markdown(m["content"])
             else:
                 st.markdown(m["content"])
-    # LOCATION FORM - YES ke baad, doctor box se pehle
     if st.session_state.doctor_step == "location":
         last_user = ""
         for mm in reversed(st.session_state.messages):
@@ -555,7 +570,7 @@ elif menu in ["👨‍⚕️ Talk To Doctor", "👨‍⚕️ डॉक्टर 
     st.title(T("👨‍⚕️ डॉक्टर से बात करें","👨‍⚕️ Talk To Doctor"))
     st.success(T("ये सब सरकारी डॉक्टर की सेवाएं हैं, 100% असली।","All these are Government doctor services, 100% Real."))
     st.write(T("पहले अपनी तकलीफ लिखें, फिर लोकेशन बताएं, डॉक्टर की पूरी जानकारी मिलेगी।","First write your problem, then tell location, you will get full doctor details."))
-    talk_symptom = st.text_input(T("अपनी तकलीफ लिखें","Write Your Problem"), placeholder=T("जैसे: कमर दर्द","Like: back pain"), key="talk_symptom")
+    talk_symptom = st.text_input(T("अपनी तकलीफ लिखें","Write Your Problem"), value="", placeholder=T("जैसे: कमर दर्द","Like: back pain"), key="talk_symptom")
     if talk_symptom.strip() != "":
         show_location_form(talk_symptom)
     st.markdown("---")
@@ -578,7 +593,7 @@ elif menu in ["🚨 Emergency", "🚨 आपातकाल"]:
     st.markdown("---")
     st.markdown(f"### {T('🆘 अपनी इमरजेंसी लिखें / बोलें','🆘 Write / Speak Your Emergency')}")
     st.write(T("जैसे: हाथ कट गया, खून आ रहा है, सांस नहीं आ रही","Like: hand cut, bleeding, cannot breathe"))
-    em_text = st.text_input(T("इमरजेंसी लिखें...","Write emergency..."), placeholder=T("इमरजेंसी लिखें - जैसे हाथ कट गया...","Write emergency - like hand cut..."), key="em_text")
+    em_text = st.text_input(T("इमरजेंसी लिखें...","Write emergency..."), value="", placeholder=T("इमरजेंसी लिखें - जैसे हाथ कट गया...","Write emergency - like hand cut..."), key="em_text")
     em_audio = st.audio_input(T("इमरजेंसी बोलें","Speak Emergency"), key="em_mic")
     em_final = em_text
     if em_audio and st.session_state.get("last_em_audio") != str(em_audio):
@@ -646,7 +661,7 @@ elif menu in ["⚖️ BMI Calculator", "⚖️ बीएमआई कैलक�
     if st.button(T("हिसाब लगाएं","Calculate")):
         h_m = height / 100
         bmi = weight / (h_m * h_m)
-        st.success(f"Your BMI: {bmi:.1f}" if not IS_HINDI else f"आपका बीएमआई: {bmi:.1f}")
+        st.success(f"आपका बीएमआई: {bmi:.1f}" if IS_HINDI else f"Your BMI: {bmi:.1f}")
         if bmi < 18.5:
             st.write(T("कम वज़न - स्वस्थ खाना खाएं","Underweight - Eat healthy food"))
         elif bmi < 25:
