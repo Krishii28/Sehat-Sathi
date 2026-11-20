@@ -4,37 +4,32 @@ import re
 import urllib.parse
 st.set_page_config(page_title="Sehat Saathi", page_icon="🩺", layout="centered")
 
-# ---------- DARK + MODERN AI UI - POINT 2 ----------
+# ---------- UI - LIGHT ADVANCE, SAB VISIBLE ----------
 st.markdown("""
 <style>
-.stApp { background: #0A0E1F !important; color: white !important; }
+.stApp { background: #F6F7FF !important; }
 .block-container { padding-top: 1rem !important; padding-bottom: 70px !important; }
-h1, h2, h3, p, label, .stMarkdown, .stWrite { color: white !important; }
-section[data-testid="stSidebar"] { background: #111733 !important; }
-section[data-testid="stSidebar"] * { color: white !important; }
+h1, h2, h3, p, label, .stMarkdown, .stWrite, span { color: #111827 !important; }
+section[data-testid="stSidebar"] { background: #FFFFFF !important; border-right: 1px solid #E5E7EB; }
+section[data-testid="stSidebar"] * { color: #111827 !important; }
 .stTextInput input, .stSelectbox div[data-baseweb="select"] div, .stNumberInput input {
-    background: #1A2142 !important; color: white !important; border: 1px solid #3A4A8C !important; border-radius: 12px !important;
+    background: white !important; color: #111827 !important; border: 1px solid #D1D5DB !important; border-radius: 12px !important;
 }
 .stButton button {
     background: linear-gradient(90deg, #7C3AED, #2563EB) !important;
-    color: white !important; border: none !important; border-radius: 25px !important;
-    font-weight: 700 !important; box-shadow: 0 4px 20px rgba(124,58,237,0.5) !important;
+    color: white !important; border: none !important; border-radius: 25px !important; font-weight: 700 !important;
 }
 .stButton button:hover { transform: scale(1.02); }
-div[data-testid="stChatMessage"] { background: #1A2142 !important; border-radius: 18px !important; border: 1px solid #2A3566 !important; }
-div[data-testid="stChatMessage"] * { color: white !important; }
-.doctor-card {
-    background: linear-gradient(135deg, #1A2142, #16204A);
-    border: 1px solid #7C3AED; border-radius: 16px; padding: 14px; margin: 10px 0;
-    box-shadow: 0 4px 20px rgba(124,58,237,0.3);
-}
-.doctor-card b { color: white; } .doctor-card span { color: #C7D2FE; font-size: 13px; }
-.ai-header {
-    background: linear-gradient(90deg, #7C3AED, #2563EB);
-    padding: 18px; border-radius: 18px; text-align: center; margin-bottom: 12px;
-}
-.ai-header h1 { font-size: 30px; margin: 0; color: white !important; }
+.stButton button * { color: white !important; }
+div[data-testid="stChatMessage"] { background: white !important; border-radius: 16px !important; border: 1px solid #E5E7EB !important; }
+div[data-testid="stChatMessage"] * { color: #111827 !important; }
+.ai-header { background: linear-gradient(90deg, #7C3AED, #2563EB); padding: 18px; border-radius: 18px; text-align: center; margin-bottom: 12px; }
+.ai-header h1 { font-size: 28px; margin: 0; color: white !important; }
 .ai-header p { margin: 4px 0 0 0; color: #E0E7FF !important; font-size: 14px; }
+.doctor-card { background: white; border: 2px solid #7C3AED; border-radius: 16px; padding: 14px; margin: 10px 0; }
+.doctor-card b, .doctor-card span, .doctor-card p { color: #111827 !important; }
+.info-box { background: #EEF2FF; border-radius: 14px; padding: 12px; border: 1px solid #C7D2FE; }
+.info-box * { color: #111827 !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -42,6 +37,10 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 if "doctor_asked" not in st.session_state:
     st.session_state.doctor_asked = False
+if "doctor_step" not in st.session_state:
+    st.session_state.doctor_step = "none"  # none / location / done
+if "doctor_location" not in st.session_state:
+    st.session_state.doctor_location = {}
 if "reminders" not in st.session_state:
     st.session_state.reminders = []
 if "last_audio_id" not in st.session_state:
@@ -50,16 +49,18 @@ if "uploader_key" not in st.session_state:
     st.session_state.uploader_key = 0
 if "photo_sent" not in st.session_state:
     st.session_state.photo_sent = False
-if "user_city" not in st.session_state:
-    st.session_state.user_city = "Faridabad"
 
-st.sidebar.write("भाषा - Language" if False else "Language - Menu Ki Bhasha")
+# ---------- LANGUAGE - PURA ENGLISH YA PURA HINDI ----------
+st.sidebar.write("Language - Menu Ki Bhasha")
 lang = st.sidebar.radio("Choose Language", ["English", "Hindi"], label_visibility="collapsed")
 IS_HINDI = (lang == "Hindi")
 if IS_HINDI:
     menu = st.sidebar.radio("मेनू", ["🏠 होम", "💊 दवाई रिमाइंडर", "👨‍⚕️ डॉक्टर से बात करें", "🚨 आपातकाल", "💡 स्वास्थ्य टिप्स", "⚖️ बीएमआई कैलकुलेटर", "🏛️ सरकारी योजनाएं", "ℹ️ ऐप के बारे में"])
 else:
     menu = st.sidebar.radio("Menu", ["🏠 Home", "💊 Medicine Reminder", "👨‍⚕️ Talk To Doctor", "🚨 Emergency", "💡 Health Tips", "⚖️ BMI Calculator", "🏛️ Government Schemes", "ℹ️ About App"])
+
+def T(hi, en):
+    return hi if IS_HINDI else en
 
 def speech_to_text(audio_bytes):
     try:
@@ -102,42 +103,9 @@ def detect_language(user_text):
             return "Hindi"
     return "Hindi" if IS_HINDI else "English"
 
-# ---------- DOCTORS - SYMPTOM WISE + CITY WISE + FULL DETAILS - POINT 1 ----------
-# Har doctor: name, specialist, exp, fees, timing, address, rating, phone, city
-DOCTOR_DB = [
-    # FEVER / GENERAL
-    {"cat":"fever","name":"Dr. Patel","spec":"General Physician","spec_hi":"सामान्य चिकित्सक","exp":"12 yrs","fees":"₹200","timing":"10 AM - 2 PM, 5 PM - 8 PM","address":"Sector 15, Faridabad","rating":"4.8 ⭐","phone":"9876543216","city":"Faridabad"},
-    {"cat":"fever","name":"Dr. Khan","spec":"General Physician","spec_hi":"चिकित्सक","exp":"10 yrs","fees":"₹250","timing":"9 AM - 1 PM, 4 PM - 7 PM","address":"Lajpat Nagar, Delhi","rating":"4.7 ⭐","phone":"9876543217","city":"Delhi"},
-    {"cat":"fever","name":"Dr. Gupta","spec":"General Physician","spec_hi":"सामान्य चिकित्सक","exp":"15 yrs","fees":"₹300","timing":"10 AM - 3 PM","address":"DLF Phase 2, Gurugram","rating":"4.9 ⭐","phone":"9876543212","city":"Gurugram"},
-    # BACK / JOINT / LEG
-    {"cat":"back","name":"Dr. Singh","spec":"Orthopedic Doctor","spec_hi":"हड्डी रोग विशेषज्ञ","exp":"14 yrs","fees":"₹400","timing":"11 AM - 3 PM","address":"Sector 21, Faridabad","rating":"4.9 ⭐","phone":"9876543213","city":"Faridabad"},
-    {"cat":"back","name":"Dr. Mehra","spec":"Orthopedic Doctor","spec_hi":"हड्डी रोग विशेषज्ञ","exp":"11 yrs","fees":"₹350","timing":"10 AM - 2 PM","address":"South Ex, Delhi","rating":"4.8 ⭐","phone":"9876543225","city":"Delhi"},
-    {"cat":"back","name":"Dr. Arora","spec":"Physiotherapist","spec_hi":"फिजियोथेरेपिस्ट","exp":"8 yrs","fees":"₹300","timing":"9 AM - 6 PM","address":"Sector 14, Gurugram","rating":"4.7 ⭐","phone":"9876543226","city":"Gurugram"},
-    # SKIN / RASH
-    {"cat":"skin","name":"Dr. Sharma","spec":"Dermatologist","spec_hi":"त्वचा रोग विशेषज्ञ","exp":"13 yrs","fees":"₹400","timing":"11 AM - 4 PM","address":"Sector 16, Faridabad","rating":"4.9 ⭐","phone":"9876543210","city":"Faridabad"},
-    {"cat":"skin","name":"Dr. Verma","spec":"Dermatologist","spec_hi":"त्वचा रोग विशेषज्ञ","exp":"9 yrs","fees":"₹350","timing":"10 AM - 2 PM","address":"Karol Bagh, Delhi","rating":"4.8 ⭐","phone":"9876543211","city":"Delhi"},
-    # STOMACH
-    {"cat":"stomach","name":"Dr. Mehta","spec":"Gastroenterologist","spec_hi":"पेट रोग विशेषज्ञ","exp":"16 yrs","fees":"₹500","timing":"10 AM - 2 PM","address":"Sector 12, Faridabad","rating":"4.9 ⭐","phone":"9876543218","city":"Faridabad"},
-    {"cat":"stomach","name":"Dr. Joshi","spec":"Gastroenterologist","spec_hi":"पेट रोग विशेषज्ञ","exp":"12 yrs","fees":"₹450","timing":"11 AM - 3 PM","address":"Punjabi Bagh, Delhi","rating":"4.7 ⭐","phone":"9876543227","city":"Delhi"},
-    # HEAD / NEURO
-    {"cat":"head","name":"Dr. Iyer","spec":"Neurologist","spec_hi":"न्यूरोलॉजिस्ट","exp":"15 yrs","fees":"₹600","timing":"10 AM - 1 PM","address":"Sector 28, Faridabad","rating":"4.9 ⭐","phone":"9876543219","city":"Faridabad"},
-    {"cat":"head","name":"Dr. Khan","spec":"General Physician","spec_hi":"सामान्य चिकित्सक","exp":"10 yrs","fees":"₹250","timing":"9 AM - 1 PM","address":"Lajpat Nagar, Delhi","rating":"4.7 ⭐","phone":"9876543217","city":"Delhi"},
-    # CHEST / HEART / BREATH
-    {"cat":"chest","name":"Dr. Patel","spec":"Cardiologist","spec_hi":"हृदय रोग विशेषज्ञ","exp":"18 yrs","fees":"₹600","timing":"10 AM - 2 PM","address":"Sector 15, Faridabad","rating":"4.9 ⭐","phone":"9876543216","city":"Faridabad"},
-    {"cat":"chest","name":"Dr. Kapoor","spec":"Pulmonologist","spec_hi":"फेफड़े रोग विशेषज्ञ","exp":"13 yrs","fees":"₹500","timing":"11 AM - 3 PM","address":"Saket, Delhi","rating":"4.8 ⭐","phone":"9876543228","city":"Delhi"},
-    # TOOTH
-    {"cat":"tooth","name":"Dr. Rao","spec":"Dentist","spec_hi":"दांत के डॉक्टर","exp":"10 yrs","fees":"₹300","timing":"10 AM - 7 PM","address":"Sector 17, Faridabad","rating":"4.8 ⭐","phone":"9876543220","city":"Faridabad"},
-    # EYE
-    {"cat":"eye","name":"Dr. Nair","spec":"Eye Doctor","spec_hi":"आंख के डॉक्टर","exp":"12 yrs","fees":"₹350","timing":"10 AM - 4 PM","address":"Sector 19, Faridabad","rating":"4.8 ⭐","phone":"9876543221","city":"Faridabad"},
-    # EAR
-    {"cat":"ear","name":"Dr. Bose","spec":"ENT Doctor","spec_hi":"कान-नाक-गला विशेषज्ञ","exp":"14 yrs","fees":"₹400","timing":"10 AM - 2 PM","address":"Sector 11, Faridabad","rating":"4.8 ⭐","phone":"9876543222","city":"Delhi"},
-    # INJURY / WOUND
-    {"cat":"injury","name":"Dr. Gupta","spec":"General Surgeon","spec_hi":"सर्जन","exp":"15 yrs","fees":"₹500","timing":"9 AM - 5 PM","address":"Sector 8, Faridabad","rating":"4.9 ⭐","phone":"9876543212","city":"Faridabad"},
-    {"cat":"injury","name":"Dr. Singh","spec":"Orthopedic Doctor","spec_hi":"हड्डी रोग विशेषज्ञ","exp":"14 yrs","fees":"₹400","timing":"11 AM - 3 PM","address":"Sector 21, Faridabad","rating":"4.9 ⭐","phone":"9876543213","city":"Faridabad"},
-]
-
+# ---------- DOCTOR DETAIL - PEHLE DETAIL, FIR SYMPTOM WISE DOCTOR ----------
 def get_category_for(text):
-    t = text.lower()
+    t = (text or "").lower()
     if any(k in t for k in ["daane","rash","khujli","itching","allergy","दाने","खुजली","skin"]): return "skin"
     if any(k in t for k in ["chot","zakhm","wound","injury","kat","cut","चोट"]): return "injury"
     if any(k in t for k in ["chest","seene","saans","breath","सीने","सांस"]): return "chest"
@@ -149,42 +117,66 @@ def get_category_for(text):
     if any(k in t for k in ["kaan","ear","कान"]): return "ear"
     if any(k in t for k in ["kamar","back","spine","कमर","leg","pair","knee","ghutna","hand","haath","joint","पैर","हाथ","घुटना","badan","body"]): return "back"
     if any(k in t for k in ["cold","cough","khansi","sardi","throat","gala","गला","सर्दी","खांसी"]): return "fever"
-    return "fever"
+    return "general"
 
-def get_doctors_for(text, city=None):
-    cat = get_category_for(text)
-    city = city or st.session_state.get("user_city","Faridabad")
-    docs = [d for d in DOCTOR_DB if d["cat"]==cat and d["city"]==city]
-    if not docs:
-        docs = [d for d in DOCTOR_DB if d["cat"]==cat][:2]
-    if not docs:
-        docs = [d for d in DOCTOR_DB if d["city"]==city][:2]
-    return docs
+DOCTOR_INFO = {
+    "fever": {"spec_hi":"सामान्य चिकित्सक","spec_en":"General Physician","work_hi":"बुखार, सर्दी, बदन दर्द जैसी आम बीमारियों का इलाज करते हैं।","work_en":"Treats common problems like fever, cold and body pain.","when_hi":"बुखार 102 से ऊपर हो, 3 दिन से ज्यादा रहे, तो तुरंत दिखाएं।","when_en":"If fever is above 102 or stays more than 3 days, see immediately.","fees_hi":"₹200 - ₹500","fees_en":"Rs. 200 - Rs. 500 (India) / Check local clinic fee in other countries"},
+    "back": {"spec_hi":"हड्डी रोग विशेषज्ञ","spec_en":"Orthopedic Doctor","work_hi":"कमर, घुटना, हाथ-पैर और हड्डी के दर्द का इलाज करते हैं।","work_en":"Treats back, knee, joint and bone pain.","when_hi":"दर्द पैर तक जा रहा हो या चलने में दिक्कत हो, तो तुरंत दिखाएं।","when_en":"If pain goes to leg or you have difficulty walking, see immediately.","fees_hi":"₹300 - ₹600","fees_en":"Rs. 300 - Rs. 600 (India) / Check local clinic fee in other countries"},
+    "skin": {"spec_hi":"त्वचा रोग विशेषज्ञ","spec_en":"Dermatologist","work_hi":"दाने, खुजली, एलर्जी और त्वचा की समस्या का इलाज करते हैं।","work_en":"Treats rash, itching, allergy and skin problems.","when_hi":"दानों से मवाद आए या पूरा शरीर लाल हो जाए, तो तुरंत दिखाएं।","when_en":"If pus comes from rash or full body becomes red, see immediately.","fees_hi":"₹300 - ₹600","fees_en":"Rs. 300 - Rs. 600 (India) / Check local clinic fee in other countries"},
+    "stomach": {"spec_hi":"पेट रोग विशेषज्ञ","spec_en":"Gastroenterologist","work_hi":"पेट दर्द, गैस, एसिडिटी, उल्टी-दस्त का इलाज करते हैं।","work_en":"Treats stomach pain, gas, acidity, vomiting and loose motion.","when_hi":"पेट में बहुत तेज दर्द हो या पॉटी में खून आए, तो तुरंत दिखाएं।","when_en":"If stomach pain is very severe or blood in stool, see immediately.","fees_hi":"₹400 - ₹700","fees_en":"Rs. 400 - Rs. 700 (India) / Check local clinic fee in other countries"},
+    "head": {"spec_hi":"न्यूरोलॉजिस्ट","spec_en":"Neurologist","work_hi":"सिर दर्द, माइग्रेन, चक्कर की समस्या का इलाज करते हैं।","work_en":"Treats headache, migraine and dizziness.","when_hi":"अचानक बहुत तेज सिर दर्द हो या उल्टी के साथ दर्द हो, तो तुरंत दिखाएं।","when_en":"If sudden very severe headache with vomiting, see immediately.","fees_hi":"₹500 - ₹800","fees_en":"Rs. 500 - Rs. 800 (India) / Check local clinic fee in other countries"},
+    "chest": {"spec_hi":"हृदय / फेफड़े रोग विशेषज्ञ","spec_en":"Cardiologist / Pulmonologist","work_hi":"सीने में दर्द, सांस की तकलीफ का इलाज करते हैं।","work_en":"Treats chest pain and breathing problems.","when_hi":"सीने में तेज दर्द + पसीना आए, तो तुरंत 108 पर कॉल करें।","when_en":"If severe chest pain with sweating, call emergency immediately.","fees_hi":"₹500 - ₹800","fees_en":"Rs. 500 - Rs. 800 (India) / Check local clinic fee in other countries"},
+    "tooth": {"spec_hi":"दांत के डॉक्टर","spec_en":"Dentist","work_hi":"दांत दर्द, कीड़ा, मसूड़े की सूजन का इलाज करते हैं।","work_en":"Treats tooth pain, cavity and gum swelling.","when_hi":"गाल सूज जाए या दर्द 2 दिन से न रुके, तो दिखाएं।","when_en":"If cheek swells or pain does not stop in 2 days, see dentist.","fees_hi":"₹200 - ₹500","fees_en":"Rs. 200 - Rs. 500 (India) / Check local clinic fee in other countries"},
+    "eye": {"spec_hi":"आंख के डॉक्टर","spec_en":"Eye Doctor","work_hi":"आंख में जलन, लालपन, दिखाई की समस्या का इलाज करते हैं।","work_en":"Treats eye burning, redness and vision problems.","when_hi":"दिखाई कम हो या आंख से मवाद आए, तो तुरंत दिखाएं।","when_en":"If vision is less or pus comes from eye, see immediately.","fees_hi":"₹300 - ₹500","fees_en":"Rs. 300 - Rs. 500 (India) / Check local clinic fee in other countries"},
+    "ear": {"spec_hi":"कान-नाक-गला विशेषज्ञ","spec_en":"ENT Doctor","work_hi":"कान दर्द, सुनाई की समस्या का इलाज करते हैं।","work_en":"Treats ear pain and hearing problems.","when_hi":"सुनाई कम दे या कान से पानी आए, तो दिखाएं।","when_en":"If hearing is less or water comes from ear, see doctor.","fees_hi":"₹300 - ₹600","fees_en":"Rs. 300 - Rs. 600 (India) / Check local clinic fee in other countries"},
+    "injury": {"spec_hi":"सर्जन / हड्डी रोग विशेषज्ञ","spec_en":"Surgeon / Orthopedic Doctor","work_hi":"चोट, जख्म, कटने की समस्या का इलाज करते हैं।","work_en":"Treats injury, wound and cuts.","when_hi":"खून न रुके या चोट गहरी हो, तो तुरंत अस्पताल जाएं।","when_en":"If bleeding does not stop or wound is deep, go to hospital immediately.","fees_hi":"₹300 - ₹700","fees_en":"Rs. 300 - Rs. 700 (India) / Check local clinic fee in other countries"},
+    "general": {"spec_hi":"सामान्य चिकित्सक","spec_en":"General Physician","work_hi":"आम बीमारियों का इलाज करते हैं, जरूरत हो तो सही स्पेशलिस्ट के पास भेजते हैं।","work_en":"Treats common diseases and refers to right specialist if needed.","when_hi":"तकलीफ 2-3 दिन से ज्यादा रहे, तो दिखाएं।","when_en":"If problem stays more than 2-3 days, see doctor.","fees_hi":"₹200 - ₹500","fees_en":"Rs. 200 - Rs. 500 (India) / Check local clinic fee in other countries"},
+}
 
-def show_doctors_box(user_text):
-    # City select - Option A
-    city = st.selectbox("📍 अपना शहर चुनें - Choose Your City" if not IS_HINDI else "📍 अपना शहर चुनें", ["Faridabad","Delhi","Gurugram","Noida"], index=["Faridabad","Delhi","Gurugram","Noida"].index(st.session_state.get("user_city","Faridabad")), key="city_select_box")
-    st.session_state.user_city = city
-    docs = get_doctors_for(user_text, city)
-    if IS_HINDI:
-        st.markdown(f"### 👨‍⚕️ आपके लक्षण के लिए डॉक्टर - {city} में (10km के अंदर)")
-        st.markdown("**🩺 ई-संजीवनी - ऑनलाइन डॉक्टर (सरकारी, फ्री) - सबसे ऊपर**")
+def show_doctor_detail_card(user_text, loc):
+    cat = get_category_for(user_text)
+    info = DOCTOR_INFO[cat]
+    country = loc.get("country","")
+    city = loc.get("city","")
+    pincode = loc.get("pincode","")
+    spec = info["spec_hi"] if IS_HINDI else info["spec_en"]
+    work = info["work_hi"] if IS_HINDI else info["work_en"]
+    when = info["when_hi"] if IS_HINDI else info["when_en"]
+    fees = info["fees_hi"] if IS_HINDI else info["fees_en"]
+    # 1. PEHLE DOCTOR KI DETAIL
+    st.markdown(f"""<div class="doctor-card"><b>👨‍⚕️ {T('आपको इस डॉक्टर की जरूरत है:','You need this doctor:')} {spec}</b><br><br><span><b>{T('ये डॉक्टर क्या करते हैं?','What does this doctor do?')}</b><br>{work}</span><br><br><span><b>{T('कब दिखाना चाहिए?','When to see?')}</b><br>{when}</span><br><br><span><b>{T('अंदाज़न फीस:','Approx Fees:')}</b> {fees}</span><br><br><span><b>{T('आपका इलाका:','Your Area:')}</b> {city}, {pincode}, {country}</span></div>""", unsafe_allow_html=True)
+    # 2. FIR US LOCATION KE DOCTOR - MAPS SE ASLI DOCTOR
+    maps_q = urllib.parse.quote(f"{spec} doctor near {city} {pincode} {country}")
+    st.markdown(f"""<div class="info-box"><b>{T('आपके पास के डॉक्टर - Maps पर असली डॉक्टर देखें','Doctors Near You - See Real Doctors On Maps')}</b><br>{T('हम किसी भी शहर के डॉक्टर का नाम अपने आप से नहीं बनाते। नीचे वाले बटन पर क्लिक करें, गूगल मैप्स आपके शहर और पिनकोड के असली डॉक्टर दिखा देगा।','We do not make up doctor names for any city. Click below button, Google Maps will show real doctors of your city and pincode.')}</div>""", unsafe_allow_html=True)
+    st.link_button(f"📍 {T('मेरे पास के डॉक्टर देखें - Maps','See Doctors Near Me - Maps')}", f"https://www.google.com/maps/search/{maps_q}", use_container_width=True)
+    if country.strip().lower() in ["india","bharat","hindustan"]:
+        st.markdown(f"### {T('🩺 ऑनलाइन डॉक्टर - सरकारी, फ्री','🩺 Online Doctor - Govt, FREE')}")
+        st.link_button(T("🩺 ई-संजीवनी खोलें","🩺 Open eSanjeevani"), "https://esanjeevani.mohfw.gov.in", use_container_width=True)
+        st.link_button(T("📞 104 - हेल्थ हेल्पलाइन पर कॉल करें","📞 104 - Health Helpline Call"), "tel:104", use_container_width=True)
+        st.link_button(T("🚑 108 - एम्बुलेंस","🚑 108 - Ambulance"), "tel:108", use_container_width=True)
     else:
-        st.markdown(f"### 👨‍⚕️ Doctors For Your Symptom - Near You in {city} (within 10km)")
-        st.markdown("**🩺 eSanjeevani - Online Doctor (Govt, FREE) - On Top**")
-    st.link_button("🩺 ई-संजीवनी खोलें" if IS_HINDI else "🩺 Open eSanjeevani", "https://esanjeevani.mohfw.gov.in", use_container_width=True)
-    for d in docs:
-        spec = d["spec_hi"] if IS_HINDI else d["spec"]
-        maps_q = urllib.parse.quote(f"{d['spec']} doctor near {d['address']} {city}")
-        st.markdown(f"""<div class="doctor-card"><b>👨‍⚕️ {d['name']} - {spec}</b><br><span>💼 Experience: {d['exp']} &nbsp;|&nbsp; 💰 Fees: {d['fees']} &nbsp;|&nbsp; {d['rating']}</span><br><span>🕒 {d['timing']}</span><br><span>📍 {d['address']}, {d['city']} - Within 10km</span><br><span>📞 {d['phone']}</span></div>""", unsafe_allow_html=True)
-        c1, c2 = st.columns(2)
-        with c1:
-            st.link_button("📞 कॉल करें" if IS_HINDI else "📞 Call Now", f"tel:{d['phone']}", use_container_width=True)
-        with c2:
-            st.link_button("📍 Maps में देखें" if IS_HINDI else "📍 View in Maps", f"https://www.google.com/maps/search/{maps_q}", use_container_width=True)
-    st.link_button("📞 104 - हेल्थ हेल्पलाइन पर कॉल करें" if IS_HINDI else "📞 104 - Health Helpline Call", "tel:104", use_container_width=True)
+        st.markdown(f"### {T('🩺 ऑनलाइन डॉक्टर','🩺 Online Doctor')}")
+        st.link_button(T("🌍 अपने देश के ऑनलाइन डॉक्टर खोजें","🌍 Search Online Doctor In Your Country"), f"https://www.google.com/search?q={urllib.parse.quote('online doctor consultation ' + country)}", use_container_width=True)
+        st.info(T("आपातकाल में अपने देश के इमरजेंसी नंबर पर कॉल करें।","In emergency, call emergency number of your country."))
 
-# ---------- FLOATING BANNER - DARK GLOW ----------
+def show_location_form(for_text):
+    st.markdown(f"### {T('📍 डॉक्टर खोजने के लिए अपनी लोकेशन बताइए','📍 Tell Your Location To Find Doctor')}")
+    st.write(T("हम किसी भी शहर के डॉक्टर का नाम अपने आप से नहीं बनाएंगे। आपकी लोकेशन के हिसाब से Maps असली डॉक्टर दिखाएगा।","We will not make up doctor names for any city. Maps will show real doctors as per your location."))
+    country = st.selectbox(T("देश चुनें","Select Country"), ["India","USA","UK","Canada","Australia","UAE","Singapore","Other"], key="loc_country")
+    if country == "Other":
+        country = st.text_input(T("अपना देश लिखें","Write Your Country"), key="loc_country_other")
+    city = st.text_input(T("शहर का नाम","City Name"), placeholder=T("जैसे: फरीदाबाद","Like: Faridabad"), key="loc_city")
+    pincode = st.text_input(T("पिनकोड / Zip Code","Pincode / Zip Code"), placeholder=T("जैसे: 121001","Like: 121001"), key="loc_pincode")
+    if st.button(T("✅ डॉक्टर खोजें","✅ Find Doctor"), use_container_width=True, key="find_doctor_btn"):
+        if city.strip() == "" or pincode.strip() == "":
+            st.warning(T("पहले शहर और पिनकोड लिखिए।","First write city and pincode."))
+        else:
+            st.session_state.doctor_location = {"country": country, "city": city.strip(), "pincode": pincode.strip()}
+            st.session_state.doctor_step = "done"
+            st.session_state.messages.append({"role":"assistant","content":"DOCTORS_BOX","for_text": for_text, "loc": dict(st.session_state.doctor_location)})
+            st.rerun()
+
+# ---------- FLOATING BANNER ----------
 def show_floating_banner():
     tips_hi = ["💡 दिन में 8 गिलास पानी पिएं", "💡 चोट को साफ पानी से धोएं, गंदा कपड़ा मत लगाएं", "💡 एलर्जी में खुजली मत करें, ठंडा पानी लगाएं", "💡 दवा समय पर लें, खुराक मत छोड़ें", "💡 रोज 30 मिनट टहलें", "💡 बुखार 102 से ऊपर हो तो तुरंत डॉक्टर को दिखाएं"]
     tips_en = ["💡 Drink 8 glasses of water daily", "💡 Wash wound with clean water, do not apply dirty cloth", "💡 In allergy do not scratch, apply cold water", "💡 Take medicine on time, do not miss dose", "💡 Walk 30 minutes daily", "💡 If fever is above 102, see doctor immediately"]
@@ -196,14 +188,13 @@ def show_floating_banner():
     st.markdown(f"""
     <style>
     .banner-wrap {{ position: fixed; bottom: 0; left: 0; right: 0; z-index: 9999; background: linear-gradient(90deg,#7C3AED,#2563EB); height: 48px; overflow: hidden; }}
-    .banner-wrap .tip {{ position: absolute; left: 0; right: 0; top: 0; height: 48px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 15px; padding: 0 10px; text-align: center; opacity: 0; animation: tipCycle 24s linear infinite; }}
+    .banner-wrap .tip {{ position: absolute; left: 0; right: 0; top: 0; height: 48px; display: flex; align-items: center; justify-content: center; color: white !important; font-weight: 700; font-size: 15px; padding: 0 10px; text-align: center; opacity: 0; animation: tipCycle 24s linear infinite; }}
     @keyframes tipCycle {{ 0% {{opacity: 0;}} 1% {{opacity: 1;}} 15% {{opacity: 1;}} 17% {{opacity: 0;}} 100% {{opacity: 0;}} }}
-    .block-container {{ padding-bottom: 70px !important; }}
     </style>
     <div class="banner-wrap">{items}</div>
     """, unsafe_allow_html=True)
 
-# ---------- ANSWER - AS IT IS ----------
+# ---------- ANSWER - LANGUAGE PURE ----------
 def get_instant_answer(user_text, lang):
     text = user_text.lower()
     def make_answer(symptom_name, causes, dangers, dos, tip, summary, lang):
@@ -404,82 +395,78 @@ def ask_reply_photo(photo_keyword, photo_desc, placeholder):
     placeholder.markdown(instant)
     return instant
 
-# ================= HOME - FIXED DOCTOR LOGIC =================
+# ================= HOME =================
 if menu in ["🏠 Home", "🏠 होम"]:
-    st.markdown("""<div class="ai-header"><h1>🩺 Sehat Saathi ✨</h1><p>Your AI Health Assistant - Apna symptom likho, turant salah pao</p></div>""", unsafe_allow_html=True)
-    if IS_HINDI:
-        st.write("नमस्ते, मैं यहाँ आपकी मदद करने के लिए हूँ! 👋")
-        st.write("अपनी तकलीफ लिखें, बोलें या फोटो भेजें।")
-    else:
-        st.write("Hello, I am here to help you! 👋")
-        st.write("Write your problem, speak or send photo.")
-    # CHAT HISTORY - FIX: DOCTORS_BOX alag se, answer ke saath doctor nahi
+    st.markdown(f"""<div class="ai-header"><h1>🩺 Sehat Saathi ✨</h1><p>{T('आपका एआई हेल्थ असिस्टेंट - अपनी तकलीफ लिखें, तुरंत सलाह पाएं','Your AI Health Assistant - Write your symptom, get instant advice')}</p></div>""", unsafe_allow_html=True)
+    st.write(T("नमस्ते, मैं यहाँ आपकी मदद करने के लिए हूँ! 👋","Hello, I am here to help you! 👋"))
+    st.write(T("अपनी तकलीफ लिखें, बोलें या फोटो भेजें।","Write your problem, speak or send photo."))
     for m in st.session_state.messages:
         with st.chat_message(m["role"]):
             if m.get("content") == "DOCTORS_BOX":
-                show_doctors_box(m.get("for_text",""))
+                show_doctor_detail_card(m.get("for_text",""), m.get("loc", st.session_state.doctor_location))
             elif m.get("type") == "image":
-                st.image(m["image"], caption="📸 आपकी फोटो" if IS_HINDI else "📸 Your Photo", use_container_width=True)
+                st.image(m["image"], caption=T("📸 आपकी फोटो","📸 Your Photo"), use_container_width=True)
                 st.markdown(m["content"])
             else:
                 st.markdown(m["content"])
-    if st.session_state.messages and st.session_state.messages[-1]["role"] == "assistant" and not st.session_state.doctor_asked:
+    # LOCATION FORM - YES ke baad, doctor box se pehle
+    if st.session_state.doctor_step == "location":
+        last_user = ""
+        for mm in reversed(st.session_state.messages):
+            if mm["role"]=="user":
+                last_user=mm["content"]; break
+        show_location_form(last_user)
+    if st.session_state.messages and st.session_state.messages[-1]["role"] == "assistant" and not st.session_state.doctor_asked and st.session_state.doctor_step == "none":
         if st.session_state.messages[-1].get("content") != "DOCTORS_BOX":
             if "सिर्फ स्वास्थ्य" not in st.session_state.messages[-1]["content"] and "only help with health" not in st.session_state.messages[-1]["content"].lower():
-                st.info("👨‍⚕️ क्या आप डॉक्टर से बात करना चाहेंगी?" if IS_HINDI else "👨‍⚕️ Would you like to see a doctor?")
+                st.info(T("👨‍⚕️ क्या आप डॉक्टर से बात करना चाहेंगी?","👨‍⚕️ Would you like to see a doctor?"))
                 c1, c2 = st.columns(2)
                 with c1:
-                    if st.button("✅ हाँ, डॉक्टर से बात करें" if IS_HINDI else "✅ Yes, See Doctor", use_container_width=True, key="yes_doctor"):
+                    if st.button(T("✅ हाँ, डॉक्टर से बात करें","✅ Yes, See Doctor"), use_container_width=True, key="yes_doctor"):
                         st.session_state.doctor_asked = True
-                        last_user = ""
-                        for mm in reversed(st.session_state.messages):
-                            if mm["role"]=="user":
-                                last_user=mm["content"]; break
-                        st.session_state.messages.append({"role": "assistant", "content": "DOCTORS_BOX", "show_doctors": True, "for_text": last_user})
+                        st.session_state.doctor_step = "location"
                         st.rerun()
                 with c2:
-                    if st.button("❌ नहीं, बस ऐसे ही" if IS_HINDI else "❌ No, Thanks", use_container_width=True, key="no_doctor"):
+                    if st.button(T("❌ नहीं, बस ऐसे ही","❌ No, Thanks"), use_container_width=True, key="no_doctor"):
                         st.session_state.doctor_asked = True
-                        st.session_state.messages.append({"role": "assistant", "content": "ठीक है, अपना ख्याल रखिए। तकलीफ बढ़े तो तुरंत 104 या 108 पर कॉल कीजिएगा।" if IS_HINDI else "Okay, take care. If problem increases, call 104 or 108 immediately."})
+                        st.session_state.doctor_step = "none"
+                        st.session_state.messages.append({"role": "assistant", "content": T("ठीक है, अपना ख्याल रखिए। तकलीफ बढ़े तो तुरंत 104 या 108 पर कॉल कीजिएगा।","Okay, take care. If problem increases, call 104 or 108 immediately.")})
                         st.rerun()
     st.markdown("---")
     with st.form("chat_form", clear_on_submit=True):
-        chat_text = st.text_input("Type...", label_visibility="collapsed", placeholder="अपनी तकलीफ लिखें..." if IS_HINDI else "Write your symptom...")
-        submitted = st.form_submit_button("➤ भेजें" if IS_HINDI else "➤ Send", use_container_width=True)
+        chat_text = st.text_input("Type...", label_visibility="collapsed", placeholder=T("अपनी तकलीफ लिखें...","Write your symptom..."))
+        submitted = st.form_submit_button(T("➤ भेजें","➤ Send"), use_container_width=True)
     if submitted and chat_text.strip() != "":
         st.session_state.messages.append({"role": "user", "content": chat_text})
         st.session_state.doctor_asked = False
+        st.session_state.doctor_step = "none"
         with st.chat_message("assistant"):
             placeholder = st.empty()
             reply = ask_reply(chat_text, placeholder)
-        # FIX: show_doctors = False - answer ke saath doctor box nahi aayega
         st.session_state.messages.append({"role": "assistant", "content": reply, "show_doctors": False, "for_text": chat_text})
         st.rerun()
-    if st.button("🧹 चैट साफ करें" if IS_HINDI else "🧹 Clear Chat", use_container_width=True):
+    if st.button(T("🧹 चैट साफ करें","🧹 Clear Chat"), use_container_width=True):
         st.session_state.messages = []
         st.session_state.doctor_asked = False
+        st.session_state.doctor_step = "none"
+        st.session_state.doctor_location = {}
         st.session_state["last_audio_id"] = ""
         st.session_state.photo_sent = False
         st.session_state.uploader_key += 1
         st.rerun()
     col_photo, col_audio = st.columns(2)
     with col_photo:
-        st.write("📷 फोटो" if IS_HINDI else "📷 Photo")
+        st.write(T("📷 फोटो","📷 Photo"))
         uploaded_photo = st.file_uploader("Upload Photo", type=["jpg","jpeg","png"], label_visibility="collapsed", key=f"wa_cam_{st.session_state.uploader_key}")
     with col_audio:
-        st.write("🎤 आवाज़" if IS_HINDI else "🎤 Voice")
+        st.write(T("🎤 आवाज़","🎤 Voice"))
         audio_input = st.audio_input("Speak", label_visibility="collapsed", key="wa_mic")
     if uploaded_photo:
         st.image(uploaded_photo, width=200)
-        if IS_HINDI:
-            st.write("📸 यह फोटो किस चीज़ की है?")
-            photo_type = st.radio("Photo Type", ["एलर्जी / दाने", "चोट / जख्म", "खुजली / दाने"], label_visibility="collapsed", horizontal=True, key="photo_type_hi")
-            photo_desc = st.text_input("फोटो में क्या दिख रहा है?", placeholder="जैसे: हाथ पर लाल दाने...", key="photo_desc_hi")
-        else:
-            st.write("📸 What is this photo of?")
-            photo_type = st.radio("Photo Type", ["Allergy / Rash", "Injury / Wound", "Itching / Rash"], label_visibility="collapsed", horizontal=True, key="photo_type_en")
-            photo_desc = st.text_input("What is visible in photo? (optional)", placeholder="Like: red rash on hand...", key="photo_desc_en")
-        if st.button("📸 फोटो भेजें" if IS_HINDI else "📸 Send Photo", use_container_width=True):
+        st.write(T("📸 यह फोटो किस चीज़ की है?","📸 What is this photo of?"))
+        photo_type = st.radio("Photo Type", T(["एलर्जी / दाने", "चोट / जख्म", "खुजली / दाने"], ["Allergy / Rash", "Injury / Wound", "Itching / Rash"]), label_visibility="collapsed", horizontal=True, key="photo_type")
+        photo_desc = st.text_input(T("फोटो में क्या दिख रहा है?","What is visible in photo? (optional)"), placeholder=T("जैसे: हाथ पर लाल दाने...","Like: red rash on hand..."), key="photo_desc")
+        if st.button(T("📸 फोटो भेजें","📸 Send Photo"), use_container_width=True):
             if "चोट" in photo_type or "Injury" in photo_type:
                 kw = "चोट जख्म" if IS_HINDI else "chot zakhm"
             elif "खुजली" in photo_type or "Itching" in photo_type:
@@ -493,47 +480,45 @@ if menu in ["🏠 Home", "🏠 होम"]:
             st.session_state.messages.append({"role": "user", "content": photo_text, "type": "image", "image": uploaded_photo})
             st.session_state.messages.append({"role": "assistant", "content": reply, "show_doctors": False, "for_text": photo_text})
             st.session_state.doctor_asked = False
+            st.session_state.doctor_step = "none"
             st.session_state.photo_sent = True
             st.session_state.uploader_key += 1
             st.rerun()
     if audio_input and st.session_state.get("last_audio_id") != str(audio_input):
         st.session_state["last_audio_id"] = str(audio_input)
-        with st.spinner("सुन रहे हैं..." if IS_HINDI else "Listening..."):
+        with st.spinner(T("सुन रहे हैं...","Listening...")):
             voice_text = speech_to_text(audio_input.read())
         if voice_text and not voice_text.startswith("ERROR:"):
-            st.success(f"🗣️ आपने बोला: {voice_text}" if IS_HINDI else f"🗣️ You said: {voice_text}")
+            st.success(T(f"🗣️ आपने बोला: {voice_text}", f"🗣️ You said: {voice_text}"))
             st.session_state.messages.append({"role": "user", "content": voice_text})
             st.session_state.doctor_asked = False
+            st.session_state.doctor_step = "none"
             with st.chat_message("assistant"):
                 placeholder = st.empty()
                 reply = ask_reply(voice_text, placeholder)
             st.session_state.messages.append({"role": "assistant", "content": reply, "show_doctors": False, "for_text": voice_text})
             st.rerun()
         else:
-            st.warning("आवाज़ समझ नहीं आई, दोबारा बोलिए।" if IS_HINDI else "Could not understand, please speak again.")
+            st.warning(T("आवाज़ समझ नहीं आई, दोबारा बोलिए।","Could not understand, please speak again."))
     show_floating_banner()
 
 elif menu in ["💊 Medicine Reminder", "💊 दवाई रिमाइंडर"]:
-    if IS_HINDI:
-        st.title("💊 दवाई रिमाइंडर")
-        st.write("दवाई का समय सेट कीजिए, समय होने पर ऐप याद दिलाएगा।")
-    else:
-        st.title("💊 Medicine Reminder")
-        st.write("Set medicine time, app will remind you.")
+    st.title(T("💊 दवाई रिमाइंडर","💊 Medicine Reminder"))
+    st.write(T("दवाई का समय सेट कीजिए, समय होने पर ऐप याद दिलाएगा।","Set medicine time, app will remind you."))
     with st.form("reminder_form"):
-        med_name = st.text_input("दवाई का नाम" if IS_HINDI else "Medicine Name", placeholder="दवाई का नाम लिखें..." if IS_HINDI else "Write medicine name...", value="")
-        st.write("समय" if IS_HINDI else "Time")
+        med_name = st.text_input(T("दवाई का नाम","Medicine Name"), placeholder=T("दवाई का नाम लिखें...","Write medicine name..."), value="")
+        st.write(T("समय","Time"))
         c_h, c_m, c_ap = st.columns(3)
         with c_h:
-            hour = st.selectbox("घंटा" if IS_HINDI else "Hour", list(range(1, 13)), index=7)
+            hour = st.selectbox(T("घंटा","Hour"), list(range(1, 13)), index=7)
         with c_m:
-            minute = st.selectbox("मिनट" if IS_HINDI else "Minute", [f"{i:02d}" for i in range(0, 60)], index=0)
+            minute = st.selectbox(T("मिनट","Minute"), [f"{i:02d}" for i in range(0, 60)], index=0)
         with c_ap:
             ampm = st.radio("AM / PM", ["AM", "PM"], horizontal=True)
-        med_days = st.number_input("कितने दिन तक?" if IS_HINDI else "How many days?", min_value=1, max_value=30, value=3)
-        if st.form_submit_button("✅ रिमाइंडर सेट करें" if IS_HINDI else "✅ Set Reminder", use_container_width=True):
+        med_days = st.number_input(T("कितने दिन तक?","How many days?"), min_value=1, max_value=30, value=3)
+        if st.form_submit_button(T("✅ रिमाइंडर सेट करें","✅ Set Reminder"), use_container_width=True):
             if med_name.strip() == "":
-                st.warning("पहले दवाई का नाम लिखिए" if IS_HINDI else "First write medicine name")
+                st.warning(T("पहले दवाई का नाम लिखिए","First write medicine name"))
             else:
                 hour_24 = hour % 12
                 if ampm == "PM":
@@ -543,310 +528,181 @@ elif menu in ["💊 Medicine Reminder", "💊 दवाई रिमाइंड
                 time_str = f"{hour_24:02d}:{minute}"
                 display_time = f"{hour}:{minute} {ampm}"
                 st.session_state.reminders.append({"name": med_name.strip(), "time": time_str, "display": display_time, "days": med_days, "hour24": hour_24, "minute": minute})
-                st.success(f"✅ रिमाइंडर सेट: {med_name.strip()} - {display_time} - {med_days} दिन" if IS_HINDI else f"✅ Reminder set: {med_name.strip()} - {display_time} - {med_days} days")
+                st.success(T(f"✅ रिमाइंडर सेट: {med_name.strip()} - {display_time} - {med_days} दिन", f"✅ Reminder set: {med_name.strip()} - {display_time} - {med_days} days"))
     st.markdown("---")
-    st.write("📋 **आपके रिमाइंडर**" if IS_HINDI else "📋 **Your Reminders**")
+    st.write(T("📋 **आपके रिमाइंडर**","📋 **Your Reminders**"))
     now_str = datetime.datetime.now().strftime("%H:%M")
     for r in st.session_state.reminders:
         r_time_short = r["time"][:5]
         show_time = r.get("display", r["time"])
         if r_time_short == now_str:
-            st.error(f"🔔 दवाई का समय हो गया! {r['name']} ले लीजिए! - {show_time}" if IS_HINDI else f"🔔 TIME FOR MEDICINE! Take {r['name']} now! - {show_time}")
-        st.info(f"💊 {r['name']} - ⏰ {show_time} - 📅 {r['days']} दिन" if IS_HINDI else f"💊 {r['name']} - ⏰ {show_time} - 📅 {r['days']} days")
+            st.error(T(f"🔔 दवाई का समय हो गया! {r['name']} ले लीजिए! - {show_time}", f"🔔 TIME FOR MEDICINE! Take {r['name']} now! - {show_time}"))
+        st.info(T(f"💊 {r['name']} - ⏰ {show_time} - 📅 {r['days']} दिन", f"💊 {r['name']} - ⏰ {show_time} - 📅 {r['days']} days"))
         today = datetime.date.today().strftime("%Y%m%d")
         hh = str(r.get("hour24", 9)).zfill(2)
         mm = str(r.get("minute", "00")).zfill(2)
         gcal_url = f"https://calendar.google.com/calendar/render?action=TEMPLATE&text={urllib.parse.quote(r['name'] + ' - Dawa Leni Hai')}&dates={today}T{hh}{mm}00/{today}T{hh}{mm}00&recur=RRULE:FREQ=DAILY;COUNT={r['days']}&details={urllib.parse.quote('Daily Medicine Reminder - ' + r['name'])}"
-        st.link_button("📅 गूगल कैलेंडर में जोड़ें - रोज़ दोहराएं" if IS_HINDI else "📅 Add to Google Calendar - Daily Repeat", gcal_url, use_container_width=True)
+        st.link_button(T("📅 गूगल कैलेंडर में जोड़ें - रोज़ दोहराएं","📅 Add to Google Calendar - Daily Repeat"), gcal_url, use_container_width=True)
     if st.session_state.reminders:
-        if st.button("🗑️ सारे रिमाइंडर हटाएं" if IS_HINDI else "🗑️ Delete All Reminders", use_container_width=True):
+        if st.button(T("🗑️ सारे रिमाइंडर हटाएं","🗑️ Delete All Reminders"), use_container_width=True):
             st.session_state.reminders = []
             st.rerun()
     else:
-        st.write("अभी कोई रिमाइंडर नहीं है।" if IS_HINDI else "No reminders yet.")
+        st.write(T("अभी कोई रिमाइंडर नहीं है।","No reminders yet."))
     show_floating_banner()
 
 elif menu in ["👨‍⚕️ Talk To Doctor", "👨‍⚕️ डॉक्टर से बात करें"]:
-    if IS_HINDI:
-        st.title("👨‍⚕️ डॉक्टर से बात करें")
-        st.success("ये सब सरकारी डॉक्टर की सेवाएं हैं, 100% असली।")
-    else:
-        st.title("👨‍⚕️ Talk To Doctor")
-        st.success("All these are Government doctor services, 100% Real.")
-    show_doctors_box("general")
-    if IS_HINDI:
-        st.markdown("---")
-        st.markdown("### 2. 📞 104 - हेल्थ हेल्पलाइन")
-        st.link_button("📞 104 पर कॉल करें", "tel:104", use_container_width=True)
-        st.markdown("### 3. 🏥 नज़दीकी सरकारी अस्पताल")
-        st.write("- **सुबह:** 9 बजे से 1 बजे तक ओपीडी")
-    else:
-        st.markdown("---")
-        st.markdown("### 2. 📞 104 - Health Helpline")
-        st.link_button("📞 Call 104", "tel:104", use_container_width=True)
-        st.markdown("### 3. 🏥 Nearest Government Hospital")
-        st.write("- **Morning:** 9 AM to 1 PM OPD")
+    st.title(T("👨‍⚕️ डॉक्टर से बात करें","👨‍⚕️ Talk To Doctor"))
+    st.success(T("ये सब सरकारी डॉक्टर की सेवाएं हैं, 100% असली।","All these are Government doctor services, 100% Real."))
+    st.write(T("पहले अपनी तकलीफ लिखें, फिर लोकेशन बताएं, डॉक्टर की पूरी जानकारी मिलेगी।","First write your problem, then tell location, you will get full doctor details."))
+    talk_symptom = st.text_input(T("अपनी तकलीफ लिखें","Write Your Problem"), placeholder=T("जैसे: कमर दर्द","Like: back pain"), key="talk_symptom")
+    if talk_symptom.strip() != "":
+        show_location_form(talk_symptom)
+    st.markdown("---")
+    st.markdown(f"### {T('📞 104 - हेल्थ हेल्पलाइन','📞 104 - Health Helpline')}")
+    st.link_button(T("📞 104 पर कॉल करें","📞 Call 104"), "tel:104", use_container_width=True)
+    st.markdown(f"### {T('🏥 नज़दीकी सरकारी अस्पताल','🏥 Nearest Government Hospital')}")
+    st.write(T("- **सुबह:** 9 बजे से 1 बजे तक ओपीडी","- **Morning:** 9 AM to 1 PM OPD"))
     show_floating_banner()
 
 elif menu in ["🚨 Emergency", "🚨 आपातकाल"]:
-    if IS_HINDI:
-        st.title("🚨 आपातकाल - Emergency")
-        st.error("अगर तकलीफ बहुत ज़्यादा है तो पहले CALL करें, ऐप का इंतज़ार मत करें!")
-        st.markdown("### 📞 आपातकालीन नंबर - पहले इन पर कॉल करें")
-        st.link_button("🚑 108 - एम्बुलेंस बुलाएं", "tel:108", use_container_width=True)
-        st.link_button("🚓 112 - पुलिस / आपातकाल", "tel:112", use_container_width=True)
-        st.link_button("🔥 101 - फायर ब्रिगेड", "tel:101", use_container_width=True)
-        st.link_button("📞 104 - हेल्थ हेल्पलाइन", "tel:104", use_container_width=True)
-        st.link_button("👧 1098 - चाइल्ड हेल्पलाइन", "tel:1098", use_container_width=True)
-        st.link_button("👩 181 - महिला हेल्पलाइन", "tel:181", use_container_width=True)
-        st.markdown("---")
-        st.markdown("### 🆘 अपनी इमरजेंसी लिखें / बोलें")
-        st.write("जैसे: हाथ कट गया, खून आ रहा है, सांस नहीं आ रही")
-        em_text = st.text_input("इमरजेंसी लिखें...", placeholder="इमरजेंसी लिखें - जैसे हाथ कट गया...", key="em_text")
-        em_audio = st.audio_input("इमरजेंसी बोलें", key="em_mic")
-        em_final = em_text
-        if em_audio and st.session_state.get("last_em_audio") != str(em_audio):
-            st.session_state["last_em_audio"] = str(em_audio)
-            vt = speech_to_text(em_audio.read())
-            if vt and not vt.startswith("ERROR:"):
-                st.success(f"🗣️ आपने बोला: {vt}")
-                em_final = vt
-        if st.button("🚨 इमरजेंसी स्टेप्स देखें", use_container_width=True):
-            e = (em_final or "").lower()
-            if e.strip()=="":
-                st.warning("पहले अपनी इमरजेंसी लिखें या बोलें।")
-            elif "कट" in e or "खून" in e or "blood" in e or "चोट" in e:
-                st.error("**कट / खून - एम्बुलेंस आने तक:**\n1. 108 पर कॉल करें\n2. साफ कपड़े से ज़ोर से दबाएं\n3. हाथ / पैर ऊपर रखें\n4. मरीज़ को हिलाएं नहीं")
-            elif "सांस" in e or "breath" in e or "गला" in e:
-                st.error("**सांस की समस्या - एम्बुलेंस आने तक:**\n1. 108 पर कॉल करें\n2. मरीज़ को सीधा बैठाएं\n3. गले के कपड़े ढीले कर दें\n4. खिड़की खोल दें")
-            elif "बुखार" in e or "fever" in e:
-                st.error("**तेज़ बुखार - एम्बुलेंस आने तक:**\n1. ठंडी पट्टी रखें\n2. भारी कपड़े हटा दें\n3. थोड़ा-थोड़ा पानी पिलाते रहें")
-            elif "उल्टी" in e or "vomit" in e:
-                st.error("**उल्टी - एम्बुलेंस आने तक:**\n1. मरीज़ को एक तरफ लिटाएं\n2. थोड़ा-थोड़ा ओआरएस पिलाएं\n3. खाना मत दें")
-            elif "बेहोश" in e or "faint" in e:
-                st.error("**बेहोश - एम्बुलेंस आने तक:**\n1. सांस चेक करें\n2. सांस चल रही है तो एक तरफ लिटाएं\n3. पानी / खाना मत पिलाएं\n4. तुरंत 108 पर कॉल करें")
-            else:
-                st.error("**इमरजेंसी - एम्बुलेंस आने तक:**\n1. घबराएं नहीं, 108 पर कॉल करें\n2. मरीज़ को सीधा लिटाएं\n3. खून आ रहा है तो साफ कपड़े से दबाएं")
-        st.markdown("---")
-        st.markdown("### 🆘 इमरजेंसी टिप्स")
-        st.write("- **चोट:** साफ कपड़े से दबाएं, हल्दी / मिट्टी मत लगाएं")
-        st.write("- **सांस:** सीधा बैठाएं, कपड़े ढीले करें")
-        st.write("- **बुखार:** ठंडी पट्टी, थोड़ा-थोड़ा पानी")
-        st.write("- **बेहोश:** पानी मत पिलाएं, एक तरफ लिटाएं, 108 पर कॉल करें")
-    else:
-        st.title("🚨 Emergency")
-        st.error("If problem is very serious, CALL FIRST, do not wait for app!")
-        st.markdown("### 📞 Emergency Numbers - Call These First")
-        st.link_button("🚑 108 - Call Ambulance", "tel:108", use_container_width=True)
-        st.link_button("🚓 112 - Police / Emergency", "tel:112", use_container_width=True)
-        st.link_button("🔥 101 - Fire Brigade", "tel:101", use_container_width=True)
-        st.link_button("📞 104 - Health Helpline", "tel:104", use_container_width=True)
-        st.link_button("👧 1098 - Child Helpline", "tel:1098", use_container_width=True)
-        st.link_button("👩 181 - Women Helpline", "tel:181", use_container_width=True)
-        st.markdown("---")
-        st.markdown("### 🆘 Write / Speak Your Emergency")
-        em_text = st.text_input("Write emergency...", placeholder="Write emergency - like hand cut...", key="em_text_en")
-        em_audio = st.audio_input("Speak Emergency", key="em_mic_en")
-        em_final = em_text
-        if em_audio and st.session_state.get("last_em_audio_en") != str(em_audio):
-            st.session_state["last_em_audio_en"] = str(em_audio)
-            vt = speech_to_text(em_audio.read())
-            if vt and not vt.startswith("ERROR:"):
-                st.success(f"🗣️ You said: {vt}")
-                em_final = vt
-        if st.button("🚨 See Emergency Steps", use_container_width=True):
-            e = (em_final or "").lower()
-            if e.strip()=="":
-                st.warning("First write or speak your emergency.")
-            elif "cut" in e or "blood" in e or "bleed" in e or "injury" in e:
-                st.error("**CUT / BLEEDING - Till Ambulance Arrives:**\n1. Call 108\n2. Press firmly with clean cloth\n3. Keep hand / leg up")
-            elif "breath" in e or "choke" in e:
-                st.error("**BREATHING PROBLEM - Till Ambulance Arrives:**\n1. Call 108\n2. Make patient sit straight\n3. Loosen clothes around neck")
-            elif "fever" in e:
-                st.error("**HIGH FEVER - Till Ambulance Arrives:**\n1. Keep cold wet cloth\n2. Remove heavy blanket\n3. Give water in small sips")
-            elif "vomit" in e:
-                st.error("**VOMITING - Till Ambulance Arrives:**\n1. Make patient lie on one side\n2. Give ORS in small sips")
-            elif "faint" in e or "unconscious" in e:
-                st.error("**UNCONSCIOUS - Till Ambulance Arrives:**\n1. Check breathing\n2. If breathing, lie on one side\n3. Do not give water / food\n4. Call 108 immediately")
-            else:
-                st.error("**EMERGENCY - Till Ambulance Arrives:**\n1. Do not panic, call 108\n2. Lay patient straight\n3. If bleeding, press with clean cloth")
-        st.markdown("---")
-        st.markdown("### 🆘 Emergency Tips")
-        st.write("- **Injury:** Press with clean cloth, do not apply haldi / mud")
-        st.write("- **Breathing:** Sit straight, loosen clothes")
-        st.write("- **Fever:** Cold cloth, water in small sips")
-        st.write("- **Unconscious:** Do not give water, lie on side, call 108")
+    st.title(T("🚨 आपातकाल - Emergency","🚨 Emergency"))
+    st.error(T("अगर तकलीफ बहुत ज़्यादा है तो पहले CALL करें, ऐप का इंतज़ार मत करें!","If problem is very serious, CALL FIRST, do not wait for app!"))
+    st.markdown(f"### {T('📞 आपातकालीन नंबर - पहले इन पर कॉल करें','📞 Emergency Numbers - Call These First')}")
+    st.link_button(T("🚑 108 - एम्बुलेंस बुलाएं","🚑 108 - Call Ambulance"), "tel:108", use_container_width=True)
+    st.link_button(T("🚓 112 - पुलिस / आपातकाल","🚓 112 - Police / Emergency"), "tel:112", use_container_width=True)
+    st.link_button(T("🔥 101 - फायर ब्रिगेड","🔥 101 - Fire Brigade"), "tel:101", use_container_width=True)
+    st.link_button(T("📞 104 - हेल्थ हेल्पलाइन","📞 104 - Health Helpline"), "tel:104", use_container_width=True)
+    st.link_button(T("👧 1098 - चाइल्ड हेल्पलाइन","👧 1098 - Child Helpline"), "tel:1098", use_container_width=True)
+    st.link_button(T("👩 181 - महिला हेल्पलाइन","👩 181 - Women Helpline"), "tel:181", use_container_width=True)
+    st.markdown("---")
+    st.markdown(f"### {T('🆘 अपनी इमरजेंसी लिखें / बोलें','🆘 Write / Speak Your Emergency')}")
+    st.write(T("जैसे: हाथ कट गया, खून आ रहा है, सांस नहीं आ रही","Like: hand cut, bleeding, cannot breathe"))
+    em_text = st.text_input(T("इमरजेंसी लिखें...","Write emergency..."), placeholder=T("इमरजेंसी लिखें - जैसे हाथ कट गया...","Write emergency - like hand cut..."), key="em_text")
+    em_audio = st.audio_input(T("इमरजेंसी बोलें","Speak Emergency"), key="em_mic")
+    em_final = em_text
+    if em_audio and st.session_state.get("last_em_audio") != str(em_audio):
+        st.session_state["last_em_audio"] = str(em_audio)
+        vt = speech_to_text(em_audio.read())
+        if vt and not vt.startswith("ERROR:"):
+            st.success(T(f"🗣️ आपने बोला: {vt}", f"🗣️ You said: {vt}"))
+            em_final = vt
+    if st.button(T("🚨 इमरजेंसी स्टेप्स देखें","🚨 See Emergency Steps"), use_container_width=True):
+        e = (em_final or "").lower()
+        if e.strip()=="":
+            st.warning(T("पहले अपनी इमरजेंसी लिखें या बोलें।","First write or speak your emergency."))
+        elif "कट" in e or "खून" in e or "blood" in e or "चोट" in e or "cut" in e:
+            st.error(T("**कट / खून - एम्बुलेंस आने तक:**\n1. 108 पर कॉल करें\n2. साफ कपड़े से ज़ोर से दबाएं\n3. हाथ / पैर ऊपर रखें\n4. मरीज़ को हिलाएं नहीं","**CUT / BLEEDING - Till Ambulance Arrives:**\n1. Call 108\n2. Press firmly with clean cloth\n3. Keep hand / leg up"))
+        elif "सांस" in e or "breath" in e or "गला" in e or "choke" in e:
+            st.error(T("**सांस की समस्या - एम्बुलेंस आने तक:**\n1. 108 पर कॉल करें\n2. मरीज़ को सीधा बैठाएं\n3. गले के कपड़े ढीले कर दें\n4. खिड़की खोल दें","**BREATHING PROBLEM - Till Ambulance Arrives:**\n1. Call 108\n2. Make patient sit straight\n3. Loosen clothes around neck"))
+        elif "बुखार" in e or "fever" in e:
+            st.error(T("**तेज़ बुखार - एम्बुलेंस आने तक:**\n1. ठंडी पट्टी रखें\n2. भारी कपड़े हटा दें\n3. थोड़ा-थोड़ा पानी पिलाते रहें","**HIGH FEVER - Till Ambulance Arrives:**\n1. Keep cold wet cloth\n2. Remove heavy blanket\n3. Give water in small sips"))
+        elif "उल्टी" in e or "vomit" in e:
+            st.error(T("**उल्टी - एम्बुलेंस आने तक:**\n1. मरीज़ को एक तरफ लिटाएं\n2. थोड़ा-थोड़ा ओआरएस पिलाएं\n3. खाना मत दें","**VOMITING - Till Ambulance Arrives:**\n1. Make patient lie on one side\n2. Give ORS in small sips"))
+        elif "बेहोश" in e or "faint" in e:
+            st.error(T("**बेहोश - एम्बुलेंस आने तक:**\n1. सांस चेक करें\n2. सांस चल रही है तो एक तरफ लिटाएं\n3. पानी / खाना मत पिलाएं\n4. तुरंत 108 पर कॉल करें","**UNCONSCIOUS - Till Ambulance Arrives:**\n1. Check breathing\n2. If breathing, lie on one side\n3. Do not give water / food\n4. Call 108 immediately"))
+        else:
+            st.error(T("**इमरजेंसी - एम्बुलेंस आने तक:**\n1. घबराएं नहीं, 108 पर कॉल करें\n2. मरीज़ को सीधा लिटाएं\n3. खून आ रहा है तो साफ कपड़े से दबाएं","**EMERGENCY - Till Ambulance Arrives:**\n1. Do not panic, call 108\n2. Lay patient straight\n3. If bleeding, press with clean cloth"))
+    st.markdown("---")
+    st.markdown(f"### {T('🆘 इमरजेंसी टिप्स','🆘 Emergency Tips')}")
+    st.write(T("- **चोट:** साफ कपड़े से दबाएं, हल्दी / मिट्टी मत लगाएं","- **Injury:** Press with clean cloth, do not apply haldi / mud"))
+    st.write(T("- **सांस:** सीधा बैठाएं, कपड़े ढीले करें","- **Breathing:** Sit straight, loosen clothes"))
+    st.write(T("- **बुखार:** ठंडी पट्टी, थोड़ा-थोड़ा पानी","- **Fever:** Cold cloth, water in small sips"))
+    st.write(T("- **बेहोश:** पानी मत पिलाएं, एक तरफ लिटाएं, 108 पर कॉल करें","- **Unconscious:** Do not give water, lie on side, call 108"))
     show_floating_banner()
 
 elif menu in ["💡 Health Tips", "💡 स्वास्थ्य टिप्स"]:
-    if IS_HINDI:
-        st.title("💡 स्वास्थ्य टिप्स - रोज़ का रूटीन")
-        st.write("ये छोटी-छोटी आदतें आपको बड़े रोग से बचा सकती हैं।")
-        st.markdown("### 🌅 1. सुबह उठते ही")
-        st.write("- **गुनगुना पानी:** सुबह उठते ही 1-2 गिलास गुनगुना पानी पिएं")
-        st.write("- **धूप:** सुबह 15 मिनट धूप में बैठें, विटामिन डी मिलता है")
-        st.write("- **फोन मत देखें:** उठते ही फोन मत देखें, 30 मिनट बाद देखें")
-        st.markdown("### 🚶 2. टहल और व्यायाम")
-        st.write("- **रोज़ 30 मिनट टहल:** बीपी, शुगर और वज़न नियंत्रण में रहता है")
-        st.write("- **सीढ़ी:** लिफ्ट की जगह सीढ़ी इस्तेमाल करें")
-        st.markdown("### 🍲 3. खाना-पीना")
-        st.write("- **हरी सब्जियां:** रोज़ एक समय हरी सब्जी खाएं")
-        st.write("- **पानी:** दिन में 8 गिलास पानी पिएं")
-        st.write("- **नमक-कम:** खाने में नमक और तेल कम रखें")
-        st.markdown("### 😴 4. नींद")
-        st.write("- **7-8 घंटे:** रोज़ 7-8 घंटे की नींद लें")
-        st.write("- **मोबाइल दूर:** सोने से 30 मिनट पहले मोबाइल बंद कर दें")
-        st.markdown("### 🧼 5. साफ-सफाई")
-        st.write("- **हाथ धोएं:** खाना खाने से पहले हाथ साबुन से धोएं")
-        st.write("- **दांत:** दिन में 2 बार ब्रश करें")
-        st.markdown("### 👶 7. बच्चों के लिए")
-        st.write("- **टीका:** बच्चों के सारे टीके समय पर लगवाएं, पीएचसी में फ्री लगते हैं")
-        st.write("- **दूध:** रोज़ 1 गिलास दूध पिलाएं")
-        st.markdown("### 👵 8. बुजुर्गों के लिए")
-        st.write("- **बीपी-शुगर जांच:** महीने में 1 बार बीपी और शुगर जांच करवाएं, पीएचसी में फ्री होता है")
-        st.write("- **दवाई समय पर:** दवाई का समय कभी मत छोड़ें")
-    else:
-        st.title("💡 Health Tips - Daily Routine")
-        st.write("These small habits can save you from big diseases.")
-        st.markdown("### 🌅 1. Morning")
-        st.write("- **Warm Water:** Drink 1-2 glasses of warm water after waking up")
-        st.write("- **Sunlight:** Sit in sunlight for 15 minutes, you get Vitamin D")
-        st.write("- **No Phone:** Do not see phone just after waking up")
-        st.markdown("### 🚶 2. Walk And Exercise")
-        st.write("- **30 Min Walk Daily:** Controls BP, sugar and weight")
-        st.write("- **Stairs:** Use stairs instead of lift")
-        st.markdown("### 🍲 3. Food And Water")
-        st.write("- **Green Vegetables:** Eat green vegetables once daily")
-        st.write("- **Water:** Drink 8 glasses of water daily")
-        st.write("- **Less Salt-Oil:** Keep salt and oil less in food")
-        st.markdown("### 😴 4. Sleep")
-        st.write("- **7-8 Hours:** Take 7-8 hours sleep daily")
-        st.write("- **Mobile Away:** Switch off mobile 30 minutes before sleeping")
-        st.markdown("### 🧼 5. Cleanliness")
-        st.write("- **Wash Hands:** Wash hands with soap before eating")
-        st.write("- **Teeth:** Brush 2 times a day")
-        st.markdown("### 👶 7. For Children")
-        st.write("- **Vaccination:** Get all vaccines on time, FREE in PHC")
-        st.write("- **Milk:** Give 1 glass milk daily")
-        st.markdown("### 👵 8. For Elderly")
-        st.write("- **BP-Sugar Check:** Check BP and sugar once a month, FREE in PHC")
-        st.write("- **Medicine On Time:** Never miss medicine time")
+    st.title(T("💡 स्वास्थ्य टिप्स - रोज़ का रूटीन","💡 Health Tips - Daily Routine"))
+    st.write(T("ये छोटी-छोटी आदतें आपको बड़े रोग से बचा सकती हैं।","These small habits can save you from big diseases."))
+    st.markdown(f"### {T('🌅 1. सुबह उठते ही','🌅 1. Morning')}")
+    st.write(T("- **गुनगुना पानी:** सुबह उठते ही 1-2 गिलास गुनगुना पानी पिएं","- **Warm Water:** Drink 1-2 glasses of warm water after waking up"))
+    st.write(T("- **धूप:** सुबह 15 मिनट धूप में बैठें, विटामिन डी मिलता है","- **Sunlight:** Sit in sunlight for 15 minutes, you get Vitamin D"))
+    st.write(T("- **फोन मत देखें:** उठते ही फोन मत देखें, 30 मिनट बाद देखें","- **No Phone:** Do not see phone just after waking up"))
+    st.markdown(f"### {T('🚶 2. टहल और व्यायाम','🚶 2. Walk And Exercise')}")
+    st.write(T("- **रोज़ 30 मिनट टहल:** बीपी, शुगर और वज़न नियंत्रण में रहता है","- **30 Min Walk Daily:** Controls BP, sugar and weight"))
+    st.write(T("- **सीढ़ी:** लिफ्ट की जगह सीढ़ी इस्तेमाल करें","- **Stairs:** Use stairs instead of lift"))
+    st.markdown(f"### {T('🍲 3. खाना-पीना','🍲 3. Food And Water')}")
+    st.write(T("- **हरी सब्जियां:** रोज़ एक समय हरी सब्जी खाएं","- **Green Vegetables:** Eat green vegetables once daily"))
+    st.write(T("- **पानी:** दिन में 8 गिलास पानी पिएं","- **Water:** Drink 8 glasses of water daily"))
+    st.write(T("- **नमक-कम:** खाने में नमक और तेल कम रखें","- **Less Salt-Oil:** Keep salt and oil less in food"))
+    st.markdown(f"### {T('😴 4. नींद','😴 4. Sleep')}")
+    st.write(T("- **7-8 घंटे:** रोज़ 7-8 घंटे की नींद लें","- **7-8 Hours:** Take 7-8 hours sleep daily"))
+    st.write(T("- **मोबाइल दूर:** सोने से 30 मिनट पहले मोबाइल बंद कर दें","- **Mobile Away:** Switch off mobile 30 minutes before sleeping"))
+    st.markdown(f"### {T('🧼 5. साफ-सफाई','🧼 5. Cleanliness')}")
+    st.write(T("- **हाथ धोएं:** खाना खाने से पहले हाथ साबुन से धोएं","- **Wash Hands:** Wash hands with soap before eating"))
+    st.write(T("- **दांत:** दिन में 2 बार ब्रश करें","- **Teeth:** Brush 2 times a day"))
+    st.markdown(f"### {T('👶 7. बच्चों के लिए','👶 7. For Children')}")
+    st.write(T("- **टीका:** बच्चों के सारे टीके समय पर लगवाएं, पीएचसी में फ्री लगते हैं","- **Vaccination:** Get all vaccines on time, FREE in PHC"))
+    st.write(T("- **दूध:** रोज़ 1 गिलास दूध पिलाएं","- **Milk:** Give 1 glass milk daily"))
+    st.markdown(f"### {T('👵 8. बुजुर्गों के लिए','👵 8. For Elderly')}")
+    st.write(T("- **बीपी-शुगर जांच:** महीने में 1 बार बीपी और शुगर जांच करवाएं, पीएचसी में फ्री होता है","- **BP-Sugar Check:** Check BP and sugar once a month, FREE in PHC"))
+    st.write(T("- **दवाई समय पर:** दवाई का समय कभी मत छोड़ें","- **Medicine On Time:** Never miss medicine time"))
     show_floating_banner()
 
 elif menu in ["⚖️ BMI Calculator", "⚖️ बीएमआई कैलकुलेटर"]:
-    if IS_HINDI:
-        st.title("⚖️ बीएमआई कैलकुलेटर")
-    else:
-        st.title("⚖️ BMI Calculator")
-    weight = st.number_input("वज़न (kg)" if IS_HINDI else "Weight (kg)", min_value=10.0, max_value=200.0, value=60.0)
-    height = st.number_input("ऊंचाई (cm)" if IS_HINDI else "Height (cm)", min_value=100.0, max_value=220.0, value=165.0)
-    if st.button("हिसाब लगाएं" if IS_HINDI else "Calculate"):
+    st.title(T("⚖️ बीएमआई कैलकुलेटर","⚖️ BMI Calculator"))
+    weight = st.number_input(T("वज़न (kg)","Weight (kg)"), min_value=10.0, max_value=200.0, value=60.0)
+    height = st.number_input(T("ऊंचाई (cm)","Height (cm)"), min_value=100.0, max_value=220.0, value=165.0)
+    if st.button(T("हिसाब लगाएं","Calculate")):
         h_m = height / 100
         bmi = weight / (h_m * h_m)
-        st.success(f"Your BMI: {bmi:.1f}")
+        st.success(f"Your BMI: {bmi:.1f}" if not IS_HINDI else f"आपका बीएमआई: {bmi:.1f}")
         if bmi < 18.5:
-            st.write("Underweight - Eat healthy food" if not IS_HINDI else "कम वज़न - स्वस्थ खाना खाएं")
+            st.write(T("कम वज़न - स्वस्थ खाना खाएं","Underweight - Eat healthy food"))
         elif bmi < 25:
-            st.write("Normal - Good! Keep it up" if not IS_HINDI else "सामान्य - बहुत बढ़िया!")
+            st.write(T("सामान्य - बहुत बढ़िया!","Normal - Good! Keep it up"))
         elif bmi < 30:
-            st.write("Overweight - Walk daily" if not IS_HINDI else "ज्यादा वज़न - रोज़ टहलें")
+            st.write(T("ज्यादा वज़न - रोज़ टहलें","Overweight - Walk daily"))
         else:
-            st.write("Obese - Please consult doctor" if not IS_HINDI else "मोटापा - डॉक्टर से बात करें")
+            st.write(T("मोटापा - डॉक्टर से बात करें","Obese - Please consult doctor"))
     show_floating_banner()
 
 elif menu in ["🏛️ Government Schemes", "🏛️ सरकारी योजनाएं"]:
-    if IS_HINDI:
-        st.title("🏛️ सरकारी योजनाएं - फ्री का फायदा उठाएं")
-        st.success("ये सब सरकारी योजनाएं हैं, 100% असली और फ्री। किसी को पैसे मत दें।")
-        st.markdown("### 1. 🩺 आयुष्मान भारत - पीएमजेएवाई")
-        st.write("- **क्या मिलता है:** 5 लाख तक का फ्री इलाज, हर साल, पूरे परिवार के लिए")
-        st.write("- **क्या चाहिए:** आधार कार्ड + राशन कार्ड")
-        st.link_button("आयुष्मान कार्ड चेक करें", "https://pmjay.gov.in", use_container_width=True)
-        st.markdown("---")
-        st.markdown("### 2. 💊 जन औषधि - सस्ती दवाई")
-        st.write("- **क्या मिलता है:** दवाई 50% से 90% तक सस्ती मिलती है")
-        st.write("- **कौन ले सकता है:** कोई भी, सबके लिए है")
-        st.link_button("नज़दीकी जन औषधि केंद्र ढूंढें", "https://janaushadhi.gov.in", use_container_width=True)
-        st.markdown("---")
-        st.markdown("### 3. 🤰 पीएम सुरक्षित मातृत्व - गर्भवती महिला")
-        st.write("- **क्या मिलता है:** गर्भवती महिला की फ्री जांच, फ्री दवाई, फ्री अल्ट्रासाउंड")
-        st.write("- **कब:** हर महीने की 9 तारीख को पीएचसी में फ्री जांच होती है")
-        st.markdown("---")
-        st.markdown("### 4. 👶 मिशन इंद्रधनुष - बच्चों के टीके")
-        st.write("- **क्या मिलता है:** बच्चों के सारे टीके बिल्कुल फ्री")
-        st.write("- **कहां मिलेगा:** गांव के आंगनवाड़ी / पीएचसी में")
-        st.markdown("---")
-        st.markdown("### 5. 👵 पीएम वय वंदना - बुजुर्गों के लिए")
-        st.write("- **क्या मिलता है:** 60 साल से ऊपर के बुजुर्गों को हर महीने पेंशन जैसा पैसा मिलता है")
-        st.markdown("---")
-        st.markdown("### 6. 🦟 राष्ट्रीय स्वास्थ्य मिशन - फ्री जांच")
-        st.write("- **क्या मिलता है:** पीएचसी में बीपी, शुगर, बुखार, मलेरिया की जांच बिल्कुल फ्री")
-    else:
-        st.title("🏛️ Government Schemes - Take FREE Benefit")
-        st.success("All these are Government schemes, 100% Real and FREE. Do not pay money to anyone.")
-        st.markdown("### 1. 🩺 Ayushman Bharat - PMJAY")
-        st.write("- **Benefit:** FREE treatment up to 5 Lakh, every year, for whole family")
-        st.write("- **Need:** Aadhaar Card + Ration Card")
-        st.link_button("Check Ayushman Card", "https://pmjay.gov.in", use_container_width=True)
-        st.markdown("---")
-        st.markdown("### 2. 💊 Jan Aushadhi - Cheap Medicines")
-        st.write("- **Benefit:** Medicines 50% to 90% cheaper")
-        st.write("- **Who Can Get:** Anyone, for everyone")
-        st.link_button("Find Nearest Jan Aushadhi Kendra", "https://janaushadhi.gov.in", use_container_width=True)
-        st.markdown("---")
-        st.markdown("### 3. 🤰 PM Surakshit Matritva - Pregnant Women")
-        st.write("- **Benefit:** FREE checkup, FREE medicine, FREE ultrasound for pregnant women")
-        st.write("- **When:** On 9th of every month, FREE checkup in PHC")
-        st.markdown("---")
-        st.markdown("### 4. 👶 Mission Indradhanush - Children Vaccines")
-        st.write("- **Benefit:** All vaccines of children totally FREE")
-        st.markdown("---")
-        st.markdown("### 5. 👵 PM Vaya Vandana - For Elderly")
-        st.write("- **Benefit:** Elderly above 60 years get monthly pension-like money")
-        st.markdown("---")
-        st.markdown("### 6. 🦟 National Health Mission - FREE Checkup")
-        st.write("- **Benefit:** BP, Sugar, Fever, Malaria checkup totally FREE in PHC")
+    st.title(T("🏛️ सरकारी योजनाएं - फ्री का फायदा उठाएं","🏛️ Government Schemes - Take FREE Benefit"))
+    st.success(T("ये सब सरकारी योजनाएं हैं, 100% असली और फ्री। किसी को पैसे मत दें।","All these are Government schemes, 100% Real and FREE. Do not pay money to anyone."))
+    st.markdown(f"### {T('1. 🩺 आयुष्मान भारत - पीएमजेएवाई','1. 🩺 Ayushman Bharat - PMJAY')}")
+    st.write(T("- **क्या मिलता है:** 5 लाख तक का फ्री इलाज, हर साल, पूरे परिवार के लिए","- **Benefit:** FREE treatment up to 5 Lakh, every year, for whole family"))
+    st.write(T("- **क्या चाहिए:** आधार कार्ड + राशन कार्ड","- **Need:** Aadhaar Card + Ration Card"))
+    st.link_button(T("आयुष्मान कार्ड चेक करें","Check Ayushman Card"), "https://pmjay.gov.in", use_container_width=True)
+    st.markdown("---")
+    st.markdown(f"### {T('2. 💊 जन औषधि - सस्ती दवाई','2. 💊 Jan Aushadhi - Cheap Medicines')}")
+    st.write(T("- **क्या मिलता है:** दवाई 50% से 90% तक सस्ती मिलती है","- **Benefit:** Medicines 50% to 90% cheaper"))
+    st.write(T("- **कौन ले सकता है:** कोई भी, सबके लिए है","- **Who Can Get:** Anyone, for everyone"))
+    st.link_button(T("नज़दीकी जन औषधि केंद्र ढूंढें","Find Nearest Jan Aushadhi Kendra"), "https://janaushadhi.gov.in", use_container_width=True)
+    st.markdown("---")
+    st.markdown(f"### {T('3. 🤰 पीएम सुरक्षित मातृत्व - गर्भवती महिला','3. 🤰 PM Surakshit Matritva - Pregnant Women')}")
+    st.write(T("- **क्या मिलता है:** गर्भवती महिला की फ्री जांच, फ्री दवाई, फ्री अल्ट्रासाउंड","- **Benefit:** FREE checkup, FREE medicine, FREE ultrasound for pregnant women"))
+    st.write(T("- **कब:** हर महीने की 9 तारीख को पीएचसी में फ्री जांच होती है","- **When:** On 9th of every month, FREE checkup in PHC"))
+    st.markdown("---")
+    st.markdown(f"### {T('4. 👶 मिशन इंद्रधनुष - बच्चों के टीके','4. 👶 Mission Indradhanush - Children Vaccines')}")
+    st.write(T("- **क्या मिलता है:** बच्चों के सारे टीके बिल्कुल फ्री","- **Benefit:** All vaccines of children totally FREE"))
+    st.write(T("- **कहां मिलेगा:** गांव के आंगनवाड़ी / पीएचसी में","- **Where:** Village Anganwadi / PHC"))
+    st.markdown("---")
+    st.markdown(f"### {T('5. 👵 पीएम वय वंदना - बुजुर्गों के लिए','5. 👵 PM Vaya Vandana - For Elderly')}")
+    st.write(T("- **क्या मिलता है:** 60 साल से ऊपर के बुजुर्गों को हर महीने पेंशन जैसा पैसा मिलता है","- **Benefit:** Elderly above 60 years get monthly pension-like money"))
+    st.markdown("---")
+    st.markdown(f"### {T('6. 🦟 राष्ट्रीय स्वास्थ्य मिशन - फ्री जांच','6. 🦟 National Health Mission - FREE Checkup')}")
+    st.write(T("- **क्या मिलता है:** पीएचसी में बीपी, शुगर, बुखार, मलेरिया की जांच बिल्कुल फ्री","- **Benefit:** BP, Sugar, Fever, Malaria checkup totally FREE in PHC"))
     show_floating_banner()
 
 elif menu in ["ℹ️ About App", "ℹ️ ऐप के बारे में"]:
-    if IS_HINDI:
-        st.title("ℹ️ ऐप के बारे में - सेहत साथी")
-        st.write("सेहत साथी **सबके लिए** बनाया गया है - बच्चों से लेकर बुजुर्गों तक, गांव हो या शहर, सभी लोग इसका इस्तेमाल कर सकते हैं।")
-        st.markdown("---")
-        st.markdown("### 🩺 यह ऐप क्या है?")
-        st.write("सेहत साथी एक हेल्थ हेल्पर ऐप है। जब आपको हल्की तकलीफ होती है - जैसे सिर दर्द, बुखार, सर्दी, पेट दर्द - और आपको समझ नहीं आता कि क्या करें, तो यह ऐप तुरंत आपको समझाता है कि यह किस वजह से हो सकता है, कब खतरा है और अभी क्या करना चाहिए।")
-        st.write("यह ऐप डॉक्टर की जगह नहीं लेता, यह बस पहली मदद करता है।")
-        st.markdown("---")
-        st.markdown("### ✨ फीचर्स")
-        st.write("- **💬 चैट:** अपनी तकलीफ लिखकर भेजें")
-        st.write("- **🎤 बोलकर बताएं:** माइक दबाकर बोल दीजिए")
-        st.write("- **📷 फोटो भेजें:** दाने, चोट या रैश की फोटो भेज दीजिए")
-        st.write("- **💊 दवाई रिमाइंडर:** दवाई का समय सेट कीजिए")
-        st.write("- **👨‍⚕️ डॉक्टर से बात करें:** सरकारी डॉक्टर, ई-संजीवनी और 104 हेल्पलाइन")
-        st.write("- **🚨 आपातकाल:** इमरजेंसी में क्या करना है, किस नंबर पर कॉल करना है")
-        st.write("- **💡 स्वास्थ्य टिप्स:** रोज़ का रूटीन, खाना-पीना, नींद, टहल")
-        st.write("- **⚖️ बीएमआई कैलकुलेटर:** अपना वज़न सही है या नहीं")
-        st.write("- **🏛️ सरकारी योजनाएं:** आयुष्मान, जन औषधि जैसी योजनाओं की जानकारी फ्री में")
-        st.markdown("---")
-        st.info("⚠️ **ज़रूरी बात:** यह ऐप सिर्फ जानकारी और पहली मदद के लिए है। यह डॉक्टर की जगह नहीं ले सकता। अगर तकलीफ ज़्यादा है, तो तुरंत डॉक्टर को दिखाएं या 108 पर कॉल करें।")
-    else:
-        st.title("ℹ️ About App - Sehat Saathi")
-        st.write("Sehat Saathi is made for **everyone** - from children to elderly, village or city, anyone can use it.")
-        st.markdown("---")
-        st.markdown("### 🩺 What Is This App?")
-        st.write("Sehat Saathi is a health helper app. When you have a small problem - like headache, fever, cold, stomach pain - this app tells you why it can happen, when it is dangerous, and what you should do now.")
-        st.write("This app does not replace a doctor, it only gives first help.")
-        st.markdown("---")
-        st.markdown("### ✨ Features")
-        st.write("- **💬 Chat:** Write your problem")
-        st.write("- **🎤 Speak:** Press mic and speak")
-        st.write("- **📷 Send Photo:** Send photo of rash, injury")
-        st.write("- **💊 Medicine Reminder:** Set medicine time")
-        st.write("- **👨‍⚕️ Talk To Doctor:** Govt doctor, eSanjeevani and 104 helpline")
-        st.write("- **🚨 Emergency:** What to do in emergency, which number to call")
-        st.write("- **💡 Health Tips:** Daily routine, food, sleep, walk")
-        st.write("- **⚖️ BMI Calculator:** Check if your weight is correct")
-        st.write("- **🏛️ Government Schemes:** Ayushman, Jan Aushadhi info FREE")
-        st.markdown("---")
-        st.info("⚠️ **Important:** This app is only for information and first help. It cannot replace a doctor. If problem is more, see doctor immediately or call 108.")
+    st.title(T("ℹ️ ऐप के बारे में - सेहत साथी","ℹ️ About App - Sehat Saathi"))
+    st.write(T("सेहत साथी **सबके लिए** बनाया गया है - बच्चों से लेकर बुजुर्गों तक, गांव हो या शहर, सभी लोग इसका इस्तेमाल कर सकते हैं।","Sehat Saathi is made for **everyone** - from children to elderly, village or city, anyone can use it."))
+    st.markdown("---")
+    st.markdown(f"### {T('🩺 यह ऐप क्या है?','🩺 What Is This App?')}")
+    st.write(T("सेहत साथी एक हेल्थ हेल्पर ऐप है। जब आपको हल्की तकलीफ होती है - जैसे सिर दर्द, बुखार, सर्दी, पेट दर्द - और आपको समझ नहीं आता कि क्या करें, तो यह ऐप तुरंत आपको समझाता है कि यह किस वजह से हो सकता है, कब खतरा है और अभी क्या करना चाहिए।","Sehat Saathi is a health helper app. When you have a small problem - like headache, fever, cold, stomach pain - this app tells you why it can happen, when it is dangerous, and what you should do now."))
+    st.write(T("यह ऐप डॉक्टर की जगह नहीं लेता, यह बस पहली मदद करता है।","This app does not replace a doctor, it only gives first help."))
+    st.markdown("---")
+    st.markdown(f"### {T('✨ फीचर्स','✨ Features')}")
+    st.write(T("- **💬 चैट:** अपनी तकलीफ लिखकर भेजें","- **💬 Chat:** Write your problem"))
+    st.write(T("- **🎤 बोलकर बताएं:** माइक दबाकर बोल दीजिए","- **🎤 Speak:** Press mic and speak"))
+    st.write(T("- **📷 फोटो भेजें:** दाने, चोट या रैश की फोटो भेज दीजिए","- **📷 Send Photo:** Send photo of rash, injury"))
+    st.write(T("- **💊 दवाई रिमाइंडर:** दवाई का समय सेट कीजिए","- **💊 Medicine Reminder:** Set medicine time"))
+    st.write(T("- **👨‍⚕️ डॉक्टर से बात करें:** सरकारी डॉक्टर, ई-संजीवनी और 104 हेल्पलाइन","- **👨‍⚕️ Talk To Doctor:** Govt doctor, eSanjeevani and 104 helpline"))
+    st.write(T("- **🚨 आपातकाल:** इमरजेंसी में क्या करना है, किस नंबर पर कॉल करना है","- **🚨 Emergency:** What to do in emergency, which number to call"))
+    st.write(T("- **💡 स्वास्थ्य टिप्स:** रोज़ का रूटीन, खाना-पीना, नींद, टहल","- **💡 Health Tips:** Daily routine, food, sleep, walk"))
+    st.write(T("- **⚖️ बीएमआई कैलकुलेटर:** अपना वज़न सही है या नहीं","- **⚖️ BMI Calculator:** Check if your weight is correct"))
+    st.write(T("- **🏛️ सरकारी योजनाएं:** आयुष्मान, जन औषधि जैसी योजनाओं की जानकारी फ्री में","- **🏛️ Government Schemes:** Ayushman, Jan Aushadhi info FREE"))
+    st.markdown("---")
+    st.info(T("⚠️ **ज़रूरी बात:** यह ऐप सिर्फ जानकारी और पहली मदद के लिए है। यह डॉक्टर की जगह नहीं ले सकता। अगर तकलीफ ज़्यादा है, तो तुरंत डॉक्टर को दिखाएं या 108 पर कॉल करें।","⚠️ **Important:** This app is only for information and first help. It cannot replace a doctor. If problem is more, see doctor immediately or call 108."))
     show_floating_banner()
