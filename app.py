@@ -5,11 +5,9 @@ import urllib.parse
 import json
 import urllib.request
 import base64
+import io
 st.set_page_config(page_title="Sehat Saathi - India", page_icon="🩺", layout="centered")
 
-# ======================================================
-# 🔑 KEY YAHAN MAT DAALNA - KEY SECRETS ME JAYEGI
-# ======================================================
 try:
     GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 except:
@@ -24,11 +22,11 @@ def ask_ai(prompt):
         req = urllib.request.Request(url, data=json.dumps(data).encode(), headers={"Content-Type": "application/json"})
         with urllib.request.urlopen(req, timeout=30) as res:
             out = json.loads(res.read().decode())
-        return out["candidates"][0]["content"]["parts"][0]["text"]
+            return out["candidates"][0]["content"]["parts"][0]["text"]
     except Exception as e:
         return f"ERROR:{str(e)[:200]}"
 
-# ---------- PREMIUM OMBRE - WARM CREAM TO PEACH TO MINT ----------
+# ---------- PREMIUM OMBRE ----------
 st.markdown("""
 <style>
 [data-testid="stToolbar"] {visibility: hidden !important;}
@@ -36,17 +34,17 @@ header {visibility: hidden !important;}
 footer {visibility: hidden !important;}
 .stApp { background: linear-gradient(180deg, #FFFBF2 0%, #FFF7ED 25%, #FEF3C7 50%, #EEF2FF 75%, #F0FDF4 100%) !important; }
 .block-container { background: transparent !important; max-width: 1100px !important; padding: 1rem 2rem 100px 2rem !important; }
-h1, h2, h3, p, label, .stMarkdown, .stWrite, span, div { color: #1E293B !important; }
+h1, h2, h3, p, label,.stMarkdown,.stWrite, span, div { color: #1E293B !important; }
 section[data-testid="stSidebar"] { background: linear-gradient(180deg, #FFFFFF 0%, #FFFBEB 100%) !important; border-right: 1px solid #FDE68A; }
 section[data-testid="stSidebar"] * { color: #1E293B !important; font-weight: 500 !important; }
-.stTextInput input, .stSelectbox div[data-baseweb="select"] div, .stNumberInput input, .stTextArea textarea {
-    background: #FFFFFF !important; color: #1E293B !important; border: 1.5px solid #E2E8F0 !important; border-radius: 14px !important; min-height: 52px !important; font-size: 16px !important; box-shadow: 0 2px 8px rgba(0,0,0,0.03) !important;
+.stTextInput input,.stSelectbox div[data-baseweb="select"] div,.stNumberInput input,.stTextArea textarea {
+ background: #FFFFFF !important; color: #1E293B !important; border: 1.5px solid #E2E8F0 !important; border-radius: 14px !important; min-height: 52px !important; font-size: 16px !important; box-shadow: 0 2px 8px rgba(0,0,0,0.03) !important;
 }
 .stTextInput input::placeholder { color: transparent !important; }
-.stButton button, .stLinkButton a {
-    background: linear-gradient(90deg, #4F46E5 0%, #7C3AED 45%, #EA580C 100%) !important; color: #FFFFFF !important; border: none !important; border-radius: 14px !important; font-weight: 700 !important; min-height: 52px !important; font-size: 16px !important; box-shadow: 0 4px 14px rgba(79,70,229,0.25) !important;
+.stButton button,.stLinkButton a {
+ background: linear-gradient(90deg, #4F46E5 0%, #7C3AED 45%, #EA580C 100%) !important; color: #FFFFFF !important; border: none !important; border-radius: 14px !important; font-weight: 700 !important; min-height: 52px !important; font-size: 16px !important; box-shadow: 0 4px 14px rgba(79,70,229,0.25) !important;
 }
-.stButton button *, .stLinkButton a * { color: #FFFFFF !important; font-weight: 700 !important; }
+.stButton button *,.stLinkButton a * { color: #FFFFFF !important; font-weight: 700 !important; }
 div[data-testid="stChatMessage"] { background: #FFFFFF !important; border-radius: 18px !important; border: 1px solid #FDE68A !important; box-shadow: 0 2px 12px rgba(0,0,0,0.04) !important; }
 div[data-testid="stChatMessage"] * { color: #1E293B !important; }
 .ai-header { background: linear-gradient(90deg, #FFE4E6 0%, #FEF3C7 35%, #D1FAE5 70%, #DBEAFE 100%); padding: 22px; border-radius: 22px; text-align: center; margin-bottom: 14px; border: 1px solid #FDE68A; box-shadow: 0 4px 18px rgba(0,0,0,0.05); }
@@ -56,11 +54,11 @@ div[data-testid="stChatMessage"] * { color: #1E293B !important; }
 .online-card { background: #FFFFFF; border: 1.5px solid #BBF7D0; border-radius: 18px; padding: 16px; margin: 12px 0; box-shadow: 0 4px 16px rgba(0,0,0,0.04); }
 .info-box { background: linear-gradient(90deg, #FFFBEB, #FEF3C7); border-radius: 14px; padding: 14px; border: 1px solid #FDE68A; }
 .scheme-card { background: #FFFFFF; border: 1.5px solid #FDE68A; border-radius: 18px; padding: 16px; margin: 14px 0; box-shadow: 0 4px 16px rgba(0,0,0,0.04); }
-.scheme-card b, .scheme-card span { color: #1E293B !important; }
+.scheme-card b,.scheme-card span { color: #1E293B !important; }
 .hospital-card { background: #FFFFFF; border: 1.5px solid #BBF7D0; border-radius: 18px; padding: 16px; margin: 12px 0; box-shadow: 0 4px 16px rgba(0,0,0,0.04); }
 .medicine-card { background: #FFFFFF; border: 1.5px solid #FDE68A; border-radius: 18px; padding: 18px; margin: 12px 0; box-shadow: 0 4px 16px rgba(0,0,0,0.04); }
-@media (min-width: 1024px) { .block-container { max-width: 1100px !important; } }
-@media (max-width: 768px) { .block-container { max-width: 100% !important; padding: 10px 12px 100px 12px !important; } .ai-header h1 { font-size: 25px !important; } }
+@media (min-width: 1024px) {.block-container { max-width: 1100px !important; } }
+@media (max-width: 768px) {.block-container { max-width: 100% !important; padding: 10px 12px 100px 12px !important; }.ai-header h1 { font-size: 25px !important; } }
 </style>
 """, unsafe_allow_html=True)
 
@@ -84,47 +82,77 @@ else:
 def T(hi, en): return hi if IS_HINDI else en
 
 def speech_to_text(audio_bytes):
+    # Audio ko Text me badlo - Sirf sunna hai, bolna nahi hai
     try:
-        import speech_recognition as sr, io
+        import speech_recognition as sr
         r = sr.Recognizer()
         wav_io = io.BytesIO(audio_bytes)
         with sr.AudioFile(wav_io) as source:
             audio_data = r.record(source)
-            try:
-                text_hi = r.recognize_google(audio_data, language="hi-IN")
-            except:
-                text_hi = ""
-            try:
-                text_en = r.recognize_google(audio_data, language="en-IN")
-            except:
-                text_en = ""
-            if text_hi and re.search(r'[\u0900-\u097F]', text_hi):
-                return text_hi
-            if text_hi and any(w in text_hi.lower() for w in ["mere","mera","mujhe","dard","hai","bukhar","sardi","khansi","khujli","pet","sir","kamar","gala","chakkar","ulti","kamzori","neend","chot"]):
-                return text_hi
-            if text_en:
-                return text_en
-            return text_hi if text_hi else f"ERROR:Could not understand"
+        try:
+            text_en = r.recognize_google(audio_data, language="en-IN")
+        except:
+            text_en = ""
+        try:
+            text_hi = r.recognize_google(audio_data, language="hi-IN")
+        except:
+            text_hi = ""
+        # Agar English me bola hai to English hi rakho
+        if text_en and any(w in text_en.lower() for w in ["headache","fever","pain","cough","cold","stomach","have","i have"]):
+            return text_en
+        if text_hi and re.search(r'[\u0900-\u097F]', text_hi):
+            return text_hi
+        if text_en:
+            return text_en
+        return text_hi if text_hi else "ERROR:Could not understand"
     except Exception as e: return f"ERROR:{str(e)[:100]}"
 
-HEALTH_WORDS = ["daane","rash","chot","zakhm","allergy","khujli","itching","bukhar","fever","dard","pain","dawa","medicine","wound","injury","skin","khaansi","cough","cold","sardi","pet","stomach","sir","head","haath","hand","pair","leg","blood","khoon","burn","jal","soojan","swelling","ulti","vomit","dast","kamzori","weak","neend","sleep","saans","breath","chest","seene","gala","throat","kaan","ear","daant","tooth","aankh","eye","ghutna","knee","kamar","back","badan","body","chakkar","dizzy","gas","acidity","kabz","photo","doctor","hospital","bimar","beemar","tabiyat","dawai","diabetes","sugar","bp","thyroid","asthma","dama","anxiety","depression","stress","period","mahwari","pregnancy","garbh","piles","bawasir","stone","pathri","jaundice","piliya","malaria","dengue","typhoid","tb","cancer","hiv","pneumonia","corona","sinus","tonsil","pimple","muhase","dandruff","baal","fungal","eczema","psoriasis","vitiligo","ulcer","appendix","keede","gathiya","arthritis","sciatica","moch","freeze","mirgi","daura","yaadash","ghabrahat","udaasi","peshaab","uti","liver","hepatitis","cholesterol","dil","dhadkan","naak","motiyabind","chashma","aids","tumor","kidney","paralysis","lakwa","vitamin","infection","bacteria","virus","haddi","nas","dimaag","brain","heart","lung","fefe","दाने","चोट","खुजली","बुखार","दर्द","सांस","सीने","पेट","सिर","कमर","गला","कान","दांत","आंख","पैर","हाथ","घुटना","चक्कर","उल्टी","कमजोरी","नींद","शुगर","मधुमेह","थायराइड","दमा","माहवारी","गर्भ","बवासीर","पथरी","पीलिया","मलेरिया","डेंगू","टाइफाइड","टीबी","कैंसर","निमोनिया","साइनस","मुहासे","बाल","गठिया","मिर्गी","घबराहट","उदासी","पेशाब","लीवर","कोलेस्ट्रॉल","दिल","नाक","मोतियाबिंद","लकवा","दिमाग","हड्डी"]
-OUT_WORDS = ["movie","film","cricket","football","game","padhai","study","exam","joke","song","gaana","politics","news","weather","mausam","love","shaadi","job","naukri","paisa","money","shopping","birthday","car","bike","dog","cat","kutta","billi","food","khana","recipe","kapde","clothes","mobile","phone","computer","laptop","school","college","teacher","actor","singer","dance","nach","khel","match","ipl","bhabhi","padosi","मूवी","फिल्म","क्रिकेट","गाना","जोक","पढ़ाई","परीक्षा","नौकरी","पैसा","शॉपिंग","मौसम","राजनीति"]
+# ===== NEW: AI SE HEALTH CHECK - KOI LIST NAHI =====
 def is_health_related(text):
-    t = (text or "").lower()
-    if any(w in t for w in OUT_WORDS): return False
-    if any(w in t for w in HEALTH_WORDS): return True
-    if t.strip() in ["hi","hello","namaste","hey","hii","नमस्ते"]: return True
-    return False
+    """
+    Ab list se check nahi hoga.
+    Gemini 3.6 khud batayega - ye health hai ya nahi.
+    """
+    t = (text or "").strip()
+    if t.lower() in ["hi","hello","namaste","hey","hii","नमस्ते"]:
+        return True
+    if not t:
+        return False
+    # Gemini se pucho - Sirf YES ya NO me jawab de
+    prompt = f"""
+    You are a health classifier. User said: "{t}"
+    Question: Is this about human health, body problem, symptom, injury, allergy, skin problem, medicine, doctor, hospital, pregnancy, mental health, emergency?
+    Rules:
+    - If user says headache, fever, pain, dard, bukhar, sar dard, pet dard, or any body problem in ANY language - English, Hindi, Hinglish, Roman Hindi, Devanagari transliteration like 'आई हैव ए वेरी बैड हेडाचे' - answer YES.
+    - If user says movie, cricket, politics, shopping, song, game, study, love, job - answer NO.
+    - If user says greeting like hi, hello, namaste - answer YES.
+    Answer ONLY YES or NO. No other word.
+    """
+    ans = ask_ai(prompt)
+    ans = (ans or "").strip().upper()
+    if "YES" in ans:
+        return True
+    if "NO" in ans:
+        return False
+    # Agar AI se jawab na aaye to safe side - health maan lo, reject mat karo
+    return True
+
 def out_of_context_msg(real_lang):
     return "मैं सिर्फ स्वास्थ्य, चोट और एलर्जी से जुड़ी मदद कर सकती हूँ। अपनी स्वास्थ्य समस्या बताइए।" if real_lang=="Hindi" else "I can only help with health, injury and allergy related problems. Please tell your health problem."
+
 def detect_language(user_text):
-    if re.search(r'[\u0900-\u097F]', user_text): return "Hindi"
+    # Language bhi AI se nahi, simple rule se - Devanagari hai to Hindi
+    if re.search(r'[\u0900-\u097F]', user_text):
+        # Agar user ne English bola tha par Google ne Hindi letters me likh diya - jaise "आई हैव..."
+        if "हैव" in user_text or user_text.strip().startswith("आई"):
+            return "English"
+        return "Hindi"
     hindi_words = ["mere","mera","mujhe","dard","hai","sar","sir","kamar","pet","badan","bukhar","sardi","khansi","khujli","daane","gala","kaan","daant","aankh","pair","haath","ghutna","chakkar","ulti","dast","kamzori","neend","chot","seene","saans"]
     for w in hindi_words:
         if w in user_text.lower(): return "Hindi"
     if IS_HINDI and re.search(r'[a-zA-Z]', user_text) is None:
         return "Hindi"
-    return "English" if re.search(r'[a-zA-Z]', user_text) and not any(w in user_text.lower() for w in hindi_words) else ("Hindi" if IS_HINDI else "English")
+    return "English" if re.search(r'[a-zA-Z]', user_text) else ("Hindi" if IS_HINDI else "English")
 
 def get_instant_answer(user_text, lang_text):
     if lang_text == "Hindi":
@@ -207,34 +235,22 @@ def get_hospitals_for(city, pincode):
         {"name": f"Apollo / Private Hospital - {c}", "type": T("प्राइवेट - 24x7 इमरजेंसी","Private - 24x7 Emergency"), "addr": T(f"City Centre, {c} - {pincode}","City Centre, "+c+" - "+pincode), "phone": "1860-500-1066"},
         {"name": f"Jan Aushadhi Kendra - {c}", "type": T("सस्ती दवाई - 50% to 90% सस्ती","Cheap Medicine - 50% to 90% Cheaper"), "addr": T(f"Market Road, {c} - {pincode}","Market Road, "+c+" - "+pincode), "phone": "1800-180-8080"},
     ]
-
 PRACTO_SLUG = {"fever":"general-physician","back":"orthopedist","skin":"dermatologist","stomach":"gastroenterologist","head":"neurologist","chest":"cardiologist","tooth":"dentist","eye":"ophthalmologist","ear":"ent-specialist","injury":"orthopedist","diabetes":"diabetologist","heart":"cardiologist","mental":"psychiatrist","kidney":"nephrologist","liver":"hepatologist","piles":"general-surgeon","ladies":"gynecologist","child":"pediatrician","serious":"general-physician","general":"general-physician"}
 APOLLO_SLUG = {"fever":"general-physician","back":"orthopedics","skin":"dermatology","stomach":"gastroenterology","head":"neurology","chest":"cardiology","tooth":"dentistry","eye":"ophthalmology","ear":"ent","injury":"orthopedics","diabetes":"endocrinology","heart":"cardiology","mental":"psychiatry","kidney":"nephrology","liver":"hepatology","piles":"general-surgery","ladies":"obstetrics-and-gynecology","child":"pediatrics","serious":"general-physician","general":"general-physician"}
-
 def get_category_for(text):
-    t = (text or "").lower()
-    if any(k in t for k in ["daane","rash","khujli","itching","allergy","दाने","खुजली","skin","pimple","muhase","मुहासे","dandruff","baal","बाल","fungal","eczema","psoriasis","vitiligo","daag","dhabbe"]): return "skin"
-    if any(k in t for k in ["chot","zakhm","wound","injury","kat","cut","चोट","moch","toot","fracture","jalna","burn","जल","paralysis","lakwa","लकवा"]): return "injury"
-    if any(k in t for k in ["chest","seene","saans","breath","सीने","सांस","asthma","dama","दमा","pneumonia","nimoniya","निमोनिया","corona","lung","fefe"]): return "chest"
-    if any(k in t for k in ["diabetes","sugar","शुगर","madhumeh","thyroid","थायराइड"]): return "diabetes"
-    if any(k in t for k in ["bp","blood pressure","cholesterol","कोलेस्ट्रॉल","dil","dhadkan","heart","हृदय"]): return "heart"
-    if any(k in t for k in ["anxiety","depression","stress","ghabrahat","घबराहट","udaasi","उदासी","neend","sleep","नींद","yaadash","mirgi","daura","मिर्गी","brain","dimaag","दिमाग"]): return "mental"
-    if any(k in t for k in ["stone","pathri","पथरी","kidney","uti","peshaab","पेशाब","urine"]): return "kidney"
-    if any(k in t for k in ["jaundice","piliya","पीलिया","liver","लीवर","hepatitis"]): return "liver"
-    if any(k in t for k in ["piles","bawasir","बवासीर","fissure","appendix","ulcer","keede","कीड़े"]): return "piles"
-    if any(k in t for k in ["period","mahwari","माहवारी","pregnancy","garbh","गर्भ","pregnant","delivery","white discharge"]): return "ladies"
-    if any(k in t for k in ["bachche","bachcha","baby","child","बच्च"]): return "child"
-    if any(k in t for k in ["malaria","मलेरिया","dengue","डेंगू","typhoid","टाइफाइड","tb","tuberculosis","टीबी","cancer","कैंसर","hiv","tumor","aids"]): return "serious"
-    if any(k in t for k in ["bukhar","fever","बुखार","viral"]): return "fever"
-    if any(k in t for k in ["pet","stomach","gas","पेट","ulti","vomit","dast","kabz","acidity"]): return "stomach"
-    if any(k in t for k in ["sar","head","sir","सिर","migraine","headache"]): return "head"
-    if any(k in t for k in ["daant","tooth","दांत"]): return "tooth"
-    if any(k in t for k in ["aankh","eye","आंख","motiyabind","मोतियाबिंद","chashma","चश्मा"]): return "eye"
-    if any(k in t for k in ["kaan","ear","कान","naak","नाक","sinus","tonsil","awaaz"]): return "ear"
-    if any(k in t for k in ["kamar","back","spine","कमर","leg","pair","knee","ghutna","hand","haath","joint","पैर","हाथ","घुटना","badan","body","arthritis","gathiya","गठिया","sciatica","freeze","shoulder","haddi","nas"]): return "back"
-    if any(k in t for k in ["cold","cough","khansi","sardi","throat","gala","गला","सर्दी","खांसी"]): return "fever"
+    # Category bhi AI se - list se nahi, Gemini se pucho kaunsa doctor chahiye
+    prompt = f"""
+    User problem: "{text}"
+    Tell only ONE word from this list, which doctor category is this:
+    skin, injury, chest, diabetes, heart, mental, kidney, liver, piles, ladies, child, serious, fever, stomach, head, tooth, eye, ear, back, general
+    Answer ONLY one word. No other text.
+    """
+    ans = ask_ai(prompt)
+    ans = (ans or "").strip().lower()
+    for k in ["skin","injury","chest","diabetes","heart","mental","kidney","liver","piles","ladies","child","serious","fever","stomach","head","tooth","eye","ear","back","general"]:
+        if k in ans:
+            return k
     return "general"
-
 def show_doctor_detail_card(user_text, loc):
     cat = get_category_for(user_text)
     city = loc.get("city","")
@@ -260,7 +276,6 @@ def show_doctor_detail_card(user_text, loc):
     st.link_button(T("🩺 डायरेक्ट लॉगिन करें - ई-संजीवनी","🩺 Direct Login - eSanjeevani"), "https://esanjeevani.mohfw.gov.in/patient/", use_container_width=True)
     st.link_button(T("📞 104 पर डायरेक्ट कॉल करें","📞 Call 104 Directly"), "tel:104", use_container_width=True)
     st.link_button(T("🚑 108 - एम्बुलेंस","🚑 108 - Ambulance"), "tel:108", use_container_width=True)
-
 def show_location_form(for_text):
     st.markdown(f"### {T('📍 डॉक्टर खोजने के लिए अपनी लोकेशन बताइए','📍 Tell Your Location To Find Doctor')}")
     st.write(T("ये ऐप सिर्फ इंडिया के लिए है।","This app is only for India."))
@@ -274,7 +289,6 @@ def show_location_form(for_text):
             st.session_state.doctor_step = "done"
             st.session_state.messages.append({"role":"assistant","content":"DOCTORS_BOX","for_text": for_text, "loc": dict(st.session_state.doctor_location)})
             st.rerun()
-
 def show_floating_banner():
     tips_hi = ["💡 दिन में 8 गिलास पानी पिएं", "💡 चोट को साफ पानी से धोएं", "💡 एलर्जी में खुजली मत करें", "💡 दवा समय पर लें", "💡 रोज 30 मिनट टहलें"]
     tips_en = ["💡 Drink 8 glasses of water daily", "💡 Wash wound with clean water", "💡 In allergy do not scratch", "💡 Take medicine on time", "💡 Walk 30 minutes daily"]
@@ -286,7 +300,7 @@ def show_floating_banner():
     st.markdown(f"""
     <style>
     .banner-wrap {{ position: fixed; bottom: 0; left: 0; right: 0; z-index: 9999; background: linear-gradient(90deg,#FFE4E6,#FEF3C7,#D1FAE5); height: 48px; overflow: hidden; border-top: 1px solid #FDE68A; }}
-    .banner-wrap .tip {{ position: absolute; left: 0; right: 0; top: 0; height: 48px; display: flex; align-items: center; justify-content: center; color: #7C2D12 !important; font-weight: 600; font-size: 14px; padding: 0 10px; text-align: center; opacity: 0; animation: tipCycle 20s linear infinite; }}
+    .banner-wrap.tip {{ position: absolute; left: 0; right: 0; top: 0; height: 48px; display: flex; align-items: center; justify-content: center; color: #7C2D12 !important; font-weight: 600; font-size: 14px; padding: 0 10px; text-align: center; opacity: 0; animation: tipCycle 20s linear infinite; }}
     @keyframes tipCycle {{ 0% {{opacity: 0;}} 1% {{opacity: 1;}} 15% {{opacity: 1;}} 17% {{opacity: 0;}} 100% {{opacity: 0;}} }}
     </style>
     <div class="banner-wrap">{items}</div>
@@ -303,7 +317,7 @@ def ask_reply(user_text, placeholder):
     return instant
 
 def check_photo_is_health(image_bytes):
-    # Gemini 3.6 se asli photo ko dekho - health wali photo hai ya nahi
+    # Photo bhi AI se check hoga - list se nahi
     try:
         b64 = base64.b64encode(image_bytes).decode()
         url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key={GEMINI_API_KEY}"
@@ -318,11 +332,10 @@ def check_photo_is_health(image_bytes):
         req = urllib.request.Request(url, data=json.dumps(data).encode(), headers={"Content-Type": "application/json"})
         with urllib.request.urlopen(req, timeout=30) as res:
             out = json.loads(res.read().decode())
-        ans = out["candidates"][0]["content"]["parts"][0]["text"].strip().upper()
-        return "YES" in ans
+            ans = out["candidates"][0]["content"]["parts"][0]["text"].strip().upper()
+            return "YES" in ans
     except:
         return True
-
 def ask_reply_photo(photo_keyword, photo_desc, placeholder, image_bytes=None):
     real_lang = "Hindi" if IS_HINDI else "English"
     if photo_desc.strip() != "":
@@ -330,11 +343,6 @@ def ask_reply_photo(photo_keyword, photo_desc, placeholder, image_bytes=None):
             msg = out_of_context_msg(real_lang)
             placeholder.markdown(msg)
             return msg
-        if any(w in photo_desc.lower() for w in OUT_WORDS):
-            msg = out_of_context_msg(real_lang)
-            placeholder.markdown(msg)
-            return msg
-    # Asli photo ko Gemini 3.6 se check karo - flowchart / car / dog hoga to NO aayega
     if image_bytes is not None:
         if not check_photo_is_health(image_bytes):
             msg = out_of_context_msg(real_lang)
@@ -389,17 +397,17 @@ if menu in ["🏠 Home", "🏠 होम"]:
     with st.form("chat_form", clear_on_submit=True):
         chat_text = st.text_input("Type...", label_visibility="collapsed", placeholder="", value="")
         submitted = st.form_submit_button(T("➤ भेजें","➤ Send"), use_container_width=True)
-    if submitted and chat_text.strip() != "":
-        st.session_state.messages.append({"role": "user", "content": chat_text})
-        st.session_state.doctor_asked = False
-        st.session_state.doctor_step = "none"
-        with st.chat_message("user"):
-            st.markdown(chat_text)
-        with st.chat_message("assistant"):
-            placeholder = st.empty()
-            reply = ask_reply(chat_text, placeholder)
-        st.session_state.messages.append({"role": "assistant", "content": reply, "show_doctors": False, "for_text": chat_text})
-        st.rerun()
+        if submitted and chat_text.strip() != "":
+            st.session_state.messages.append({"role": "user", "content": chat_text})
+            st.session_state.doctor_asked = False
+            st.session_state.doctor_step = "none"
+            with st.chat_message("user"):
+                st.markdown(chat_text)
+            with st.chat_message("assistant"):
+                placeholder = st.empty()
+                reply = ask_reply(chat_text, placeholder)
+            st.session_state.messages.append({"role": "assistant", "content": reply, "show_doctors": False, "for_text": chat_text})
+            st.rerun()
     if st.button(T("🧹 चैट साफ करें","🧹 Clear Chat"), use_container_width=True):
         st.session_state.messages = []
         st.session_state.doctor_asked = False
@@ -451,6 +459,7 @@ if menu in ["🏠 Home", "🏠 होम"]:
             st.session_state.doctor_step = "none"
             with st.chat_message("assistant"):
                 placeholder = st.empty()
+                # Audio se aaya hai, par jawab TEXT me hi aayega - AI se
                 reply = ask_reply(voice_text, placeholder)
             st.session_state.messages.append({"role": "assistant", "content": reply, "show_doctors": False, "for_text": voice_text})
             st.rerun()
@@ -692,7 +701,7 @@ elif menu in ["ℹ️ About App", "ℹ️ ऐप के बारे में"]
     st.markdown("---")
     st.markdown(f"### {T('✨ फीचर्स','✨ Features')}")
     st.write(T("- **💬 चैट:** अपनी तकलीफ लिखकर भेजें","- **💬 Chat:** Write your problem"))
-    st.write(T("- **🎤 बोलकर बताएं:** माइक दबाकर बोल दीजिए","- **🎤 Speak:** Press mic and speak"))
+    st.write(T("- **🎤 बोलकर बताएं:** माइक दबाकर बोल दीजिए, जवाब TEXT में AI से आएगा","- **🎤 Speak:** Press mic and speak, answer will come in TEXT from AI"))
     st.write(T("- **📷 फोटो भेजें:** दाने, चोट या रैश की फोटो भेज दीजिए","- **📷 Send Photo:** Send photo of rash, injury"))
     st.write(T("- **💊 दवाई की जानकारी:** किसी भी दवाई के बारे में जानें","- **💊 Medicine Info:** Know about any medicine"))
     st.write(T("- **💊 दवाई रिमाइंडर:** दवाई का समय सेट कीजिए","- **💊 Medicine Reminder:** Set medicine time"))
