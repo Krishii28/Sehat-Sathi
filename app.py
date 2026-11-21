@@ -4,6 +4,7 @@ import re
 import urllib.parse
 import json
 import urllib.request
+import base64
 st.set_page_config(page_title="Sehat Saathi - India", page_icon="🩺", layout="centered")
 
 # ======================================================
@@ -89,8 +90,6 @@ def speech_to_text(audio_bytes):
         wav_io = io.BytesIO(audio_bytes)
         with sr.AudioFile(wav_io) as source:
             audio_data = r.record(source)
-            # Pehle Hindi me try karo, phir English me - jo bhi samajh aaye wahi return karo
-            # Taaki audio ki language se hi answer ki language decide ho
             try:
                 text_hi = r.recognize_google(audio_data, language="hi-IN")
             except:
@@ -99,7 +98,6 @@ def speech_to_text(audio_bytes):
                 text_en = r.recognize_google(audio_data, language="en-IN")
             except:
                 text_en = ""
-            # Agar Hindi me Devanagari ya Hindi roman words hain to Hindi wala lo, warna English wala
             if text_hi and re.search(r'[\u0900-\u097F]', text_hi):
                 return text_hi
             if text_hi and any(w in text_hi.lower() for w in ["mere","mera","mujhe","dard","hai","bukhar","sardi","khansi","khujli","pet","sir","kamar","gala","chakkar","ulti","kamzori","neend","chot"]):
@@ -120,16 +118,12 @@ def is_health_related(text):
 def out_of_context_msg(real_lang):
     return "मैं सिर्फ स्वास्थ्य, चोट और एलर्जी से जुड़ी मदद कर सकती हूँ। अपनी स्वास्थ्य समस्या बताइए।" if real_lang=="Hindi" else "I can only help with health, injury and allergy related problems. Please tell your health problem."
 def detect_language(user_text):
-    # Audio / Text ki boli hui language se hi decide hoga - Sidebar se nahi
     if re.search(r'[\u0900-\u097F]', user_text): return "Hindi"
     hindi_words = ["mere","mera","mujhe","dard","hai","sar","sir","kamar","pet","badan","bukhar","sardi","khansi","khujli","daane","gala","kaan","daant","aankh","pair","haath","ghutna","chakkar","ulti","dast","kamzori","neend","chot","seene","saans"]
     for w in hindi_words:
         if w in user_text.lower(): return "Hindi"
-    # Agar koi Hindi nishan nahi hai to English samjho - Sidebar par depend mat karo
-    # Lekin agar user ne Sidebar me Hindi select kiya hai aur text me English-Hindi mix nahi hai, tabhi sidebar use karo
     if IS_HINDI and re.search(r'[a-zA-Z]', user_text) is None:
         return "Hindi"
-    # Text input ke liye Sidebar wali language, Audio ke liye boli hui language (upar se hi return ho jayegi)
     return "English" if re.search(r'[a-zA-Z]', user_text) and not any(w in user_text.lower() for w in hindi_words) else ("Hindi" if IS_HINDI else "English")
 
 def get_instant_answer(user_text, lang_text):
@@ -300,7 +294,6 @@ def show_floating_banner():
 
 def ask_reply(user_text, placeholder):
     real_lang = detect_language(user_text)
-    # Audio ke liye bhi same rule - agar boli hui baat health se related nahi hai to answer nahi
     if not is_health_related(user_text):
         msg = out_of_context_msg(real_lang)
         placeholder.markdown(msg)
@@ -309,25 +302,45 @@ def ask_reply(user_text, placeholder):
     placeholder.markdown(instant)
     return instant
 
-def ask_reply_photo(photo_keyword, photo_desc, placeholder):
-    # Photo ke liye language sidebar se, lekin out-of-context check description se
+def check_photo_is_health(image_bytes):
+    # Gemini 3.6 se asli photo ko dekho - health wali photo hai ya nahi
+    try:
+        b64 = base64.b64encode(image_bytes).decode()
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key={GEMINI_API_KEY}"
+        data = {
+            "contents": [{
+                "parts": [
+                    {"text": "Look at this image carefully. Is this image showing a human skin problem like rash, allergy, daane, khujli, wound, injury, cut, burn, swelling on human body? If YES, answer only YES. If this is a chart, diagram, flowchart, food, animal, car, building, screenshot, text document, or any non-health image, answer only NO."},
+                    {"inline_data": {"mime_type": "image/jpeg", "data": b64}}
+                ]
+            }]
+        }
+        req = urllib.request.Request(url, data=json.dumps(data).encode(), headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=30) as res:
+            out = json.loads(res.read().decode())
+        ans = out["candidates"][0]["content"]["parts"][0]["text"].strip().upper()
+        return "YES" in ans
+    except:
+        return True
+
+def ask_reply_photo(photo_keyword, photo_desc, placeholder, image_bytes=None):
     real_lang = "Hindi" if IS_HINDI else "English"
-    # Agar photo ka description hi health se related nahi hai - jaise car, dog, movie, khana etc - to answer MAT karo
     if photo_desc.strip() != "":
         if not is_health_related(photo_desc):
             msg = out_of_context_msg(real_lang)
             placeholder.markdown(msg)
             return msg
-        # Agar description me OUT word hai to bhi answer mat karo
         if any(w in photo_desc.lower() for w in OUT_WORDS):
             msg = out_of_context_msg(real_lang)
             placeholder.markdown(msg)
             return msg
-    else:
-        # Agar user ne photo ka description kuch nahi likha, to photo_type se hi check karo - photo_type hamesha health wala hai isliye aage badho
-        pass
+    # Asli photo ko Gemini 3.6 se check karo - flowchart / car / dog hoga to NO aayega
+    if image_bytes is not None:
+        if not check_photo_is_health(image_bytes):
+            msg = out_of_context_msg(real_lang)
+            placeholder.markdown(msg)
+            return msg
     full_text = f"{photo_keyword} {photo_desc}".strip()
-    # Final check - agar poora text hi health se related nahi hai to answer mat karo
     if not is_health_related(full_text):
         msg = out_of_context_msg(real_lang)
         placeholder.markdown(msg)
@@ -418,7 +431,7 @@ if menu in ["🏠 Home", "🏠 होम"]:
                 st.markdown(f"**{T('आपने लिखा:','You wrote:')}** {photo_text}")
             with st.chat_message("assistant"):
                 placeholder = st.empty()
-                reply = ask_reply_photo(kw, photo_desc, placeholder)
+                reply = ask_reply_photo(kw, photo_desc, placeholder, uploaded_photo.getvalue())
             st.session_state.messages.append({"role": "user", "content": photo_text, "type": "image", "image": uploaded_photo})
             st.session_state.messages.append({"role": "assistant", "content": reply, "show_doctors": False, "for_text": photo_text})
             st.session_state.doctor_asked = False
@@ -557,7 +570,6 @@ elif menu in ["🚨 Emergency", "🚨 आपातकाल"]:
         if e.strip()=="":
             st.warning(T("पहले अपनी इमरजेंसी लिखें या बोलें।","First write or speak your emergency."))
         elif not is_health_related(em_final):
-            # Emergency me bhi out-of-context ka answer nahi karna
             st.warning(out_of_context_msg(detect_language(em_final)))
         else:
             lang_now = detect_language(em_final)
