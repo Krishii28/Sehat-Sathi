@@ -48,7 +48,6 @@ def speak_answer(text, lang_text):
     if audio_bytes:
         st.audio(audio_bytes, format="audio/mp3")
 
-# ---------- CSS - MENU FIX: header hide NAHI kiya, isliye menu dikhega ----------
 st.markdown("""
 <style>
 footer {visibility: hidden !important;}
@@ -57,12 +56,8 @@ footer {visibility: hidden !important;}
 h1, h2, h3, p, label,.stMarkdown,.stWrite, span, div { color: #1E293B !important; }
 section[data-testid="stSidebar"] { background: linear-gradient(180deg, #FFFFFF 0%, #FFFBEB 100%) !important; border-right: 1px solid #FDE68A; }
 section[data-testid="stSidebar"] * { color: #1E293B !important; font-weight: 500 !important; }
-.stTextInput input,.stSelectbox div[data-baseweb="select"] div,.stNumberInput input,.stTextArea textarea {
- background: #FFFFFF !important; color: #1E293B !important; border: 1.5px solid #E2E8F0 !important; border-radius: 14px !important; min-height: 52px !important; font-size: 16px !important;
-}
-.stButton button,.stLinkButton a {
- background: linear-gradient(90deg, #4F46E5 0%, #7C3AED 45%, #EA580C 100%) !important; color: #FFFFFF !important; border: none !important; border-radius: 14px !important; font-weight: 700 !important; min-height: 52px !important; font-size: 16px !important;
-}
+.stTextInput input,.stSelectbox div[data-baseweb="select"] div,.stNumberInput input,.stTextArea textarea { background: #FFFFFF !important; color: #1E293B !important; border: 1.5px solid #E2E8F0 !important; border-radius: 14px !important; min-height: 52px !important; font-size: 16px !important; }
+.stButton button,.stLinkButton a { background: linear-gradient(90deg, #4F46E5 0%, #7C3AED 45%, #EA580C 100%) !important; color: #FFFFFF !important; border: none !important; border-radius: 14px !important; font-weight: 700 !important; min-height: 52px !important; font-size: 16px !important; }
 .stButton button *,.stLinkButton a * { color: #FFFFFF !important; font-weight: 700 !important; }
 div[data-testid="stChatMessage"] { background: #FFFFFF !important; border-radius: 18px !important; border: 1px solid #FDE68A !important; }
 div[data-testid="stChatMessage"] * { color: #1E293B !important; }
@@ -88,17 +83,15 @@ if "uploader_key" not in st.session_state: st.session_state.uploader_key = 0
 if "photo_sent" not in st.session_state: st.session_state.photo_sent = False
 if "voice_mode" not in st.session_state: st.session_state.voice_mode = False
 
-# ---------- MENU - UPAR + SIDEBAR DONO ME - KABHI GAYAB NAHI HOGA ----------
+# ---------- MENU - UPAR HI HAI, GAYAB NAHI HOGA ----------
 st.write("### ☰ MENU")
 menu_options = ["🏠 Home", "💊 Medicine Info", "💊 Medicine Reminder", "👨‍⚕️ Talk To Doctor", "🚨 Emergency", "🏥 Hospital Finder", "💡 Health Tips", "⚖️ BMI Calculator", "🏛️ Government Schemes", "ℹ️ About App"]
 menu = st.selectbox("Page Chunein - Yahi Menu Hai", menu_options, label_visibility="collapsed")
 st.sidebar.write("Language")
 lang_choice = st.sidebar.radio("Choose Language", ["English", "Hindi"], label_visibility="collapsed")
 IS_HINDI = (lang_choice == "Hindi")
-# Sidebar me bhi menu taaki Ma'am ko dikhe
 st.sidebar.write("### ☰ Menu")
 st.sidebar.radio("Menu", menu_options, key="sidebar_menu", label_visibility="collapsed")
-# Upar wala menu hi final hai
 if "sidebar_menu" in st.session_state and st.session_state.sidebar_menu != menu:
     menu = st.session_state.sidebar_menu
 
@@ -140,31 +133,72 @@ def detect_language(user_text):
         if w in user_text.lower(): return "Hindi"
     return "English" if re.search(r'[a-zA-Z]', user_text) else ("Hindi" if IS_HINDI else "English")
 
+# ---------- HOME - AI SE PROPER STEPS - KOI BHI SYMPTOM ----------
 def get_instant_answer(user_text, lang_text):
-    low = user_text.lower()
-    if "chest" in low or "seene" in low or "सीने" in user_text:
-        return "⚠️ Chest Pain - EMERGENCY: Turant hospital jayein ya 108 par call karein." if lang_text=="Hindi" else "⚠️ Chest Pain - EMERGENCY: Go to hospital immediately or call 108."
-    lang_rule = "Answer ONLY in proper Hindi in Devanagari script." if lang_text=="Hindi" else "Answer ONLY in proper English."
-    prompt = f"User ka symptom: {user_text} Language: {lang_text} {lang_rule} Tu ek helpful Health AI hai. Koi dawai ka naam, dose mat likh. Format: **Possible Cause:** [2-3 line] **Danger Sign:** [kab doctor, kab 108] **What To Do Now:** [3-4 points] **Health Tip:** [1 tip] Last me: Ye sirf jaankari hai, doctor ki salah zaroori hai."
+    if lang_text == "Hindi":
+        lang_rule = "Answer ONLY in proper, formal Hindi in Devanagari script. Do NOT use English or Hinglish words, except medicine names. Use simple, clear Hindi."
+    else:
+        lang_rule = "Answer ONLY in proper, formal, clear English. Do NOT use Hindi or Hinglish words. Use simple English that everyone can understand."
+    prompt = f"""
+    User ka symptom / problem hai: {user_text}
+    User ki language hai: {lang_text}
+    {lang_rule}
+    Tu ek helpful Health AI hai. Usi language me jawab de.
+    Koi dawai ka naam, dose mat likh. Sirf ghar pe kya karna hai, wo bata.
+    Jawab ISI format me de, poora detail me:
+    **Possible Cause:**
+    [2-3 line me kya ho sakta hai, kis wajah se hota hai, detail me samjhao]
+    **Danger Sign:**
+    [kab doctor ke paas jana chahiye, kab 108 par call karni chahiye, kya-kya lakshan khatarnak hai - detail me]
+    **What To Do Now:**
+    [ghar pe abhi kya karna hai, 4-5 points me, step by step - kya khana hai, kya nahi khana, kitna aaram karna hai]
+    **Health Tip:**
+    [1 achhi tip jo isi problem se judi ho, aage se kaise bache]
+    Last me 1 line: Ye sirf jaankari hai, doctor ki salah zaroori hai.
+    Agar symptom serious hai jaise chest pain, saans nahi aa rahi, toh sabse pehle 108 par call karne ko bolo, fir steps batao.
+    """
     ans = ask_ai(prompt)
-    if ans == "ERROR_KEY_MISSING": return "⚠️ Pehle Secrets me Key daalo."
+    if ans == "ERROR_KEY_MISSING":
+        return "⚠️ Pehle Secrets me apni Gemini Key daalo, tabhi AI jawab dega." if lang_text=="Hindi" else "⚠️ First add your Gemini Key in Secrets, then AI will answer."
     if ans == "OFFLINE_FALLBACK":
-        if lang_text=="Hindi": return "**Possible Cause:** Thakan ya viral ki wajah se ho sakta hai.\n\n**Danger Sign:** Dard bahut zyada ho, saans me takleef ho toh 108 par call karein.\n\n**What To Do Now:**\n- Aaram karein\n- Paani zyada piyein\n- Garam paani se sikai karein\n\n**Health Tip:** Roz 30 minute walk karein.\n\nYe sirf jaankari hai, doctor ki salah zaroori hai. (Offline - Server busy)"
-        else: return "**Possible Cause:** May be due to tiredness or viral.\n\n**Danger Sign:** If pain severe or breathing problem, call 108.\n\n**What To Do Now:**\n- Take rest\n- Drink more water\n- Warm compress\n\n**Health Tip:** Walk 30 min daily.\n\nThis is only info, doctor advice necessary. (Offline - Server busy)"
+        return "Server busy hai, dobara try karo. Tab tak aaram karo, paani piyo, aur takleef zyada ho toh 108 par call karo."
     return ans
 
+# ---------- MEDICINE - AI SE PROPER DETAIL - KOI BHI DAWAI ----------
 def get_medicine_info(med_name, lang):
-    lang_rule = "Answer ONLY in proper Hindi." if lang=="Hindi" else "Answer ONLY in proper English."
-    prompt = f"Dawai: {med_name} Language: {lang} {lang_rule} Format: **{med_name}** **Ye dawai kya hai?** [2-3 line] **Kaise leni hai?** [general] **Side Effects:** [savdhani] **Zaroori Baat:** Doctor se poochh ke hi lena. Fixed dose mat batao."
+    if lang == "Hindi":
+        lang_rule = "Answer ONLY in proper, formal Hindi in Devanagari script. Do NOT use English or Hinglish words, except medicine names."
+    else:
+        lang_rule = "Answer ONLY in proper, formal, clear English. Do NOT use Hindi or Hinglish words."
+    prompt = f"""
+    Dawai ka naam hai: {med_name}
+    Language: {lang}
+    {lang_rule}
+    Usi language me jawab de, simple ghar wali language me.
+    Format:
+    **💊 {med_name}**
+    **Ye dawai kya hai?**
+    [2-3 line me is dawai ka kaam kya hai, kis bimari me di jaati hai, detail me]
+    **Kaise leni hai?**
+    [general jaankari - hamesha doctor ke bataye hisaab se lena hai, ye likhna zaroori hai, khane se pehle ya baad me - general]
+    **Side Effects / Savdhani:**
+    [aam side effects aur savdhani, kis ko nahi leni chahiye, detail me]
+    **⚠️ Zaroori Baat:** Ye jaankari sirf samajhne ke liye hai. Koi bhi dawai lene se pehle doctor ya pharmacist se poochh lo. Agar allergy, saans me takleef ya chehra sooj jaye toh turant 108 par call karo.
+    Koi fixed dose mat batao, sirf general jaankari do.
+    """
     ans = ask_ai(prompt)
-    if ans == "ERROR_KEY_MISSING": return "⚠️ Pehle Secrets me Key daalo."
-    if ans == "OFFLINE_FALLBACK": return f"**{med_name}** - Iske baare me doctor ya pharmacist se poochein. Dawai doctor ke bataye hisaab se hi lein. (Offline - Server busy)"
+    if ans == "ERROR_KEY_MISSING":
+        return "⚠️ Pehle Secrets me apni Gemini Key daalo." if lang=="Hindi" else "⚠️ First add your Gemini Key in Secrets."
+    if ans == "OFFLINE_FALLBACK":
+        return "Server busy hai, dobara try karo. Tab tak dawai ke baare me doctor ya pharmacist se poochh lo."
     return ans
 
 def get_doctor_info_ai(user_text, lang):
     lang_rule = "Answer ONLY in proper Hindi." if lang=="Hindi" else "Answer ONLY in proper English."
-    ans = ask_ai(f"User ki takleef: {user_text} Language: {lang} {lang_rule} Batao: 1. Kaunse specialist ko dikhana chahiye 2. Ye doctor kya karte hai 3. Kab turant dikhana chahiye 4. Fees India me. Short me.")
-    if ans in ["OFFLINE_FALLBACK","ERROR_KEY_MISSING"]: return "General Physician ko dikhayein. Aam bimariyon ka ilaj karte hai. Takleef zyada ho toh turant dikhayein. Fees: 200-500 Rs."
+    prompt = f"User ki takleef hai: {user_text} Language: {lang} {lang_rule} Usi language me batao: 1. Is takleef ke liye kaunse specialist doctor ko dikhana chahiye 2. Ye doctor kya karte hain 3. Kab turant dikhana chahiye 4. Andazan fees India me kya hoti hai. Short me jawab de."
+    ans = ask_ai(prompt)
+    if ans in ["OFFLINE_FALLBACK","ERROR_KEY_MISSING"]:
+        return "General Physician ko dikhayein. Ye doctor aam bimariyon ka ilaj karte hai. Takleef zyada ho toh turant dikhayein. Fees: 200-500 Rs tak ho sakti hai."
     return ans
 
 def get_hospitals_for(city, pincode):
@@ -261,7 +295,7 @@ def ask_reply_photo(photo_keyword, photo_desc, placeholder, image_bytes=None, sp
     return instant
 
 if menu in ["🏠 Home", "🏠 होम"]:
-    st.markdown(f"""<div class="ai-header"><h1>🩺 Sehat Saathi ✨</h1><p>{T('आपका एआई हेल्थ असिस्टेंट','Your AI Health Assistant')}</p></div>""", unsafe_allow_html=True)
+    st.markdown(f"""<div class="ai-header"><h1>🩺 Sehat Saathi ✨</h1><p>{T('आपका एआई हेल्थ असिस्टेंट - अपनी तकलीफ लिखें, तुरंत सलाह पाएं','Your AI Health Assistant - Write your symptom, get instant advice')}</p></div>""", unsafe_allow_html=True)
     st.write(T("नमस्ते, मैं यहाँ आपकी मदद करने के लिए हूँ! 👋","Hello, I am here to help you! 👋"))
     voice_on = st.toggle(T("🔊 आवाज़ में जवाब सुनें - ON करें","🔊 Listen Answer in Voice - Turn ON"), value=True)
     st.session_state.voice_mode = voice_on
@@ -334,6 +368,7 @@ if menu in ["🏠 Home", "🏠 होम"]:
     show_floating_banner()
 elif menu in ["💊 Medicine Info", "💊 दवाई की जानकारी"]:
     st.title(T("💊 दवाई की जानकारी","💊 Medicine Info"))
+    st.write(T("दुनिया की कोई भी दवाई का नाम लिखें, उसके बारे में पूरी जानकारी मिलेगी।","Write name of any medicine, you will get full info."))
     med_input = st.text_input(T("दवाई का नाम...","Medicine name..."), value="", key="med_info_input")
     if st.button(T("🔍 दवाई की जानकारी देखें","🔍 See Medicine Info"), use_container_width=True):
         if med_input.strip() == "": st.warning(T("पहले दवाई का नाम लिखिए।","First write medicine name."))
@@ -341,11 +376,14 @@ elif menu in ["💊 Medicine Info", "💊 दवाई की जानकार
             lang_now = "Hindi" if IS_HINDI else "English"; info = get_medicine_info(med_input, lang_now)
             st.markdown(f"""<div class="medicine-card">{info}</div>""", unsafe_allow_html=True)
             if st.button(T("🔊 आवाज़ में सुनें","🔊 Listen in Voice"), key="med_listen"): speak_answer(info, lang_now)
+    st.markdown("---")
+    st.write(T("**लोकप्रिय दवाइयां:**","**Popular Medicines:**"))
     cols = st.columns(3)
     for i, p in enumerate(["Paracetamol", "Azithromycin", "Cetirizine", "Omeprazole", "Ibuprofen", "ORS"]):
         with cols[i % 3]:
             if st.button(p, key=f"pop_{p}"):
                 lang_now = "Hindi" if IS_HINDI else "English"; med_info = get_medicine_info(p, lang_now); st.markdown(med_info); speak_answer(med_info, lang_now)
+    st.info(T("⚠️ ये जानकारी सिर्फ समझने के लिए है, डॉक्टर की जगह नहीं लेती।","⚠️ This info is only for understanding, not a replacement for doctor."))
     show_floating_banner()
 elif menu in ["💊 Medicine Reminder", "💊 दवाई रिमाइंडर"]:
     st.title(T("💊 दवाई रिमाइंडर","💊 Medicine Reminder"))
@@ -391,6 +429,7 @@ elif menu in ["🚨 Emergency", "🚨 आपातकाल"]:
     st.link_button(T("📞 104 - हेल्थ हेल्पलाइन","📞 104 - Health Helpline"), "tel:104", use_container_width=True)
     st.link_button(T("👧 1098 - चाइल्ड हेल्पलाइन","👧 1098 - Child Helpline"), "tel:1098", use_container_width=True)
     st.link_button(T("👩 181 - महिला हेल्पलाइन","👩 181 - Women Helpline"), "tel:181", use_container_width=True)
+    st.markdown("---")
     em_text = st.text_input(T("इमरजेंसी लिखें...","Write emergency..."), value="", key="em_text")
     em_audio = st.audio_input(T("इमरजेंसी बोलें","Speak Emergency"), key="em_mic")
     em_final = em_text
@@ -417,6 +456,7 @@ elif menu in ["🏥 Hospital Finder", "🏥 अस्पताल खोजे�
             for h in get_hospitals_for(h_city, h_pin): st.markdown(f"""<div class="hospital-card"><b>🏥 {h['name']}</b><br><span>{h['type']}</span><br><span>📍 {h['addr']}</span><br><span>📞 {h['phone']}</span></div>""", unsafe_allow_html=True)
             maps_url = f"https://www.google.com/maps/search/{urllib.parse.quote('hospital near ' + h_city + ' ' + h_pin + ' India')}"
             st.link_button(T("📍 गूगल मैप्स पर सारे अस्पताल देखें","📍 See All Hospitals On Google Maps"), maps_url, use_container_width=True)
+            st.link_button(T("🚑 108 - एम्बुलेंस बुलाएं","🚑 108 - Call Ambulance"), "tel:108", use_container_width=True)
     show_floating_banner()
 elif menu in ["💡 Health Tips", "💡 स्वास्थ्य टिप्स"]:
     st.title(T("💡 स्वास्थ्य टिप्स","💡 Health Tips"))
@@ -437,7 +477,7 @@ elif menu in ["⚖️ BMI Calculator", "⚖️ बीएमआई कैलक�
     show_floating_banner()
 elif menu in ["🏛️ Government Schemes", "🏛️ सरकारी योजनाएं"]:
     st.title(T("🏛️ सरकारी योजनाएं","🏛️ Government Schemes"))
-    st.success(T("ये सब सरकारी योजनाएं हैं, 100% असली और फ्री।","All Govt schemes, 100% Real and FREE."))
+    st.success(T("ये सब सरकारी योजनाएं हैं, 100% असली और फ्री। किसी को पैसे मत दें।","All Govt schemes, 100% Real and FREE."))
     schemes = [("🩺 आयुष्मान भारत - PMJAY","5 लाख तक का फ्री इलाज","https://beneficiary.nha.gov.in","✅ आयुष्मान कार्ड बनाएं / चेक करें"),("💊 जन औषधि - सस्ती दवाई","दवाई 50% से 90% तक सस्ती","https://janaushadhi.gov.in","💊 नज़दीकी केंद्र ढूंढें"),("🩺 ई-संजीवनी - फ्री ऑनलाइन डॉक्टर","वीडियो कॉल पर फ्री डॉक्टर, 10 AM - 4 PM","https://esanjeevani.mohfw.gov.in/patient/","🩺 फ्री डॉक्टर से बात करें"),("🤰 पीएम सुरक्षित मातृत्व","गर्भवती महिला की फ्री जांच","https://nhm.gov.in","🤰 जानकारी देखें"),("👶 मिशन इंद्रधनुष","बच्चों के सारे टीके फ्री","https://www.mohfw.gov.in","👶 जानकारी देखें"),("🤱 जननी सुरक्षा योजना","डिलीवरी पर ₹1400 तक मदद","https://nhm.gov.in","🤱 जानकारी देखें"),("👩‍🍼 जननी शिशु सुरक्षा","माँ + बच्चे का फ्री इलाज","https://nhm.gov.in","👩‍🍼 जानकारी देखें"),("👵 पीएम वय वंदना","60+ बुजुर्गों को मासिक पेंशन","https://www.licindia.in","👵 जानकारी देखें"),("🦟 राष्ट्रीय स्वास्थ्य मिशन","PHC में BP, Sugar जांच फ्री","https://nhm.gov.in","🦟 जानकारी देखें"),("🪪 आभा कार्ड - Digital Health ID","पूरे इंडिया में रिपोर्ट एक कार्ड से","https://abha.abdm.gov.in","🪪 आभा कार्ड बनाएं"),("🧠 टेली-मानस - 14416","घबराहट, उदासी में फ्री काउंसलर","tel:14416","📞 14416 पर कॉल करें"),("🫁 टीबी मुक्त भारत / निक्षय","टीबी इलाज फ्री + ₹500/महीना","https://nikshay.in","🫁 निक्षय पोर्टल देखें")]
     for title, desc, link, btn in schemes:
         st.markdown(f"""<div class="scheme-card"><b>{title}</b><br><span>{desc}</span></div>""", unsafe_allow_html=True); st.link_button(btn, link, use_container_width=True)
