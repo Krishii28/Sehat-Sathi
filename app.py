@@ -30,6 +30,9 @@ def ask_ai(prompt):
 # ---------- PREMIUM OMBRE - WARM CREAM TO PEACH TO MINT ----------
 st.markdown("""
 <style>
+[data-testid="stToolbar"] {visibility: hidden !important;}
+header {visibility: hidden !important;}
+footer {visibility: hidden !important;}
 .stApp { background: linear-gradient(180deg, #FFFBF2 0%, #FFF7ED 25%, #FEF3C7 50%, #EEF2FF 75%, #F0FDF4 100%) !important; }
 .block-container { background: transparent !important; max-width: 1100px !important; padding: 1rem 2rem 100px 2rem !important; }
 h1, h2, h3, p, label, .stMarkdown, .stWrite, span, div { color: #1E293B !important; }
@@ -86,33 +89,59 @@ def speech_to_text(audio_bytes):
         wav_io = io.BytesIO(audio_bytes)
         with sr.AudioFile(wav_io) as source:
             audio_data = r.record(source)
-            try: return r.recognize_google(audio_data, language="hi-IN")
-            except: return r.recognize_google(audio_data, language="en-IN")
+            # Pehle Hindi me try karo, phir English me - jo bhi samajh aaye wahi return karo
+            # Taaki audio ki language se hi answer ki language decide ho
+            try:
+                text_hi = r.recognize_google(audio_data, language="hi-IN")
+            except:
+                text_hi = ""
+            try:
+                text_en = r.recognize_google(audio_data, language="en-IN")
+            except:
+                text_en = ""
+            # Agar Hindi me Devanagari ya Hindi roman words hain to Hindi wala lo, warna English wala
+            if text_hi and re.search(r'[\u0900-\u097F]', text_hi):
+                return text_hi
+            if text_hi and any(w in text_hi.lower() for w in ["mere","mera","mujhe","dard","hai","bukhar","sardi","khansi","khujli","pet","sir","kamar","gala","chakkar","ulti","kamzori","neend","chot"]):
+                return text_hi
+            if text_en:
+                return text_en
+            return text_hi if text_hi else f"ERROR:Could not understand"
     except Exception as e: return f"ERROR:{str(e)[:100]}"
 
 HEALTH_WORDS = ["daane","rash","chot","zakhm","allergy","khujli","itching","bukhar","fever","dard","pain","dawa","medicine","wound","injury","skin","khaansi","cough","cold","sardi","pet","stomach","sir","head","haath","hand","pair","leg","blood","khoon","burn","jal","soojan","swelling","ulti","vomit","dast","kamzori","weak","neend","sleep","saans","breath","chest","seene","gala","throat","kaan","ear","daant","tooth","aankh","eye","ghutna","knee","kamar","back","badan","body","chakkar","dizzy","gas","acidity","kabz","photo","doctor","hospital","bimar","beemar","tabiyat","dawai","diabetes","sugar","bp","thyroid","asthma","dama","anxiety","depression","stress","period","mahwari","pregnancy","garbh","piles","bawasir","stone","pathri","jaundice","piliya","malaria","dengue","typhoid","tb","cancer","hiv","pneumonia","corona","sinus","tonsil","pimple","muhase","dandruff","baal","fungal","eczema","psoriasis","vitiligo","ulcer","appendix","keede","gathiya","arthritis","sciatica","moch","freeze","mirgi","daura","yaadash","ghabrahat","udaasi","peshaab","uti","liver","hepatitis","cholesterol","dil","dhadkan","naak","motiyabind","chashma","aids","tumor","kidney","paralysis","lakwa","vitamin","infection","bacteria","virus","haddi","nas","dimaag","brain","heart","lung","fefe","दाने","चोट","खुजली","बुखार","दर्द","सांस","सीने","पेट","सिर","कमर","गला","कान","दांत","आंख","पैर","हाथ","घुटना","चक्कर","उल्टी","कमजोरी","नींद","शुगर","मधुमेह","थायराइड","दमा","माहवारी","गर्भ","बवासीर","पथरी","पीलिया","मलेरिया","डेंगू","टाइफाइड","टीबी","कैंसर","निमोनिया","साइनस","मुहासे","बाल","गठिया","मिर्गी","घबराहट","उदासी","पेशाब","लीवर","कोलेस्ट्रॉल","दिल","नाक","मोतियाबिंद","लकवा","दिमाग","हड्डी"]
-OUT_WORDS = ["movie","film","cricket","football","game","padhai","study","exam","joke","song","gaana","politics","news","weather","mausam","love","shaadi","job","naukri","paisa","money","shopping","birthday","मूवी","फिल्म","क्रिकेट","गाना","जोक","पढ़ाई","परीक्षा","नौकरी","पैसा","शॉपिंग","मौसम","राजनीति"]
+OUT_WORDS = ["movie","film","cricket","football","game","padhai","study","exam","joke","song","gaana","politics","news","weather","mausam","love","shaadi","job","naukri","paisa","money","shopping","birthday","car","bike","dog","cat","kutta","billi","food","khana","recipe","kapde","clothes","mobile","phone","computer","laptop","school","college","teacher","actor","singer","dance","nach","khel","match","ipl","bhabhi","padosi","मूवी","फिल्म","क्रिकेट","गाना","जोक","पढ़ाई","परीक्षा","नौकरी","पैसा","शॉपिंग","मौसम","राजनीति"]
 def is_health_related(text):
     t = (text or "").lower()
-    if any(w in t for w in HEALTH_WORDS): return True
     if any(w in t for w in OUT_WORDS): return False
+    if any(w in t for w in HEALTH_WORDS): return True
     if t.strip() in ["hi","hello","namaste","hey","hii","नमस्ते"]: return True
     return False
 def out_of_context_msg(real_lang):
     return "मैं सिर्फ स्वास्थ्य, चोट और एलर्जी से जुड़ी मदद कर सकती हूँ। अपनी स्वास्थ्य समस्या बताइए।" if real_lang=="Hindi" else "I can only help with health, injury and allergy related problems. Please tell your health problem."
 def detect_language(user_text):
+    # Audio / Text ki boli hui language se hi decide hoga - Sidebar se nahi
     if re.search(r'[\u0900-\u097F]', user_text): return "Hindi"
     hindi_words = ["mere","mera","mujhe","dard","hai","sar","sir","kamar","pet","badan","bukhar","sardi","khansi","khujli","daane","gala","kaan","daant","aankh","pair","haath","ghutna","chakkar","ulti","dast","kamzori","neend","chot","seene","saans"]
     for w in hindi_words:
         if w in user_text.lower(): return "Hindi"
-    return "Hindi" if IS_HINDI else "English"
+    # Agar koi Hindi nishan nahi hai to English samjho - Sidebar par depend mat karo
+    # Lekin agar user ne Sidebar me Hindi select kiya hai aur text me English-Hindi mix nahi hai, tabhi sidebar use karo
+    if IS_HINDI and re.search(r'[a-zA-Z]', user_text) is None:
+        return "Hindi"
+    # Text input ke liye Sidebar wali language, Audio ke liye boli hui language (upar se hi return ho jayegi)
+    return "English" if re.search(r'[a-zA-Z]', user_text) and not any(w in user_text.lower() for w in hindi_words) else ("Hindi" if IS_HINDI else "English")
 
 def get_instant_answer(user_text, lang_text):
+    if lang_text == "Hindi":
+        lang_rule = "Answer ONLY in proper, formal Hindi in Devanagari script. Do NOT use English or Hinglish words, except medicine names. Use simple, clear Hindi."
+    else:
+        lang_rule = "Answer ONLY in proper, formal, clear English. Do NOT use Hindi or Hinglish words. Use simple English that everyone can understand."
     prompt = f"""
     User ka symptom / problem hai: {user_text}
     User ki language hai: {lang_text}
+    {lang_rule}
     Tu ek helpful Health AI hai. Usi language me jawab de.
-    Simple, saaf, ghar wali language me jawab de. Doctor jaisi bhaari language mat use kar.
     Koi dawai ka naam, dose mat likh. Sirf ghar pe kya karna hai, wo bata.
     Jawab ISI format me de:
     **Possible Cause:**
@@ -131,9 +160,14 @@ def get_instant_answer(user_text, lang_text):
     return ans
 
 def get_medicine_info(med_name, lang):
+    if lang == "Hindi":
+        lang_rule = "Answer ONLY in proper, formal Hindi in Devanagari script. Do NOT use English or Hinglish words, except medicine names."
+    else:
+        lang_rule = "Answer ONLY in proper, formal, clear English. Do NOT use Hindi or Hinglish words."
     prompt = f"""
     Dawai ka naam hai: {med_name}
     Language: {lang}
+    {lang_rule}
     Usi language me jawab de, simple ghar wali language me.
     Format:
     **💊 {med_name}**
@@ -152,9 +186,14 @@ def get_medicine_info(med_name, lang):
     return ans
 
 def get_doctor_info_ai(user_text, lang):
+    if lang == "Hindi":
+        lang_rule = "Answer ONLY in proper Hindi in Devanagari script. No Hinglish."
+    else:
+        lang_rule = "Answer ONLY in proper English. No Hindi or Hinglish."
     prompt = f"""
     User ki takleef hai: {user_text}
     Language: {lang}
+    {lang_rule}
     Usi language me batao:
     1. Is takleef ke liye kaunse specialist doctor ko dikhana chahiye - sirf doctor ka naam
     2. Ye doctor kya karte hain - 2 line me
@@ -261,6 +300,7 @@ def show_floating_banner():
 
 def ask_reply(user_text, placeholder):
     real_lang = detect_language(user_text)
+    # Audio ke liye bhi same rule - agar boli hui baat health se related nahi hai to answer nahi
     if not is_health_related(user_text):
         msg = out_of_context_msg(real_lang)
         placeholder.markdown(msg)
@@ -270,13 +310,28 @@ def ask_reply(user_text, placeholder):
     return instant
 
 def ask_reply_photo(photo_keyword, photo_desc, placeholder):
+    # Photo ke liye language sidebar se, lekin out-of-context check description se
     real_lang = "Hindi" if IS_HINDI else "English"
+    # Agar photo ka description hi health se related nahi hai - jaise car, dog, movie, khana etc - to answer MAT karo
     if photo_desc.strip() != "":
         if not is_health_related(photo_desc):
             msg = out_of_context_msg(real_lang)
             placeholder.markdown(msg)
             return msg
+        # Agar description me OUT word hai to bhi answer mat karo
+        if any(w in photo_desc.lower() for w in OUT_WORDS):
+            msg = out_of_context_msg(real_lang)
+            placeholder.markdown(msg)
+            return msg
+    else:
+        # Agar user ne photo ka description kuch nahi likha, to photo_type se hi check karo - photo_type hamesha health wala hai isliye aage badho
+        pass
     full_text = f"{photo_keyword} {photo_desc}".strip()
+    # Final check - agar poora text hi health se related nahi hai to answer mat karo
+    if not is_health_related(full_text):
+        msg = out_of_context_msg(real_lang)
+        placeholder.markdown(msg)
+        return msg
     instant = get_instant_answer(full_text, real_lang)
     placeholder.markdown(instant)
     return instant
@@ -501,9 +556,13 @@ elif menu in ["🚨 Emergency", "🚨 आपातकाल"]:
         e = (em_final or "").lower()
         if e.strip()=="":
             st.warning(T("पहले अपनी इमरजेंसी लिखें या बोलें।","First write or speak your emergency."))
+        elif not is_health_related(em_final):
+            # Emergency me bhi out-of-context ka answer nahi karna
+            st.warning(out_of_context_msg(detect_language(em_final)))
         else:
-            lang_now = "Hindi" if IS_HINDI else "English"
-            ans = ask_ai(f"Emergency hai: {em_final}. Language: {lang_now}. Usi language me 4-5 short steps batao, ambulance aane tak kya karna hai. Pehli line me 108 par call karne ko bolo. Short, saaf, ghabraye nahi aise.")
+            lang_now = detect_language(em_final)
+            lang_rule = "Answer ONLY in proper Hindi in Devanagari script. No Hinglish." if lang_now=="Hindi" else "Answer ONLY in proper English. No Hindi or Hinglish."
+            ans = ask_ai(f"Emergency hai: {em_final}. Language: {lang_now}. {lang_rule} Usi language me 4-5 short steps batao, ambulance aane tak kya karna hai. Pehli line me 108 par call karne ko bolo. Short, saaf, ghabraye nahi aise.")
             if ans == "ERROR_KEY_MISSING":
                 st.error(T("पहले 108 पर कॉल करें!","Call 108 first!"))
             else:
