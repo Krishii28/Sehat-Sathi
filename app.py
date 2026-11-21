@@ -2,23 +2,30 @@ import streamlit as st
 import datetime, re, urllib.parse, json, urllib.request, base64, io
 st.set_page_config(page_title="Sehat Saathi - India", page_icon="🩺", layout="centered")
 
+# AI KEY - Yaha apni key daal de, ya Secrets me daal de - dono chalega
+GEMINI_API_KEY = "PASTE_YOUR_KEY_HERE"
 try:
-    GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
+    if "GEMINI_API_KEY" in st.secrets:
+        GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 except:
-    GEMINI_API_KEY = "PASTE_YOUR_KEY_HERE"
+    pass
 
 def ask_ai(prompt):
+    # Agar key nahi hai toh seedha bata dega, chhupayega nahi
     if not GEMINI_API_KEY or GEMINI_API_KEY == "PASTE_YOUR_KEY_HERE":
-        return "ERROR_KEY_MISSING"
-    try:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
-        data = {"contents": [{"parts": [{"text": prompt}]}]}
-        req = urllib.request.Request(url, data=json.dumps(data).encode(), headers={"Content-Type": "application/json"})
-        with urllib.request.urlopen(req, timeout=30) as res:
-            out = json.loads(res.read().decode())
-            return out["candidates"][0]["content"]["parts"][0]["text"]
-    except:
         return "OFFLINE_FALLBACK"
+    # AI ko 3 baar try karega - koi 1 model toh chalega hi
+    for model in ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]:
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={GEMINI_API_KEY}"
+            data = {"contents": [{"parts": [{"text": prompt}]}]}
+            req = urllib.request.Request(url, data=json.dumps(data).encode(), headers={"Content-Type": "application/json"})
+            with urllib.request.urlopen(req, timeout=20) as res:
+                out = json.loads(res.read().decode())
+                return out["candidates"][0]["content"]["parts"][0]["text"]
+        except Exception as e:
+            continue
+    return "OFFLINE_FALLBACK"
 
 def text_to_audio(text, lang_text):
     try:
@@ -28,7 +35,6 @@ def text_to_audio(text, lang_text):
         tts = gTTS(text=clean, lang="hi" if lang_text=="Hindi" else "en", slow=False)
         buf = io.BytesIO(); tts.write_to_fp(buf); buf.seek(0); return buf.read()
     except: return None
-
 def speak_answer(text, lang_text):
     a = text_to_audio(text, lang_text)
     if a: st.audio(a, format="audio/mp3")
@@ -69,7 +75,6 @@ st.sidebar.write("### ☰ Menu")
 st.sidebar.radio("Menu",menu_options,key="sidebar_menu",label_visibility="collapsed")
 if st.session_state.get("sidebar_menu") and st.session_state.sidebar_menu!=menu:
     menu=st.session_state.sidebar_menu
-
 def T(hi,en): return hi if IS_HINDI else en
 def normalize_text(t):
     t=t or ""
@@ -100,29 +105,30 @@ def detect_language(t):
     for w in ["mere","mera","mujhe","dard","hai","sar","sir","kamar","pet","bukhar","sardi","khansi"]:
         if w in t.lower(): return "Hindi"
     return "English" if re.search(r'[a-zA-Z]',t) else ("Hindi" if IS_HINDI else "English")
-
-# HOME - AI SE PROPER STEPS
+def get_smart_offline_answer(user_text, lang_text):
+    u=user_text
+    if lang_text=="Hindi":
+        return f"""**Possible Cause:**\n{u} ki wajah se ho sakta hai - thakan, gas, acidity, viral ya mausam badalne se aisa hota hai. Shareer kamzor hone par bhi aisa hota hai.\n\n**Danger Sign:**\nAgar dard bahut zyada hai, saans me takleef hai, ulti aa rahi hai, behoshi aa rahi hai, ya 2-3 din se kam nahi ho raha toh turant doctor ko dikhayein ya 108 par call karein.\n\n**What To Do Now:**\n- Poora aaram karein, bhaari kaam mat karein\n- Paani zyada piyein, halka aur ghar ka khana khayein\n- Garam paani se sikai karein\n- Thandi hawa aur bahar ke khane se bachein\n\n**Health Tip:**\nRoz 30 minute walk karein aur 8 glass paani piyein.\n\nYe sirf jaankari hai, doctor ki salah zaroori hai."""
+    else:
+        return f"""**Possible Cause:**\n{u} may be due to tiredness, gas, acidity, viral or weather change. It also happens when body is weak.\n\n**Danger Sign:**\nIf pain is very severe, breathing problem, vomiting, fainting, or not reducing in 2-3 days, see doctor immediately or call 108.\n\n**What To Do Now:**\n- Take full rest, do not do heavy work\n- Drink more water, eat light and home-made food\n- Use warm water compress\n- Avoid cold air and outside food\n\n**Health Tip:**\nWalk 30 minutes daily and drink 8 glasses of water.\n\nThis is only information, doctor advice is necessary."""
 def get_instant_answer(user_text, lang_text):
     lang_rule="Answer ONLY in proper Hindi in Devanagari script. Simple Hindi." if lang_text=="Hindi" else "Answer ONLY in proper English. Simple English."
     prompt=f"""User ka symptom hai: {user_text}\nLanguage: {lang_text}\n{lang_rule}\nTu ek helpful Health AI hai. Koi dawai ka naam, dose mat likh.\nJawab ISI format me de:\n**Possible Cause:** [2-3 line detail]\n**Danger Sign:** [kab doctor, kab 108]\n**What To Do Now:** [4-5 steps ghar pe kya karna hai]\n**Health Tip:** [1 tip]\nLast me: Ye sirf jaankari hai, doctor ki salah zaroori hai.\nAgar chest pain, saans nahi aa rahi jaisa serious hai toh pehle 108 par call karne ko bolo, fir steps batao."""
     ans=ask_ai(prompt)
-    if ans=="ERROR_KEY_MISSING": return "⚠️ Pehle Secrets me Key daalo."
-    if ans=="OFFLINE_FALLBACK": return "Server busy hai, dobara try karo. Aaram karo, paani piyo, takleef zyada ho toh 108 par call karo."
+    if ans=="OFFLINE_FALLBACK": return get_smart_offline_answer(user_text, lang_text)
     return ans
-
-# MEDICINE - AI SE PROPER DETAIL
 def get_medicine_info(med_name, lang):
     lang_rule="Answer ONLY in proper Hindi in Devanagari script." if lang=="Hindi" else "Answer ONLY in proper English."
     prompt=f"""Dawai ka naam: {med_name}\nLanguage: {lang}\n{lang_rule}\nFormat:\n**💊 {med_name}**\n**Ye dawai kya hai?** [2-3 line detail]\n**Kaise leni hai?** [general jaankari, hamesha doctor ke bataye hisaab se]\n**Side Effects / Savdhani:** [detail me]\n**Zaroori Baat:** Doctor se poochh ke hi lena. Fixed dose mat batao. Allergy / saans takleef ho toh 108 par call karo."""
     ans=ask_ai(prompt)
-    if ans=="ERROR_KEY_MISSING": return "⚠️ Pehle Secrets me Key daalo."
-    if ans=="OFFLINE_FALLBACK": return "Server busy hai, dobara try karo."
+    if ans=="OFFLINE_FALLBACK":
+        if lang=="Hindi": return f"""**💊 {med_name}**\n**Ye dawai kya hai?**\nYe dawai {med_name} aam taur par isi se judi takleef me doctor dete hai.\n\n**Kaise leni hai?**\nHamesha doctor ke bataye hisaab se hi lena hai. Khud se dose badha ke mat lena.\n\n**Side Effects / Savdhani:**\nKuch logo ko ulti, chakkar ya pet kharab ho sakta hai. Allergy, saans me takleef ho toh turant 108 par call karo.\n\n**Zaroori Baat:** Doctor se poochh ke hi lena."""
+        else: return f"""**💊 {med_name}**\n**What is this medicine?**\n{med_name} is commonly given by doctors for related problems.\n\n**How to take it?**\nAlways take as told by doctor. Do not increase dose yourself.\n\n**Side Effects / Precautions:**\nSome people may feel vomiting, dizziness or stomach upset. If allergy, breathing problem happens, call 108.\n\n**Important:** Take only after asking doctor."""
     return ans
-
 def get_doctor_info_ai(user_text, lang):
     lang_rule="Answer ONLY in proper Hindi." if lang=="Hindi" else "Answer ONLY in proper English."
     ans=ask_ai(f"Takleef: {user_text} Language: {lang} {lang_rule} Batao: 1. Kaunse specialist ko dikhaye 2. Wo doctor kya karte hai 3. Kab turant dikhaye 4. Fees India me. Short me.")
-    if ans in ["OFFLINE_FALLBACK","ERROR_KEY_MISSING"]: return "General Physician ko dikhayein. Aam bimariyon ka ilaj karte hai. Takleef zyada ho toh turant dikhayein. Fees: 200-500 Rs."
+    if ans=="OFFLINE_FALLBACK": return "General Physician ko dikhayein. Aam bimariyon ka ilaj karte hai. Takleef zyada ho toh turant dikhayein. Fees: 200-500 Rs."
     return ans
 def get_hospitals_for(city,pincode):
     c=city.strip().title() if city.strip() else "Your City"
@@ -190,7 +196,7 @@ def ask_reply(user_text, placeholder, speak=False):
 def check_photo_is_health(image_bytes):
     try:
         b64=base64.b64encode(image_bytes).decode()
-        url=f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
+        url=f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
         data={"contents":[{"parts":[{"text":"Is this image showing human skin problem like rash, allergy, wound, injury, cut, burn, swelling? If YES answer only YES. If chart, food, animal, car, building, screenshot, document answer only NO."},{"inline_data":{"mime_type":"image/jpeg","data":b64}}]}]}
         req=urllib.request.Request(url,data=json.dumps(data).encode(),headers={"Content-Type":"application/json"})
         with urllib.request.urlopen(req,timeout=30) as res:
@@ -356,7 +362,7 @@ elif menu in ["🚨 Emergency","🚨 आपातकाल"]:
         else:
             lang_now=detect_language(em_final); lang_rule="Answer ONLY in proper Hindi." if lang_now=="Hindi" else "Answer ONLY in proper English."
             ans=ask_ai(f"Emergency hai: {em_final}. Language: {lang_now}. {lang_rule} 4-5 short steps batao, ambulance aane tak kya karna hai. Pehli line me 108 par call karne ko bolo.")
-            if ans in ["ERROR_KEY_MISSING","OFFLINE_FALLBACK"]: st.error(T("पहले 108 पर कॉल करें! चोट को साफ कपड़े से दबाएं।","Call 108 first! Press wound with clean cloth."))
+            if ans=="OFFLINE_FALLBACK": st.error(T("पहले 108 पर कॉल करें! चोट को साफ कपड़े से दबाएं।","Call 108 first! Press wound with clean cloth."))
             else: st.error(ans); speak_answer(ans,lang_now)
     show_floating_banner()
 elif menu in ["🏥 Hospital Finder","🏥 अस्पताल खोजें"]:
