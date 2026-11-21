@@ -18,7 +18,7 @@ def ask_ai(prompt):
     if not GEMINI_API_KEY or GEMINI_API_KEY == "PASTE_YOUR_KEY_HERE":
         return "ERROR_KEY_MISSING"
     try:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key={GEMINI_API_KEY}"
         data = {"contents": [{"parts": [{"text": prompt}]}]}
         req = urllib.request.Request(url, data=json.dumps(data).encode(), headers={"Content-Type": "application/json"})
         with urllib.request.urlopen(req, timeout=30) as res:
